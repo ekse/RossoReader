@@ -1,0 +1,36 @@
+# Go
+backend/tmp/
+backend/server
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Frontend
+node_modules/
+.pnpm-store/
+frontend/dist/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
+.env.production
+
+# Docker
+.postgres-data/
+
+# Go binary in root
+*.test
+*.out

@@ -1,0 +1,46 @@
+{
+  "name": "RssReader",
+  "dockerComposeFile": "docker-compose.dev.yml",
+  "service": "app",
+  "workspaceFolder": "/workspace",
+  "forwardPorts": [5173, 8080, 5432],
+  "portsAttributes": {
+    "5173": { "label": "Vite dev server" },
+    "8080": { "label": "Go API server" },
+    "5432": { "label": "PostgreSQL" }
+  },
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {
+      "pnpmVersion": "latest"
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "golang.Go",
+        "Vue.volar",
+        "bradlc.vscode-tailwindcss",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "ms-azuretools.vscode-docker",
+        "EditorConfig.EditorConfig"
+      ],
+      "settings": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "[go]": {
+          "editor.defaultFormatter": "golang.Go"
+        },
+        "[vue]": {
+          "editor.defaultFormatter": "Vue.volar"
+        },
+        "tailwindCSS.experimental.classRegex": [],
+        "tailwindCSS.includeLanguages": {
+          "vue": "html"
+        }
+      }
+    }
+  },
+  "postCreateCommand": "cd frontend && pnpm install",
+  "remoteUser": "vscode"
+}
