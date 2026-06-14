@@ -13,10 +13,15 @@ const emit = defineEmits<{
 }>()
 
 function formatDate(dateStr?: string): string {
-  if (!dateStr) return ''
-  return new Date(dateStr).toLocaleDateString('en-US', {
-    month: 'short', day: 'numeric', year: 'numeric',
-  })
+	if (!dateStr) return ''
+	return new Date(dateStr).toLocaleDateString('en-US', {
+		month: 'short', day: 'numeric', year: 'numeric',
+	})
+}
+
+function stripHtml(s?: string): string {
+	if (!s) return ''
+	return s.replace(/<[^>]*>/g, '')
 }
 </script>
 
@@ -45,7 +50,7 @@ function formatDate(dateStr?: string): string {
               </a>
             </h3>
             <p v-if="item.description" class="mt-1 text-sm text-gray-500 line-clamp-2">
-              {{ item.description }}
+              {{ stripHtml(item.description) }}
             </p>
             <div class="mt-1 flex items-center gap-3 text-xs text-gray-400">
               <span v-if="item.author">{{ item.author }}</span>

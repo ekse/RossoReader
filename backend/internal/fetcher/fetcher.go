@@ -3,6 +3,7 @@ package fetcher
 import (
 	"context"
 	"fmt"
+	"html"
 	"time"
 
 	"github.com/mmcdole/gofeed"
@@ -30,10 +31,10 @@ func (f *HTTPFetcher) Fetch(ctx context.Context, feedURL string) ([]domain.Item,
 		return nil, "", "", "", fmt.Errorf("parse feed %q: %w", feedURL, err)
 	}
 
-	title := feed.Title
+	title := html.UnescapeString(feed.Title)
 	description := ""
 	if feed.Description != "" {
-		description = feed.Description
+		description = html.UnescapeString(feed.Description)
 	}
 	siteLink := ""
 	if feed.Link != "" {
@@ -52,12 +53,13 @@ func (f *HTTPFetcher) Fetch(ctx context.Context, feedURL string) ([]domain.Item,
 
 		item := domain.Item{
 			GUID:    guid,
-			Title:   gi.Title,
+			Title:   html.UnescapeString(gi.Title),
 			URL:     gi.Link,
 			Content: nullString(gi.Content),
 			Description: func() *string {
 				if gi.Description != "" {
-					return &gi.Description
+					s := html.UnescapeString(gi.Description)
+					return &s
 				}
 				return nil
 			}(),
