@@ -17,6 +17,7 @@ type Feed struct {
 	LastFetchedAt pgtype.Timestamptz `json:"last_fetched_at"`
 	CreatedAt     pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
+	IconUrl       *string            `json:"icon_url"`
 }
 
 type Item struct {

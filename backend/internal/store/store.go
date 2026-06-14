@@ -10,10 +10,10 @@ type Store interface {
 	// Feeds
 	GetFeeds(ctx context.Context) ([]domain.Feed, error)
 	GetFeed(ctx context.Context, id int64) (domain.Feed, error)
-	CreateFeed(ctx context.Context, url, title, description, siteLink string) (domain.Feed, error)
+	CreateFeed(ctx context.Context, url, title, description, siteLink, iconURL string) (domain.Feed, error)
 	DeleteFeed(ctx context.Context, id int64) error
 	UpdateFeedLastFetched(ctx context.Context, id int64) error
-	UpdateFeedMetadata(ctx context.Context, id int64, title, description, siteLink string) error
+	UpdateFeedMetadata(ctx context.Context, id int64, title, description, siteLink, iconURL string) error
 
 	// Items
 	GetItems(ctx context.Context, q domain.ItemsQuery) ([]domain.Item, int64, error)

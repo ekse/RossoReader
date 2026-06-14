@@ -40,12 +40,13 @@ func (s *PGStore) GetFeed(ctx context.Context, id int64) (domain.Feed, error) {
 	return toDomainFeed(r), nil
 }
 
-func (s *PGStore) CreateFeed(ctx context.Context, url, title, description, siteLink string) (domain.Feed, error) {
+func (s *PGStore) CreateFeed(ctx context.Context, url, title, description, siteLink, iconURL string) (domain.Feed, error) {
 	r, err := s.q.CreateFeed(ctx, generated.CreateFeedParams{
 		Url:         url,
 		Title:       title,
 		Description: nullableString(description),
 		SiteLink:    nullableString(siteLink),
+		IconUrl:     nullableString(iconURL),
 	})
 	if err != nil {
 		return domain.Feed{}, fmt.Errorf("create feed: %w", err)
@@ -69,12 +70,13 @@ func (s *PGStore) UpdateFeedLastFetched(ctx context.Context, id int64) error {
 	return nil
 }
 
-func (s *PGStore) UpdateFeedMetadata(ctx context.Context, id int64, title, description, siteLink string) error {
+func (s *PGStore) UpdateFeedMetadata(ctx context.Context, id int64, title, description, siteLink, iconURL string) error {
 	err := s.q.UpdateFeedMetadata(ctx, generated.UpdateFeedMetadataParams{
 		ID:          int32(id),
 		Title:       title,
 		Description: nullableString(description),
 		SiteLink:    nullableString(siteLink),
+		IconUrl:     nullableString(iconURL),
 	})
 	if err != nil {
 		return fmt.Errorf("update feed metadata %d: %w", id, err)
@@ -240,6 +242,7 @@ func toDomainFeed(r generated.Feed) domain.Feed {
 		Title:         r.Title,
 		Description:   r.Description,
 		SiteLink:      r.SiteLink,
+		IconURL:       r.IconUrl,
 		LastFetchedAt: fromTimestamptz(r.LastFetchedAt),
 		CreatedAt:     r.CreatedAt.Time,
 		UpdatedAt:     r.UpdatedAt.Time,

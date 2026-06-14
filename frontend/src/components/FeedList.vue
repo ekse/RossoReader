@@ -36,14 +36,23 @@ function selectFeed(id: number) {
           class="w-full text-left px-3 py-2 rounded-md text-sm"
           :class="route.params.id === String(feed.id) ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-100'"
         >
-          <div class="flex items-center justify-between">
-            <span class="truncate">{{ feed.title || feed.url }}</span>
-            <span
-              v-if="feed.unread_count && feed.unread_count > 0"
-              class="ml-2 inline-flex items-center justify-center px-2 py-0.5 text-xs font-medium rounded-full bg-blue-100 text-blue-800"
-            >
-              {{ feed.unread_count }}
-            </span>
+          <div class="flex items-center gap-2">
+            <img
+              v-if="feed.icon_url"
+              :src="feed.icon_url"
+              class="w-4 h-4 shrink-0 rounded"
+              alt=""
+              loading="lazy"
+            />
+            <div class="flex items-center justify-between flex-1 min-w-0">
+              <span class="truncate">{{ feed.title || feed.url }}</span>
+              <span
+                v-if="feed.unread_count && feed.unread_count > 0"
+                class="ml-2 shrink-0 inline-flex items-center justify-center px-2 py-0.5 text-xs font-medium rounded-full bg-blue-100 text-blue-800"
+              >
+                {{ feed.unread_count }}
+              </span>
+            </div>
           </div>
         </button>
       </div>

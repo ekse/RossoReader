@@ -87,7 +87,7 @@ func TestPGStore_CreateAndGetFeed(t *testing.T) {
 
 	ctx := context.Background()
 
-	feed, err := store.CreateFeed(ctx, "https://example.com/rss", "Example Blog", "An example blog", "https://example.com")
+	feed, err := store.CreateFeed(ctx, "https://example.com/rss", "Example Blog", "An example blog", "https://example.com", "")
 	require.NoError(t, err)
 	assert.Equal(t, "Example Blog", feed.Title)
 	assert.Equal(t, "https://example.com/rss", feed.URL)
@@ -105,9 +105,9 @@ func TestPGStore_GetFeeds(t *testing.T) {
 
 	ctx := context.Background()
 
-	_, err := store.CreateFeed(ctx, "https://a.com/rss", "A", "", "https://a.com")
+	_, err := store.CreateFeed(ctx, "https://a.com/rss", "A", "", "https://a.com", "")
 	require.NoError(t, err)
-	_, err = store.CreateFeed(ctx, "https://b.com/rss", "B", "", "https://b.com")
+	_, err = store.CreateFeed(ctx, "https://b.com/rss", "B", "", "https://b.com", "")
 	require.NoError(t, err)
 
 	feeds, err := store.GetFeeds(ctx)
@@ -121,7 +121,7 @@ func TestPGStore_DeleteFeed(t *testing.T) {
 
 	ctx := context.Background()
 
-	feed, err := store.CreateFeed(ctx, "https://example.com/rss", "Example", "", "")
+	feed, err := store.CreateFeed(ctx, "https://example.com/rss", "Example", "", "", "")
 	require.NoError(t, err)
 
 	err = store.DeleteFeed(ctx, feed.ID)
@@ -137,7 +137,7 @@ func TestPGStore_UpsertItem(t *testing.T) {
 
 	ctx := context.Background()
 
-	feed, err := store.CreateFeed(ctx, "https://example.com/rss", "Example", "", "")
+	feed, err := store.CreateFeed(ctx, "https://example.com/rss", "Example", "", "", "")
 	require.NoError(t, err)
 
 	now := time.Now()
@@ -171,7 +171,7 @@ func TestPGStore_GetItemsWithFilters(t *testing.T) {
 
 	ctx := context.Background()
 
-	feed, err := store.CreateFeed(ctx, "https://example.com/rss", "Example", "", "")
+	feed, err := store.CreateFeed(ctx, "https://example.com/rss", "Example", "", "", "")
 	require.NoError(t, err)
 
 	now := time.Now()

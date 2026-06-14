@@ -47,7 +47,7 @@ func (m *MockStore) GetFeed(_ context.Context, id int64) (domain.Feed, error) {
 	return domain.Feed{}, fmt.Errorf("feed %d not found", id)
 }
 
-func (m *MockStore) CreateFeed(_ context.Context, url, title, description, siteLink string) (domain.Feed, error) {
+func (m *MockStore) CreateFeed(_ context.Context, url, title, description, siteLink, iconURL string) (domain.Feed, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	now := time.Now()
@@ -57,6 +57,7 @@ func (m *MockStore) CreateFeed(_ context.Context, url, title, description, siteL
 		Title:       title,
 		Description: strPtr(description),
 		SiteLink:    strPtr(siteLink),
+		IconURL:     strPtr(iconURL),
 		CreatedAt:   now,
 		UpdatedAt:   now,
 	}
@@ -90,7 +91,7 @@ func (m *MockStore) UpdateFeedLastFetched(_ context.Context, id int64) error {
 	return fmt.Errorf("feed %d not found", id)
 }
 
-func (m *MockStore) UpdateFeedMetadata(_ context.Context, id int64, title, description, siteLink string) error {
+func (m *MockStore) UpdateFeedMetadata(_ context.Context, id int64, title, description, siteLink, iconURL string) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	for i, f := range m.Feeds {
@@ -98,6 +99,7 @@ func (m *MockStore) UpdateFeedMetadata(_ context.Context, id int64, title, descr
 			m.Feeds[i].Title = title
 			m.Feeds[i].Description = strPtr(description)
 			m.Feeds[i].SiteLink = strPtr(siteLink)
+			m.Feeds[i].IconURL = strPtr(iconURL)
 			return nil
 		}
 	}

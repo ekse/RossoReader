@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/url"
 	"os"
 	"strconv"
 
@@ -84,8 +85,10 @@ func (s *Scheduler) FetchFeed(ctx context.Context, feed domain.Feed) error {
 		return fmt.Errorf("fetch feed %q: %w", feed.URL, err)
 	}
 
-	if title != "" && (title != feed.Title || description != *feed.Description || siteLink != *feed.SiteLink) {
-		if err := s.store.UpdateFeedMetadata(ctx, feed.ID, title, description, siteLink); err != nil {
+	iconURL := faviconURL(siteLink)
+	needsUpdate := title != "" && (title != feed.Title || !ptrEqual(siteLink, feed.SiteLink) || !ptrEqual(description, feed.Description) || !ptrEqual(iconURL, feed.IconURL))
+	if needsUpdate {
+		if err := s.store.UpdateFeedMetadata(ctx, feed.ID, title, description, siteLink, iconURL); err != nil {
 			return fmt.Errorf("update feed metadata: %w", err)
 		}
 	}
@@ -110,4 +113,22 @@ func (s *Scheduler) FetchFeedByID(ctx context.Context, feedID int64) error {
 		return fmt.Errorf("get feed %d: %w", feedID, err)
 	}
 	return s.FetchFeed(ctx, feed)
+}
+
+func faviconURL(siteLink string) string {
+	if siteLink == "" {
+		return ""
+	}
+	u, err := url.Parse(siteLink)
+	if err != nil || u.Host == "" {
+		return ""
+	}
+	return "https://www.google.com/s2/favicons?domain=" + u.Host + "&sz=32"
+}
+
+func ptrEqual(a string, b *string) bool {
+	if b == nil {
+		return a == ""
+	}
+	return a == *b
 }

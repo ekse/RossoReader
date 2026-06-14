@@ -10,9 +10,9 @@ import (
 )
 
 const createFeed = `-- name: CreateFeed :one
-INSERT INTO feeds (url, title, description, site_link)
-VALUES ($1, $2, $3, $4)
-RETURNING id, url, title, description, site_link, last_fetched_at, created_at, updated_at
+INSERT INTO feeds (url, title, description, site_link, icon_url)
+VALUES ($1, $2, $3, $4, $5)
+RETURNING id, url, title, description, site_link, last_fetched_at, created_at, updated_at, icon_url
 `
 
 type CreateFeedParams struct {
@@ -20,6 +20,7 @@ type CreateFeedParams struct {
 	Title       string  `json:"title"`
 	Description *string `json:"description"`
 	SiteLink    *string `json:"site_link"`
+	IconUrl     *string `json:"icon_url"`
 }
 
 func (q *Queries) CreateFeed(ctx context.Context, arg CreateFeedParams) (Feed, error) {
@@ -28,6 +29,7 @@ func (q *Queries) CreateFeed(ctx context.Context, arg CreateFeedParams) (Feed, e
 		arg.Title,
 		arg.Description,
 		arg.SiteLink,
+		arg.IconUrl,
 	)
 	var i Feed
 	err := row.Scan(
@@ -39,6 +41,7 @@ func (q *Queries) CreateFeed(ctx context.Context, arg CreateFeedParams) (Feed, e
 		&i.LastFetchedAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.IconUrl,
 	)
 	return i, err
 }
@@ -54,7 +57,7 @@ func (q *Queries) DeleteFeed(ctx context.Context, id int32) error {
 }
 
 const getFeedByID = `-- name: GetFeedByID :one
-SELECT id, url, title, description, site_link, last_fetched_at, created_at, updated_at
+SELECT id, url, title, description, site_link, last_fetched_at, created_at, updated_at, icon_url
 FROM feeds
 WHERE id = $1
 `
@@ -71,12 +74,13 @@ func (q *Queries) GetFeedByID(ctx context.Context, id int32) (Feed, error) {
 		&i.LastFetchedAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.IconUrl,
 	)
 	return i, err
 }
 
 const getFeedByURL = `-- name: GetFeedByURL :one
-SELECT id, url, title, description, site_link, last_fetched_at, created_at, updated_at
+SELECT id, url, title, description, site_link, last_fetched_at, created_at, updated_at, icon_url
 FROM feeds
 WHERE url = $1
 `
@@ -93,12 +97,13 @@ func (q *Queries) GetFeedByURL(ctx context.Context, url string) (Feed, error) {
 		&i.LastFetchedAt,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.IconUrl,
 	)
 	return i, err
 }
 
 const getFeeds = `-- name: GetFeeds :many
-SELECT id, url, title, description, site_link, last_fetched_at, created_at, updated_at
+SELECT id, url, title, description, site_link, last_fetched_at, created_at, updated_at, icon_url
 FROM feeds
 ORDER BY title
 `
@@ -121,6 +126,7 @@ func (q *Queries) GetFeeds(ctx context.Context) ([]Feed, error) {
 			&i.LastFetchedAt,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.IconUrl,
 		); err != nil {
 			return nil, err
 		}
@@ -145,7 +151,7 @@ func (q *Queries) UpdateFeedLastFetched(ctx context.Context, id int32) error {
 
 const updateFeedMetadata = `-- name: UpdateFeedMetadata :exec
 UPDATE feeds
-SET title = $2, description = $3, site_link = $4, updated_at = NOW()
+SET title = $2, description = $3, site_link = $4, icon_url = $5, updated_at = NOW()
 WHERE id = $1
 `
 
@@ -154,6 +160,7 @@ type UpdateFeedMetadataParams struct {
 	Title       string  `json:"title"`
 	Description *string `json:"description"`
 	SiteLink    *string `json:"site_link"`
+	IconUrl     *string `json:"icon_url"`
 }
 
 func (q *Queries) UpdateFeedMetadata(ctx context.Context, arg UpdateFeedMetadataParams) error {
@@ -162,6 +169,7 @@ func (q *Queries) UpdateFeedMetadata(ctx context.Context, arg UpdateFeedMetadata
 		arg.Title,
 		arg.Description,
 		arg.SiteLink,
+		arg.IconUrl,
 	)
 	return err
 }

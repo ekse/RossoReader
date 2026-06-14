@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"strconv"
@@ -54,14 +55,14 @@ func (h *Handler) AddFeed(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	feed, err := h.Store.CreateFeed(r.Context(), req.URL, "", "", "")
+	feed, err := h.Store.CreateFeed(r.Context(), req.URL, "", "", "", "")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	if h.Scheduler != nil {
-		go h.Scheduler.FetchFeedByID(r.Context(), feed.ID)
+		go h.Scheduler.FetchFeedByID(context.Background(), feed.ID)
 	}
 
 	writeJSON(w, http.StatusCreated, feed)

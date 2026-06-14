@@ -4,6 +4,7 @@ export interface Feed {
   title: string
   description?: string
   site_link?: string
+  icon_url?: string
   last_fetched_at?: string
   created_at: string
   updated_at: string
