@@ -2,6 +2,7 @@
 import { onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useItemsStore } from '@/stores/items'
+import { useFeedsStore } from '@/stores/feeds'
 import ItemList from '@/components/ItemList.vue'
 import AddFeedDialog from '@/components/AddFeedDialog.vue'
 import { ref } from 'vue'
@@ -9,6 +10,7 @@ import * as api from '@/api/client'
 
 const route = useRoute()
 const itemsStore = useItemsStore()
+const feedsStore = useFeedsStore()
 const showAddFeed = ref(false)
 
 const feedId = ref<number | null>(null)
@@ -25,6 +27,8 @@ async function markAllRead() {
   if (!feedId.value) return
   await api.markFeedRead(feedId.value)
   itemsStore.loadItems()
+  const feed = feedsStore.feeds.find(f => f.id === feedId.value)
+  if (feed) feed.unread_count = 0
 }
 
 function loadFeed() {

@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import type { Item } from '@/types'
 import * as api from '@/api/client'
+import { useFeedsStore } from './feeds'
 
 export const useItemsStore = defineStore('items', () => {
   const items = ref<Item[]>([])
@@ -46,9 +47,15 @@ export const useItemsStore = defineStore('items', () => {
   }
 
   async function toggleRead(item: Item) {
+    const wasUnread = !item.read
     const updated = await api.updateItem(item.id, { read: !item.read })
     const idx = items.value.findIndex(i => i.id === item.id)
     if (idx !== -1) items.value[idx] = updated
+    const feedsStore = useFeedsStore()
+    const feed = feedsStore.feeds.find(f => f.id === item.feed_id)
+    if (feed && feed.unread_count !== undefined) {
+      feed.unread_count += wasUnread ? -1 : 1
+    }
   }
 
   async function toggleStarred(item: Item) {
