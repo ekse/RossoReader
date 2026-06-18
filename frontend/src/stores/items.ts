@@ -64,19 +64,28 @@ export const useItemsStore = defineStore('items', () => {
     if (idx !== -1) items.value[idx] = updated
   }
 
+  function resetFilters() {
+    filterFeedId.value = undefined
+    filterRead.value = undefined
+    filterStarred.value = undefined
+  }
+
   function setFilterFeedId(id: number | undefined) {
+    resetFilters()
     filterFeedId.value = id
     page.value = 1
     loadItems()
   }
 
   function setFilterRead(read: boolean | undefined) {
+    resetFilters()
     filterRead.value = read
     page.value = 1
     loadItems()
   }
 
   function setFilterStarred(starred: boolean | undefined) {
+    resetFilters()
     filterStarred.value = starred
     page.value = 1
     loadItems()

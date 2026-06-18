@@ -28,17 +28,32 @@ const lastUpdate = computed(() => {
   dates.sort()
   return dates[dates.length - 1]
 })
+
+const totalUnread = computed(() =>
+  feedsStore.feeds.reduce((sum, f) => sum + (f.unread_count || 0), 0)
+)
 </script>
 
 <template>
   <div class="flex flex-col h-full">
     <div class="flex-1 p-4 overflow-y-auto">
+      <div class="px-3 mb-3 flex items-center gap-2 font-bold tracking-[0.2em] text-red-600 select-none">
+       🌹Rosso
+      </div>
       <router-link
         to="/unread"
         class="block px-3 py-2 rounded-md text-sm font-medium"
         :class="route.path === '/unread' ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-100'"
       >
-        New
+        <span class="flex items-center justify-between">
+          New
+          <span
+            v-if="totalUnread > 0"
+            class="inline-flex items-center justify-center px-2 py-0.5 text-xs font-medium rounded-full bg-blue-100 text-blue-800"
+          >
+            {{ totalUnread }}
+          </span>
+        </span>
       </router-link>
       <router-link
         to="/starred"
