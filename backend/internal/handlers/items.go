@@ -110,3 +110,11 @@ func (h *Handler) UpdateItem(w http.ResponseWriter, r *http.Request) {
 
 	writeJSON(w, http.StatusOK, item)
 }
+
+func (h *Handler) MarkAllRead(w http.ResponseWriter, r *http.Request) {
+	if err := h.Store.MarkAllItemsRead(r.Context()); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}

@@ -48,6 +48,11 @@ UPDATE items
 SET read = TRUE
 WHERE feed_id = $1 AND read = FALSE;
 
+-- name: MarkAllItemsRead :exec
+UPDATE items
+SET read = TRUE
+WHERE read = FALSE;
+
 -- name: GetUnreadCountByFeed :many
 SELECT feed_id, COUNT(*)::int AS count
 FROM items

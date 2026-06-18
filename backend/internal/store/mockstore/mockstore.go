@@ -204,6 +204,15 @@ func (m *MockStore) MarkAllFeedItemsRead(_ context.Context, feedID int64) error 
 	return nil
 }
 
+func (m *MockStore) MarkAllItemsRead(_ context.Context) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	for i := range m.Items {
+		m.Items[i].Read = true
+	}
+	return nil
+}
+
 func (m *MockStore) GetUnreadCountByFeed(_ context.Context) (map[int64]int, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()

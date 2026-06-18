@@ -147,6 +147,17 @@ func (q *Queries) GetUnreadCountByFeed(ctx context.Context) ([]GetUnreadCountByF
 	return items, nil
 }
 
+const markAllItemsRead = `-- name: MarkAllItemsRead :exec
+UPDATE items
+SET read = TRUE
+WHERE read = FALSE
+`
+
+func (q *Queries) MarkAllItemsRead(ctx context.Context) error {
+	_, err := q.db.Exec(ctx, markAllItemsRead)
+	return err
+}
+
 const markFeedItemsRead = `-- name: MarkFeedItemsRead :exec
 UPDATE items
 SET read = TRUE

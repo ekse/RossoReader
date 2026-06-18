@@ -21,6 +21,7 @@ type Querier interface {
 	GetSetting(ctx context.Context, key string) (Setting, error)
 	GetSettings(ctx context.Context) ([]Setting, error)
 	GetUnreadCountByFeed(ctx context.Context) ([]GetUnreadCountByFeedRow, error)
+	MarkAllItemsRead(ctx context.Context) error
 	MarkFeedItemsRead(ctx context.Context, feedID int32) error
 	MarkItemRead(ctx context.Context, arg MarkItemReadParams) error
 	MarkItemStarred(ctx context.Context, arg MarkItemStarredParams) error

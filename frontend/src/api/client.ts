@@ -38,6 +38,10 @@ export async function fetchItems(params?: {
   return res.data
 }
 
+export async function markAllItemsRead(): Promise<void> {
+  await api.post('/api/items/read-all')
+}
+
 export async function updateItem(id: number, data: { read?: boolean; starred?: boolean }): Promise<Item> {
   const res = await api.patch(`/api/items/${id}`, data)
   return res.data

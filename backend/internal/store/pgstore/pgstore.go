@@ -184,6 +184,14 @@ func (s *PGStore) MarkAllFeedItemsRead(ctx context.Context, feedID int64) error 
 	return nil
 }
 
+func (s *PGStore) MarkAllItemsRead(ctx context.Context) error {
+	err := s.q.MarkAllItemsRead(ctx)
+	if err != nil {
+		return fmt.Errorf("mark all items read: %w", err)
+	}
+	return nil
+}
+
 func (s *PGStore) GetUnreadCountByFeed(ctx context.Context) (map[int64]int, error) {
 	rows, err := s.q.GetUnreadCountByFeed(ctx)
 	if err != nil {

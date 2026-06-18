@@ -22,6 +22,7 @@ type Store interface {
 	MarkItemRead(ctx context.Context, id int64, read bool) error
 	MarkItemStarred(ctx context.Context, id int64, starred bool) error
 	MarkAllFeedItemsRead(ctx context.Context, feedID int64) error
+	MarkAllItemsRead(ctx context.Context) error
 	GetUnreadCountByFeed(ctx context.Context) (map[int64]int, error)
 
 	// Settings

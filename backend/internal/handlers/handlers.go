@@ -26,6 +26,7 @@ func (h *Handler) Router() chi.Router {
 	r.Post("/api/feeds/{id}/read-all", h.MarkFeedRead)
 
 	r.Get("/api/items", h.ListItems)
+	r.Post("/api/items/read-all", h.MarkAllRead)
 	r.Patch("/api/items/{id}", h.UpdateItem)
 
 	r.Get("/api/settings", h.GetSettings)
