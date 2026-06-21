@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useFeedsStore } from '@/stores/feeds'
+import AddFeedDialog from './AddFeedDialog.vue'
 
 const feedsStore = useFeedsStore()
 const router = useRouter()
 const route = useRoute()
+const showAddFeed = ref(false)
 
 onMounted(() => {
   feedsStore.loadFeeds()
@@ -64,7 +66,15 @@ const totalUnread = computed(() =>
       </router-link>
 
       <div class="mt-6">
-        <h3 class="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Feeds</h3>
+        <div class="px-3 flex items-center">
+          <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Feeds</h3>
+          <button
+            @click="showAddFeed = true"
+            class="w-5 h-5 flex items-center font-bold justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+          >
+            +
+          </button>
+        </div>
         <div class="mt-2 space-y-1">
           <button
             v-for="feed in feedsStore.feeds"
@@ -109,5 +119,6 @@ const totalUnread = computed(() =>
     <div v-if="lastUpdate" class="shrink-0 px-4 py-3 border-t border-gray-200 text-xs text-gray-400">
       Last updated: {{ formatDate(lastUpdate) }}
     </div>
+    <AddFeedDialog v-if="showAddFeed" @close="showAddFeed = false" />
   </div>
 </template>

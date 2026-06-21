@@ -86,7 +86,8 @@ func (s *Scheduler) FetchFeed(ctx context.Context, feed domain.Feed) error {
 	}
 
 	iconURL := faviconURL(siteLink)
-	needsUpdate := title != "" && (title != feed.Title || !ptrEqual(siteLink, feed.SiteLink) || !ptrEqual(description, feed.Description) || !ptrEqual(iconURL, feed.IconURL))
+	needsUpdate := title != "" && (title != feed.Title || !ptrEqual(siteLink, feed.SiteLink) ||
+		!ptrEqual(description, feed.Description) || !ptrEqual(iconURL, feed.IconURL))
 	if needsUpdate {
 		if err := s.store.UpdateFeedMetadata(ctx, feed.ID, title, description, siteLink, iconURL); err != nil {
 			return fmt.Errorf("update feed metadata: %w", err)
