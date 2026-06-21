@@ -31,3 +31,8 @@ export interface ItemsResponse {
   total: number
   page: number
 }
+
+export interface DiscoveredFeed {
+  url: string
+  title: string
+}

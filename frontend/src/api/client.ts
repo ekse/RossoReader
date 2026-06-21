@@ -1,5 +1,5 @@
 import axios from 'axios'
-import type { Feed, Item, ItemsResponse } from '@/types'
+import type { Feed, Item, ItemsResponse, DiscoveredFeed } from '@/types'
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || '',
@@ -12,6 +12,11 @@ export async function fetchFeeds(): Promise<Feed[]> {
 
 export async function addFeed(url: string): Promise<Feed> {
   const res = await api.post('/api/feeds', { url })
+  return res.data
+}
+
+export async function discoverFeeds(url: string): Promise<DiscoveredFeed[]> {
+  const res = await api.post('/api/feeds/discover', { url })
   return res.data
 }
 

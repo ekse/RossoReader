@@ -24,7 +24,7 @@ func TestListItems(t *testing.T) {
 		{ID: 2, FeedID: 1, GUID: "2", Title: "Post 2", URL: "https://ex.com/2", PublishedAt: &now},
 	}
 
-	h := handlers.New(store, nil)
+	h := handlers.New(store, nil, nil)
 	req := httptest.NewRequest("GET", "/api/items?per_page=10", nil)
 	w := httptest.NewRecorder()
 	h.Router().ServeHTTP(w, req)
@@ -50,7 +50,7 @@ func TestListItems_WithFeedFilter(t *testing.T) {
 		{ID: 2, FeedID: 2, GUID: "2", Title: "Feed 2 Post", URL: "https://ex.com/2", PublishedAt: &now},
 	}
 
-	h := handlers.New(store, nil)
+	h := handlers.New(store, nil, nil)
 	req := httptest.NewRequest("GET", "/api/items?feed_id=1&per_page=10", nil)
 	w := httptest.NewRecorder()
 	h.Router().ServeHTTP(w, req)
@@ -72,7 +72,7 @@ func TestUpdateItem_MarkRead(t *testing.T) {
 		{ID: 1, FeedID: 1, GUID: "1", Title: "Post", URL: "https://ex.com/1", PublishedAt: &now},
 	}
 
-	h := handlers.New(store, nil)
+	h := handlers.New(store, nil, nil)
 	body := `{"read":true}`
 	req := httptest.NewRequest("PATCH", "/api/items/1", strings.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
@@ -93,7 +93,7 @@ func TestUpdateItem_MarkStarred(t *testing.T) {
 		{ID: 1, FeedID: 1, GUID: "1", Title: "Post", URL: "https://ex.com/1", PublishedAt: &now},
 	}
 
-	h := handlers.New(store, nil)
+	h := handlers.New(store, nil, nil)
 	body := `{"starred":true}`
 	req := httptest.NewRequest("PATCH", "/api/items/1", strings.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
@@ -109,7 +109,7 @@ func TestUpdateItem_MarkStarred(t *testing.T) {
 
 func TestHealth(t *testing.T) {
 	store := mockstore.New()
-	h := handlers.New(store, nil)
+	h := handlers.New(store, nil, nil)
 
 	req := httptest.NewRequest("GET", "/api/health", nil)
 	w := httptest.NewRecorder()

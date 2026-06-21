@@ -41,3 +41,8 @@ type Settings struct {
 	Key   string `json:"key"`
 	Value string `json:"value"`
 }
+
+type DiscoveredFeed struct {
+	URL   string `json:"url"`
+	Title string `json:"title"`
+}

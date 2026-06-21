@@ -77,3 +77,54 @@ func TestHTTPFetcher_Fetch_EmptyFeed(t *testing.T) {
 	assert.Equal(t, "Empty", title)
 	assert.Empty(t, items)
 }
+
+func TestHTTPFetcher_Discover_RSS(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/rss+xml")
+		w.Write([]byte(testRSS))
+	}))
+	defer srv.Close()
+
+	f := fetcher.NewHTTPFetcher()
+	feeds, err := f.Discover(context.Background(), srv.URL)
+	require.NoError(t, err)
+	assert.Len(t, feeds, 1)
+	assert.Equal(t, srv.URL, feeds[0].URL)
+	assert.Equal(t, "Test Blog", feeds[0].Title)
+}
+
+func TestHTTPFetcher_Discover_HTML(t *testing.T) {
+	htmlPage := `<html><head>
+<link rel="alternate" type="application/rss+xml" title="Blog Feed" href="/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Comments Feed" href="https://example.com/comments/feed/" />
+<link rel="alternate" type="application/json+oembed" href="/oembed" />
+</head><body>hello</body></html>`
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/html")
+		w.Write([]byte(htmlPage))
+	}))
+	defer srv.Close()
+
+	f := fetcher.NewHTTPFetcher()
+	feeds, err := f.Discover(context.Background(), srv.URL)
+	require.NoError(t, err)
+	assert.Len(t, feeds, 2)
+	assert.Equal(t, srv.URL+"/feed/", feeds[0].URL)
+	assert.Equal(t, "Blog Feed", feeds[0].Title)
+	assert.Equal(t, "https://example.com/comments/feed/", feeds[1].URL)
+	assert.Equal(t, "Comments Feed", feeds[1].Title)
+}
+
+func TestHTTPFetcher_Discover_NoFeeds(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/html")
+		w.Write([]byte(`<html><body>no feeds here</body></html>`))
+	}))
+	defer srv.Close()
+
+	f := fetcher.NewHTTPFetcher()
+	feeds, err := f.Discover(context.Background(), srv.URL)
+	require.NoError(t, err)
+	assert.Empty(t, feeds)
+}

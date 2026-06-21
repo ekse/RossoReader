@@ -49,11 +49,10 @@ func main() {
 	f := fetcher.NewHTTPFetcher()
 	sched := scheduler.New(store, f)
 
-	h := handlers.New(store, sched)
+	h := handlers.New(store, sched, f)
 
 	r := chi.NewRouter()
 	r.Use(chimw.RequestID)
-	r.Use(chimw.RealIP)
 	r.Use(middleware.Logger)
 	r.Use(middleware.CORS)
 	r.Use(chimw.Recoverer)

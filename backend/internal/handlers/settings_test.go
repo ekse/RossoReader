@@ -18,7 +18,7 @@ func TestGetSettings(t *testing.T) {
 	store := mockstore.New()
 	store.Settings = map[string]string{"fetch_interval": "30"}
 
-	h := handlers.New(store, nil)
+	h := handlers.New(store, nil, nil)
 	req := httptest.NewRequest("GET", "/api/settings", nil)
 	w := httptest.NewRecorder()
 	h.Router().ServeHTTP(w, req)
@@ -33,7 +33,7 @@ func TestGetSettings(t *testing.T) {
 
 func TestUpdateSettings(t *testing.T) {
 	store := mockstore.New()
-	h := handlers.New(store, nil)
+	h := handlers.New(store, nil, nil)
 
 	body := `{"fetch_interval":"60"}`
 	req := httptest.NewRequest("PATCH", "/api/settings", strings.NewReader(body))

@@ -4,8 +4,13 @@ import (
 	"context"
 	"fmt"
 	"html"
+	"io"
+	"net/http"
+	"net/url"
+	"strings"
 	"time"
 
+	"github.com/PuerkitoBio/goquery"
 	"github.com/mmcdole/gofeed"
 
 	"github.com/ekse/rssreader/internal/domain"
@@ -15,13 +20,19 @@ type Fetcher interface {
 	Fetch(ctx context.Context, feedURL string) ([]domain.Item, string, string, string, error)
 }
 
+type Discoverer interface {
+	Discover(ctx context.Context, rawURL string) ([]domain.DiscoveredFeed, error)
+}
+
 type HTTPFetcher struct {
 	client *gofeed.Parser
+	http   *http.Client
 }
 
 func NewHTTPFetcher() *HTTPFetcher {
 	return &HTTPFetcher{
 		client: gofeed.NewParser(),
+		http:   &http.Client{Timeout: 30 * time.Second},
 	}
 }
 
@@ -76,6 +87,85 @@ func (f *HTTPFetcher) Fetch(ctx context.Context, feedURL string) ([]domain.Item,
 	}
 
 	return items, title, description, siteLink, nil
+}
+
+func (f *HTTPFetcher) Discover(ctx context.Context, rawURL string) ([]domain.DiscoveredFeed, error) {
+	req, err := http.NewRequestWithContext(ctx, "GET", rawURL, nil)
+	if err != nil {
+		return nil, fmt.Errorf("create request: %w", err)
+	}
+	req.Header.Set("User-Agent", "RossoRSSReader/1.0")
+
+	resp, err := f.http.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("fetch %q: %w", rawURL, err)
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("read body: %w", err)
+	}
+	content := string(body)
+
+	if parsed, ok := tryParseRSS(content); ok {
+		return []domain.DiscoveredFeed{{URL: rawURL, Title: parsed}}, nil
+	}
+
+	return discoverFromHTML(content, rawURL), nil
+}
+
+func tryParseRSS(content string) (string, bool) {
+	parser := gofeed.NewParser()
+	feed, err := parser.ParseString(content)
+	if err != nil {
+		return "", false
+	}
+	return feed.Title, true
+}
+
+func discoverFromHTML(content, baseURL string) []domain.DiscoveredFeed {
+	doc, err := goquery.NewDocumentFromReader(strings.NewReader(content))
+	if err != nil {
+		return nil
+	}
+
+	var feeds []domain.DiscoveredFeed
+	doc.Find(`link[rel="alternate"]`).Each(func(_ int, s *goquery.Selection) {
+		linkType, _ := s.Attr("type")
+		href, _ := s.Attr("href")
+		if href == "" {
+			return
+		}
+		if isFeedType(linkType) {
+			title, _ := s.Attr("title")
+			feeds = append(feeds, domain.DiscoveredFeed{
+				URL:   resolveURL(baseURL, href),
+				Title: html.UnescapeString(title),
+			})
+		}
+	})
+	return feeds
+}
+
+func isFeedType(t string) bool {
+	t = strings.ToLower(strings.TrimSpace(t))
+	return t == "application/rss+xml" || t == "application/atom+xml" || t == "application/rss"
+}
+
+func resolveURL(base, ref string) string {
+	if strings.HasPrefix(ref, "http://") || strings.HasPrefix(ref, "https://") {
+		return ref
+	}
+	baseURL, err := url.Parse(base)
+	if err != nil {
+		return ref
+	}
+	refURL, err := url.Parse(ref)
+	if err != nil {
+		return ref
+	}
+	return baseURL.ResolveReference(refURL).String()
 }
 
 func nullString(s string) *string {

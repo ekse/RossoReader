@@ -3,17 +3,19 @@ package handlers
 import (
 	"github.com/go-chi/chi/v5"
 
+	"github.com/ekse/rssreader/internal/fetcher"
 	"github.com/ekse/rssreader/internal/scheduler"
 	"github.com/ekse/rssreader/internal/store"
 )
 
 type Handler struct {
-	Store     store.Store
-	Scheduler *scheduler.Scheduler
+	Store      store.Store
+	Scheduler  *scheduler.Scheduler
+	Discoverer fetcher.Discoverer
 }
 
-func New(s store.Store, sch *scheduler.Scheduler) *Handler {
-	return &Handler{Store: s, Scheduler: sch}
+func New(s store.Store, sch *scheduler.Scheduler, d fetcher.Discoverer) *Handler {
+	return &Handler{Store: s, Scheduler: sch, Discoverer: d}
 }
 
 func (h *Handler) Router() chi.Router {
@@ -21,6 +23,7 @@ func (h *Handler) Router() chi.Router {
 
 	r.Get("/api/feeds", h.ListFeeds)
 	r.Post("/api/feeds", h.AddFeed)
+	r.Post("/api/feeds/discover", h.DiscoverFeeds)
 	r.Delete("/api/feeds/{id}", h.RemoveFeed)
 	r.Post("/api/feeds/{id}/refresh", h.RefreshFeed)
 	r.Post("/api/feeds/{id}/read-all", h.MarkFeedRead)

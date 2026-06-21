@@ -22,7 +22,7 @@ func TestListFeeds(t *testing.T) {
 		{ID: 2, URL: "https://b.com/rss", Title: "B"},
 	}
 
-	h := handlers.New(store, nil)
+	h := handlers.New(store, nil, nil)
 	req := httptest.NewRequest("GET", "/api/feeds", nil)
 	w := httptest.NewRecorder()
 	h.Router().ServeHTTP(w, req)
@@ -36,7 +36,7 @@ func TestListFeeds(t *testing.T) {
 
 func TestListFeeds_Empty(t *testing.T) {
 	store := mockstore.New()
-	h := handlers.New(store, nil)
+	h := handlers.New(store, nil, nil)
 
 	req := httptest.NewRequest("GET", "/api/feeds", nil)
 	w := httptest.NewRecorder()
@@ -50,7 +50,7 @@ func TestListFeeds_Empty(t *testing.T) {
 
 func TestAddFeed(t *testing.T) {
 	store := mockstore.New()
-	h := handlers.New(store, nil)
+	h := handlers.New(store, nil, nil)
 
 	body := `{"url":"https://example.com/rss"}`
 	req := httptest.NewRequest("POST", "/api/feeds", strings.NewReader(body))
@@ -67,7 +67,7 @@ func TestAddFeed(t *testing.T) {
 
 func TestAddFeed_EmptyURL(t *testing.T) {
 	store := mockstore.New()
-	h := handlers.New(store, nil)
+	h := handlers.New(store, nil, nil)
 
 	body := `{"url":""}`
 	req := httptest.NewRequest("POST", "/api/feeds", strings.NewReader(body))
@@ -81,7 +81,7 @@ func TestAddFeed_EmptyURL(t *testing.T) {
 func TestRemoveFeed(t *testing.T) {
 	store := mockstore.New()
 	store.Feeds = []domain.Feed{{ID: 1, URL: "https://a.com/rss", Title: "A"}}
-	h := handlers.New(store, nil)
+	h := handlers.New(store, nil, nil)
 
 	req := httptest.NewRequest("DELETE", "/api/feeds/1", nil)
 	w := httptest.NewRecorder()
@@ -92,7 +92,7 @@ func TestRemoveFeed(t *testing.T) {
 
 func TestRemoveFeed_InvalidID(t *testing.T) {
 	store := mockstore.New()
-	h := handlers.New(store, nil)
+	h := handlers.New(store, nil, nil)
 
 	req := httptest.NewRequest("DELETE", "/api/feeds/abc", nil)
 	w := httptest.NewRecorder()
@@ -108,7 +108,7 @@ func TestMarkFeedRead(t *testing.T) {
 		{ID: 1, FeedID: 1, GUID: "1", Title: "Post 1", URL: "https://ex.com/1", Read: false},
 		{ID: 2, FeedID: 1, GUID: "2", Title: "Post 2", URL: "https://ex.com/2", Read: false},
 	}
-	h := handlers.New(store, nil)
+	h := handlers.New(store, nil, nil)
 
 	req := httptest.NewRequest("POST", "/api/feeds/1/read-all", nil)
 	w := httptest.NewRecorder()
@@ -121,7 +121,7 @@ func TestMarkFeedRead(t *testing.T) {
 
 func TestMarkFeedRead_InvalidID(t *testing.T) {
 	store := mockstore.New()
-	h := handlers.New(store, nil)
+	h := handlers.New(store, nil, nil)
 
 	req := httptest.NewRequest("POST", "/api/feeds/abc/read-all", nil)
 	w := httptest.NewRecorder()
