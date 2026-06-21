@@ -13,11 +13,11 @@ onMounted(() => {
 
 <template>
   <div class="max-w-3xl mx-auto px-6 py-8">
-    <h1 class="text-2xl font-bold text-gray-900">Settings</h1>
+    <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Settings</h1>
 
     <section class="mt-8">
       <div class="flex items-center justify-between mb-4">
-        <h2 class="text-lg font-semibold text-gray-900">Feed Subscriptions</h2>
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Feed Subscriptions</h2>
         <button
           @click="showAddFeed = true"
           class="px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
@@ -30,22 +30,22 @@ onMounted(() => {
         <div
           v-for="feed in feedsStore.feeds"
           :key="feed.id"
-          class="flex items-center justify-between px-4 py-3 bg-white rounded-lg border border-gray-200"
+          class="flex items-center justify-between px-4 py-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700"
         >
           <div class="min-w-0 flex-1">
-            <p class="text-sm font-medium text-gray-900 truncate">{{ feed.title || feed.url }}</p>
-            <p class="text-xs text-gray-500 truncate">{{ feed.url }}</p>
+            <p class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{{ feed.title || feed.url }}</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ feed.url }}</p>
           </div>
           <button
             @click="feedsStore.removeFeed(feed.id)"
-            class="ml-4 text-sm text-red-600 hover:text-red-800"
+            class="ml-4 text-sm text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
           >
             Remove
           </button>
         </div>
       </div>
 
-      <p v-if="feedsStore.feeds.length === 0" class="text-sm text-gray-500 mt-4">
+      <p v-if="feedsStore.feeds.length === 0" class="text-sm text-gray-500 dark:text-gray-400 mt-4">
         No feeds subscribed yet. Add one to get started!
       </p>
     </section>

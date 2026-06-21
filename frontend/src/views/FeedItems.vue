@@ -42,7 +42,7 @@ function loadFeed() {
 
 <template>
   <div>
-    <div class="px-6 py-4 border-b border-gray-200 bg-white flex items-center justify-between">
+    <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex items-center justify-between">
       <button
         @click="showAddFeed = true"
         class="px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
@@ -51,7 +51,7 @@ function loadFeed() {
       </button>
       <button
         @click="markAllRead"
-        class="px-3 py-1.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+        class="px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600"
       >
         Mark all as read
       </button>

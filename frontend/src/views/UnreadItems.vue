@@ -23,11 +23,11 @@ async function markAllRead() {
 
 <template>
   <div>
-    <div class="px-6 py-4 border-b border-gray-200 bg-white flex items-center justify-between">
-      <h2 class="text-sm font-semibold text-gray-900">New content</h2>
+    <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex items-center justify-between">
+      <h2 class="text-sm font-semibold text-gray-900 dark:text-gray-100">New content</h2>
       <button
         @click="markAllRead"
-        class="px-3 py-1.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+        class="px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600"
       >
         Mark all as read
       </button>

@@ -53,23 +53,23 @@ async function addSelected(feed: DiscoveredFeed, index: number) {
 
 <template>
   <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-    <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-3xl mx-4">
-      <h2 class="text-lg font-semibold text-gray-900">Add Feed</h2>
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-3xl mx-4">
+      <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Add Feed</h2>
 
       <form v-if="discovered.length === 0" @submit.prevent="submit" class="mt-4">
         <input
           v-model="url"
           type="url"
           placeholder="https://example.com or https://example.com/rss"
-          class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm focus:ring-blue-500 focus:border-blue-500"
+          class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-blue-500 focus:border-blue-500"
           autofocus
         />
-        <p v-if="error" class="mt-2 text-sm text-red-600">{{ error }}</p>
+        <p v-if="error" class="mt-2 text-sm text-red-600 dark:text-red-400">{{ error }}</p>
         <div class="mt-4 flex justify-end gap-3">
           <button
             type="button"
             @click="emits('close')"
-            class="px-4 py-2 text-sm text-gray-700 hover:text-gray-900"
+            class="px-4 py-2 text-sm text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100"
           >
             Cancel
           </button>
@@ -84,16 +84,16 @@ async function addSelected(feed: DiscoveredFeed, index: number) {
       </form>
 
       <div v-else class="mt-4">
-        <p class="text-sm text-gray-500 mb-3">Found {{ discovered.length }} feed(s):</p>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mb-3">Found {{ discovered.length }} feed(s):</p>
         <div class="space-y-2 max-h-60 overflow-y-auto">
           <div
             v-for="(feed, index) in discovered"
             :key="feed.url"
-            class="flex items-center justify-between px-3 py-2 rounded-md border border-gray-200"
+            class="flex items-center justify-between px-3 py-2 rounded-md border border-gray-200 dark:border-gray-700"
           >
             <div class="min-w-0 flex-1">
-              <p class="text-sm font-medium text-gray-900 truncate">{{ feed.title || feed.url }}</p>
-              <p class="text-xs text-gray-500 truncate">{{ feed.url }}</p>
+              <p class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{{ feed.title || feed.url }}</p>
+              <p class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ feed.url }}</p>
             </div>
             <button
               @click="addSelected(feed, index)"
@@ -104,19 +104,19 @@ async function addSelected(feed: DiscoveredFeed, index: number) {
             </button>
           </div>
         </div>
-        <p v-if="error" class="mt-2 text-sm text-red-600">{{ error }}</p>
+        <p v-if="error" class="mt-2 text-sm text-red-600 dark:text-red-400">{{ error }}</p>
         <div class="mt-4 flex justify-end gap-3">
           <button
             type="button"
             @click="discovered = []; error = ''"
-            class="px-4 py-2 text-sm text-gray-700 hover:text-gray-900"
+            class="px-4 py-2 text-sm text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100"
           >
             Back
           </button>
           <button
             type="button"
             @click="emits('close')"
-            class="px-4 py-2 text-sm text-gray-700 hover:text-gray-900"
+            class="px-4 py-2 text-sm text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100"
           >
             Close
           </button>
