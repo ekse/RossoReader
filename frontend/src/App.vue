@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, watch } from 'vue'
+import { onMounted, onUnmounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import FeedList from './components/FeedList.vue'
 import { useSidebar } from './composables/useSidebar'
@@ -7,10 +7,26 @@ import { useSidebar } from './composables/useSidebar'
 const route = useRoute()
 const { isOpen, close } = useSidebar()
 
+let wasMobile = false
+
+function handleResize() {
+  const isMobile = window.innerWidth < 768
+  if (wasMobile && !isMobile) {
+    isOpen.value = true
+  }
+  wasMobile = isMobile
+}
+
 onMounted(() => {
-  if (window.innerWidth < 768) {
+  wasMobile = window.innerWidth < 768
+  if (wasMobile) {
     isOpen.value = false
   }
+  window.addEventListener('resize', handleResize)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', handleResize)
 })
 
 // Close sidebar on mobile when navigating
