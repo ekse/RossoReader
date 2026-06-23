@@ -1,9 +1,63 @@
 import axios from 'axios'
-import type { Feed, Item, ItemsResponse, DiscoveredFeed } from '@/types'
+import type { Feed, Item, ItemsResponse, DiscoveredFeed, User } from '@/types'
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || '',
+  withCredentials: true,
 })
+
+// On 401, redirect to the login page (unless already there).
+api.interceptors.response.use(
+  (res) => res,
+  (err) => {
+    if (err.response && err.response.status === 401) {
+      const path = window.location.pathname
+      if (path !== '/login') {
+        window.location.href = '/login'
+      }
+    }
+    return Promise.reject(err)
+  },
+)
+
+// Auth
+
+export async function login(username: string, password: string): Promise<User> {
+  const res = await api.post('/api/auth/login', { username, password })
+  return res.data
+}
+
+export async function logout(): Promise<void> {
+  await api.post('/api/auth/logout')
+}
+
+export async function getMe(): Promise<User> {
+  const res = await api.get('/api/auth/me')
+  return res.data
+}
+
+export async function changePassword(currentPassword: string, newPassword: string): Promise<void> {
+  await api.put('/api/auth/password', {
+    current_password: currentPassword,
+    new_password: newPassword,
+  })
+}
+
+export async function listUsers(): Promise<User[]> {
+  const res = await api.get('/api/users')
+  return res.data
+}
+
+export async function createUser(username: string, password: string, isAdmin: boolean): Promise<User> {
+  const res = await api.post('/api/users', { username, password, is_admin: isAdmin })
+  return res.data
+}
+
+export async function deleteUser(id: number): Promise<void> {
+  await api.delete(`/api/users/${id}`)
+}
+
+// Feeds
 
 export async function fetchFeeds(): Promise<Feed[]> {
   const res = await api.get('/api/feeds')
@@ -32,6 +86,8 @@ export async function markFeedRead(id: number): Promise<void> {
   await api.post(`/api/feeds/${id}/read-all`)
 }
 
+// Items
+
 export async function fetchItems(params?: {
   page?: number
   per_page?: number
@@ -51,6 +107,8 @@ export async function updateItem(id: number, data: { read?: boolean; starred?: b
   const res = await api.patch(`/api/items/${id}`, data)
   return res.data
 }
+
+// Settings
 
 export async function fetchSettings(): Promise<Record<string, string>> {
   const res = await api.get('/api/settings')

@@ -4,6 +4,7 @@ import "time"
 
 type Feed struct {
 	ID            int64      `json:"id"`
+	UserID        int64      `json:"user_id"`
 	URL           string     `json:"url"`
 	Title         string     `json:"title"`
 	Description   *string    `json:"description,omitempty"`
@@ -32,6 +33,7 @@ type Item struct {
 type ItemsQuery struct {
 	Page    int
 	PerPage int
+	UserID  int64
 	FeedID  *int64
 	Read    *bool
 	Starred *bool
@@ -45,4 +47,18 @@ type Settings struct {
 type DiscoveredFeed struct {
 	URL   string `json:"url"`
 	Title string `json:"title"`
+}
+
+type User struct {
+	ID        int64     `json:"id"`
+	Username  string    `json:"username"`
+	IsAdmin   bool      `json:"is_admin"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
+type Session struct {
+	ID        [16]byte  `json:"-"`
+	User      User      `json:"user"`
+	ExpiresAt time.Time `json:"expires_at"`
 }

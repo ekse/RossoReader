@@ -10,12 +10,13 @@ import (
 )
 
 const createFeed = `-- name: CreateFeed :one
-INSERT INTO feeds (url, title, description, site_link, icon_url)
-VALUES ($1, $2, $3, $4, $5)
-RETURNING id, url, title, description, site_link, last_fetched_at, created_at, updated_at, icon_url
+INSERT INTO feeds (user_id, url, title, description, site_link, icon_url)
+VALUES ($1, $2, $3, $4, $5, $6)
+RETURNING id, url, title, description, site_link, last_fetched_at, created_at, updated_at, icon_url, user_id
 `
 
 type CreateFeedParams struct {
+	UserID      *int64  `json:"user_id"`
 	Url         string  `json:"url"`
 	Title       string  `json:"title"`
 	Description *string `json:"description"`
@@ -25,6 +26,7 @@ type CreateFeedParams struct {
 
 func (q *Queries) CreateFeed(ctx context.Context, arg CreateFeedParams) (Feed, error) {
 	row := q.db.QueryRow(ctx, createFeed,
+		arg.UserID,
 		arg.Url,
 		arg.Title,
 		arg.Description,
@@ -42,74 +44,33 @@ func (q *Queries) CreateFeed(ctx context.Context, arg CreateFeedParams) (Feed, e
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.IconUrl,
+		&i.UserID,
 	)
 	return i, err
 }
 
 const deleteFeed = `-- name: DeleteFeed :exec
 DELETE FROM feeds
-WHERE id = $1
+WHERE id = $1 AND user_id = $2
 `
 
-func (q *Queries) DeleteFeed(ctx context.Context, id int32) error {
-	_, err := q.db.Exec(ctx, deleteFeed, id)
+type DeleteFeedParams struct {
+	ID     int32  `json:"id"`
+	UserID *int64 `json:"user_id"`
+}
+
+func (q *Queries) DeleteFeed(ctx context.Context, arg DeleteFeedParams) error {
+	_, err := q.db.Exec(ctx, deleteFeed, arg.ID, arg.UserID)
 	return err
 }
 
-const getFeedByID = `-- name: GetFeedByID :one
-SELECT id, url, title, description, site_link, last_fetched_at, created_at, updated_at, icon_url
-FROM feeds
-WHERE id = $1
-`
-
-func (q *Queries) GetFeedByID(ctx context.Context, id int32) (Feed, error) {
-	row := q.db.QueryRow(ctx, getFeedByID, id)
-	var i Feed
-	err := row.Scan(
-		&i.ID,
-		&i.Url,
-		&i.Title,
-		&i.Description,
-		&i.SiteLink,
-		&i.LastFetchedAt,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-		&i.IconUrl,
-	)
-	return i, err
-}
-
-const getFeedByURL = `-- name: GetFeedByURL :one
-SELECT id, url, title, description, site_link, last_fetched_at, created_at, updated_at, icon_url
-FROM feeds
-WHERE url = $1
-`
-
-func (q *Queries) GetFeedByURL(ctx context.Context, url string) (Feed, error) {
-	row := q.db.QueryRow(ctx, getFeedByURL, url)
-	var i Feed
-	err := row.Scan(
-		&i.ID,
-		&i.Url,
-		&i.Title,
-		&i.Description,
-		&i.SiteLink,
-		&i.LastFetchedAt,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-		&i.IconUrl,
-	)
-	return i, err
-}
-
-const getFeeds = `-- name: GetFeeds :many
-SELECT id, url, title, description, site_link, last_fetched_at, created_at, updated_at, icon_url
-FROM feeds
+const getAllFeeds = `-- name: GetAllFeeds :many
+SELECT id, url, title, description, site_link, last_fetched_at, created_at, updated_at, icon_url, user_id FROM feeds
 ORDER BY title
 `
 
-func (q *Queries) GetFeeds(ctx context.Context) ([]Feed, error) {
-	rows, err := q.db.Query(ctx, getFeeds)
+func (q *Queries) GetAllFeeds(ctx context.Context) ([]Feed, error) {
+	rows, err := q.db.Query(ctx, getAllFeeds)
 	if err != nil {
 		return nil, err
 	}
@@ -127,6 +88,95 @@ func (q *Queries) GetFeeds(ctx context.Context) ([]Feed, error) {
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.IconUrl,
+			&i.UserID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getFeedByID = `-- name: GetFeedByID :one
+SELECT id, url, title, description, site_link, last_fetched_at, created_at, updated_at, icon_url, user_id FROM feeds
+WHERE id = $1 AND user_id = $2
+`
+
+type GetFeedByIDParams struct {
+	ID     int32  `json:"id"`
+	UserID *int64 `json:"user_id"`
+}
+
+func (q *Queries) GetFeedByID(ctx context.Context, arg GetFeedByIDParams) (Feed, error) {
+	row := q.db.QueryRow(ctx, getFeedByID, arg.ID, arg.UserID)
+	var i Feed
+	err := row.Scan(
+		&i.ID,
+		&i.Url,
+		&i.Title,
+		&i.Description,
+		&i.SiteLink,
+		&i.LastFetchedAt,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.IconUrl,
+		&i.UserID,
+	)
+	return i, err
+}
+
+const getFeedByIDAny = `-- name: GetFeedByIDAny :one
+SELECT id, url, title, description, site_link, last_fetched_at, created_at, updated_at, icon_url, user_id FROM feeds
+WHERE id = $1
+`
+
+func (q *Queries) GetFeedByIDAny(ctx context.Context, id int32) (Feed, error) {
+	row := q.db.QueryRow(ctx, getFeedByIDAny, id)
+	var i Feed
+	err := row.Scan(
+		&i.ID,
+		&i.Url,
+		&i.Title,
+		&i.Description,
+		&i.SiteLink,
+		&i.LastFetchedAt,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.IconUrl,
+		&i.UserID,
+	)
+	return i, err
+}
+
+const getFeeds = `-- name: GetFeeds :many
+SELECT id, url, title, description, site_link, last_fetched_at, created_at, updated_at, icon_url, user_id FROM feeds
+WHERE user_id = $1
+ORDER BY title
+`
+
+func (q *Queries) GetFeeds(ctx context.Context, userID *int64) ([]Feed, error) {
+	rows, err := q.db.Query(ctx, getFeeds, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Feed
+	for rows.Next() {
+		var i Feed
+		if err := rows.Scan(
+			&i.ID,
+			&i.Url,
+			&i.Title,
+			&i.Description,
+			&i.SiteLink,
+			&i.LastFetchedAt,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.IconUrl,
+			&i.UserID,
 		); err != nil {
 			return nil, err
 		}

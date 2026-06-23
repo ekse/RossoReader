@@ -6,7 +6,8 @@ import (
 )
 
 func (h *Handler) GetSettings(w http.ResponseWriter, r *http.Request) {
-	settings, err := h.Store.GetSettings(r.Context())
+	userID := currentUserID(r)
+	settings, err := h.Store.GetSettings(r.Context(), userID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -15,6 +16,7 @@ func (h *Handler) GetSettings(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) UpdateSettings(w http.ResponseWriter, r *http.Request) {
+	userID := currentUserID(r)
 	var req map[string]string
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "invalid request body", http.StatusBadRequest)
@@ -22,13 +24,13 @@ func (h *Handler) UpdateSettings(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for key, value := range req {
-		if err := h.Store.UpsertSetting(r.Context(), key, value); err != nil {
+		if err := h.Store.UpsertSetting(r.Context(), userID, key, value); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 	}
 
-	settings, err := h.Store.GetSettings(r.Context())
+	settings, err := h.Store.GetSettings(r.Context(), userID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

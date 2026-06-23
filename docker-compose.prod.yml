@@ -5,11 +5,13 @@ services:
     volumes:
       - postgres-data:/var/lib/postgresql/data
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       POSTGRES_DB: ${POSTGRES_DB:-rssreader}
+    ports:
+      - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -21,9 +23,13 @@ services:
     ports:
       - "8080:8080"
     environment:
-      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-rssreader}?sslmode=disable
+      DATABASE_URL: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-rssreader}?sslmode=disable
       SERVER_PORT: "8080"
       FETCH_INTERVAL_MINUTES: "${FETCH_INTERVAL_MINUTES:-30}"
+      CORS_ORIGIN: "${CORS_ORIGIN}"
+      SESSION_MAX_AGE_DAYS: "${SESSION_MAX_AGE_DAYS:-30}"
+      SESSION_COOKIE_NAME: "${SESSION_COOKIE_NAME:-session}"
+      COOKIE_SECURE: "${COOKIE_SECURE:-false}"
     depends_on:
       db:
         condition: service_healthy

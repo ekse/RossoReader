@@ -22,6 +22,7 @@ type updateItemRequest struct {
 }
 
 func (h *Handler) ListItems(w http.ResponseWriter, r *http.Request) {
+	userID := currentUserID(r)
 	q := r.URL.Query()
 
 	page, _ := strconv.Atoi(q.Get("page"))
@@ -56,6 +57,7 @@ func (h *Handler) ListItems(w http.ResponseWriter, r *http.Request) {
 	query := domain.ItemsQuery{
 		Page:    page,
 		PerPage: perPage,
+		UserID:  userID,
 		FeedID:  feedID,
 		Read:    read,
 		Starred: starred,
@@ -75,6 +77,7 @@ func (h *Handler) ListItems(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) UpdateItem(w http.ResponseWriter, r *http.Request) {
+	userID := currentUserID(r)
 	idStr := chi.URLParam(r, "id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
@@ -89,20 +92,20 @@ func (h *Handler) UpdateItem(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if req.Read != nil {
-		if err := h.Store.MarkItemRead(r.Context(), id, *req.Read); err != nil {
+		if err := h.Store.MarkItemRead(r.Context(), userID, id, *req.Read); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 	}
 
 	if req.Starred != nil {
-		if err := h.Store.MarkItemStarred(r.Context(), id, *req.Starred); err != nil {
+		if err := h.Store.MarkItemStarred(r.Context(), userID, id, *req.Starred); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 	}
 
-	item, err := h.Store.GetItem(r.Context(), id)
+	item, err := h.Store.GetItem(r.Context(), userID, id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -112,7 +115,8 @@ func (h *Handler) UpdateItem(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) MarkAllRead(w http.ResponseWriter, r *http.Request) {
-	if err := h.Store.MarkAllItemsRead(r.Context()); err != nil {
+	userID := currentUserID(r)
+	if err := h.Store.MarkAllItemsRead(r.Context(), userID); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}

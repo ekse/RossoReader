@@ -27,9 +27,9 @@ func (m *mockFetcher) Fetch(_ context.Context, _ string) ([]domain.Item, string,
 
 func TestScheduler_FetchAll(t *testing.T) {
 	store := mockstore.New()
-	store.Feeds = []domain.Feed{
-		{ID: 1, URL: "https://example.com/rss", Title: "Example"},
-	}
+	store.Feeds = append(store.Feeds, domain.Feed{
+		ID: 1, UserID: 1, URL: "https://example.com/rss", Title: "Example",
+	})
 
 	now := time.Now()
 	mf := &mockFetcher{
@@ -54,9 +54,9 @@ func TestScheduler_FetchAll(t *testing.T) {
 
 func TestScheduler_FetchFeed_UpdatesMetadata(t *testing.T) {
 	store := mockstore.New()
-	store.Feeds = []domain.Feed{
-		{ID: 1, URL: "https://example.com/rss", Title: "Old Title"},
-	}
+	store.Feeds = append(store.Feeds, domain.Feed{
+		ID: 1, UserID: 1, URL: "https://example.com/rss", Title: "Old Title",
+	})
 
 	mf := &mockFetcher{
 		items:       []domain.Item{},
@@ -74,9 +74,9 @@ func TestScheduler_FetchFeed_UpdatesMetadata(t *testing.T) {
 
 func TestScheduler_FetchFeed_FetcherError(t *testing.T) {
 	store := mockstore.New()
-	store.Feeds = []domain.Feed{
-		{ID: 1, URL: "https://example.com/rss", Title: "Example"},
-	}
+	store.Feeds = append(store.Feeds, domain.Feed{
+		ID: 1, UserID: 1, URL: "https://example.com/rss", Title: "Example",
+	})
 
 	mf := &mockFetcher{err: assert.AnError}
 

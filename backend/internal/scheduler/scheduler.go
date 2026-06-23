@@ -65,7 +65,7 @@ func (s *Scheduler) Stop() {
 }
 
 func (s *Scheduler) FetchAll(ctx context.Context) error {
-	feeds, err := s.store.GetFeeds(ctx)
+	feeds, err := s.store.GetAllFeeds(ctx)
 	if err != nil {
 		return fmt.Errorf("get feeds: %w", err)
 	}
@@ -109,7 +109,7 @@ func (s *Scheduler) FetchFeed(ctx context.Context, feed domain.Feed) error {
 }
 
 func (s *Scheduler) FetchFeedByID(ctx context.Context, feedID int64) error {
-	feed, err := s.store.GetFeed(ctx, feedID)
+	feed, err := s.store.GetFeedByIDAny(ctx, feedID)
 	if err != nil {
 		return fmt.Errorf("get feed %d: %w", feedID, err)
 	}

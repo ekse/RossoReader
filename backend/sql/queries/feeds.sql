@@ -1,26 +1,28 @@
 -- name: GetFeeds :many
-SELECT id, url, title, description, site_link, last_fetched_at, created_at, updated_at, icon_url
-FROM feeds
+SELECT * FROM feeds
+WHERE user_id = $1
+ORDER BY title;
+
+-- name: GetAllFeeds :many
+SELECT * FROM feeds
 ORDER BY title;
 
 -- name: GetFeedByID :one
-SELECT id, url, title, description, site_link, last_fetched_at, created_at, updated_at, icon_url
-FROM feeds
+SELECT * FROM feeds
+WHERE id = $1 AND user_id = $2;
+
+-- name: GetFeedByIDAny :one
+SELECT * FROM feeds
 WHERE id = $1;
 
--- name: GetFeedByURL :one
-SELECT id, url, title, description, site_link, last_fetched_at, created_at, updated_at, icon_url
-FROM feeds
-WHERE url = $1;
-
 -- name: CreateFeed :one
-INSERT INTO feeds (url, title, description, site_link, icon_url)
-VALUES ($1, $2, $3, $4, $5)
-RETURNING id, url, title, description, site_link, last_fetched_at, created_at, updated_at, icon_url;
+INSERT INTO feeds (user_id, url, title, description, site_link, icon_url)
+VALUES ($1, $2, $3, $4, $5, $6)
+RETURNING *;
 
 -- name: DeleteFeed :exec
 DELETE FROM feeds
-WHERE id = $1;
+WHERE id = $1 AND user_id = $2;
 
 -- name: UpdateFeedLastFetched :exec
 UPDATE feeds

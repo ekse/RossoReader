@@ -16,13 +16,14 @@ type addFeedRequest struct {
 }
 
 func (h *Handler) ListFeeds(w http.ResponseWriter, r *http.Request) {
-	feeds, err := h.Store.GetFeeds(r.Context())
+	userID := currentUserID(r)
+	feeds, err := h.Store.GetFeeds(r.Context(), userID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	unreadCounts, err := h.Store.GetUnreadCountByFeed(r.Context())
+	unreadCounts, err := h.Store.GetUnreadCountByFeed(r.Context(), userID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -45,6 +46,7 @@ func (h *Handler) ListFeeds(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) AddFeed(w http.ResponseWriter, r *http.Request) {
+	userID := currentUserID(r)
 	var req addFeedRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "invalid request body", http.StatusBadRequest)
@@ -55,7 +57,7 @@ func (h *Handler) AddFeed(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	feed, err := h.Store.CreateFeed(r.Context(), req.URL, "", "", "", "")
+	feed, err := h.Store.CreateFeed(r.Context(), userID, req.URL, "", "", "", "")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -94,6 +96,7 @@ func (h *Handler) DiscoverFeeds(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) RemoveFeed(w http.ResponseWriter, r *http.Request) {
+	userID := currentUserID(r)
 	idStr := chi.URLParam(r, "id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
@@ -101,7 +104,7 @@ func (h *Handler) RemoveFeed(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.Store.DeleteFeed(r.Context(), id); err != nil {
+	if err := h.Store.DeleteFeed(r.Context(), userID, id); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -110,6 +113,7 @@ func (h *Handler) RemoveFeed(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) RefreshFeed(w http.ResponseWriter, r *http.Request) {
+	userID := currentUserID(r)
 	idStr := chi.URLParam(r, "id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
@@ -122,6 +126,12 @@ func (h *Handler) RefreshFeed(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Validate ownership before fetching.
+	if _, err := h.Store.GetFeed(r.Context(), userID, id); err != nil {
+		http.Error(w, "feed not found", http.StatusNotFound)
+		return
+	}
+
 	if err := h.Scheduler.FetchFeedByID(r.Context(), id); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -131,6 +141,7 @@ func (h *Handler) RefreshFeed(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) MarkFeedRead(w http.ResponseWriter, r *http.Request) {
+	userID := currentUserID(r)
 	idStr := chi.URLParam(r, "id")
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
@@ -138,7 +149,7 @@ func (h *Handler) MarkFeedRead(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.Store.MarkAllFeedItemsRead(r.Context(), id); err != nil {
+	if err := h.Store.MarkAllFeedItemsRead(r.Context(), userID, id); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}

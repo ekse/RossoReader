@@ -36,3 +36,9 @@ export interface DiscoveredFeed {
   url: string
   title: string
 }
+
+export interface User {
+  id: number
+  username: string
+  is_admin: boolean
+}

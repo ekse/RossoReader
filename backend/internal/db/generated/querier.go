@@ -6,28 +6,42 @@ package generated
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type Querier interface {
 	CountItems(ctx context.Context, arg CountItemsParams) (int64, error)
+	CountUsers(ctx context.Context) (int64, error)
 	CreateFeed(ctx context.Context, arg CreateFeedParams) (Feed, error)
-	DeleteFeed(ctx context.Context, id int32) error
-	DeleteSetting(ctx context.Context, key string) error
-	GetFeedByID(ctx context.Context, id int32) (Feed, error)
-	GetFeedByURL(ctx context.Context, url string) (Feed, error)
-	GetFeeds(ctx context.Context) ([]Feed, error)
-	GetItemByID(ctx context.Context, id int32) (Item, error)
-	GetItems(ctx context.Context, arg GetItemsParams) ([]Item, error)
-	GetSetting(ctx context.Context, key string) (Setting, error)
-	GetSettings(ctx context.Context) ([]Setting, error)
-	GetUnreadCountByFeed(ctx context.Context) ([]GetUnreadCountByFeedRow, error)
-	MarkAllItemsRead(ctx context.Context) error
-	MarkFeedItemsRead(ctx context.Context, feedID int32) error
-	MarkItemRead(ctx context.Context, arg MarkItemReadParams) error
-	MarkItemStarred(ctx context.Context, arg MarkItemStarredParams) error
+	CreateSession(ctx context.Context, arg CreateSessionParams) (Session, error)
+	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
+	DeleteExpiredSessions(ctx context.Context) error
+	DeleteFeed(ctx context.Context, arg DeleteFeedParams) error
+	DeleteSession(ctx context.Context, id pgtype.UUID) error
+	DeleteSetting(ctx context.Context, arg DeleteSettingParams) error
+	DeleteUser(ctx context.Context, id int64) error
+	GetAllFeeds(ctx context.Context) ([]Feed, error)
+	GetFeedByID(ctx context.Context, arg GetFeedByIDParams) (Feed, error)
+	GetFeedByIDAny(ctx context.Context, id int32) (Feed, error)
+	GetFeeds(ctx context.Context, userID *int64) ([]Feed, error)
+	GetItemByID(ctx context.Context, arg GetItemByIDParams) (GetItemByIDRow, error)
+	GetItems(ctx context.Context, arg GetItemsParams) ([]GetItemsRow, error)
+	GetSessionWithUser(ctx context.Context, id pgtype.UUID) (GetSessionWithUserRow, error)
+	GetSetting(ctx context.Context, arg GetSettingParams) (GetSettingRow, error)
+	GetSettings(ctx context.Context, userID *int64) ([]GetSettingsRow, error)
+	GetUnreadCountByFeedForUser(ctx context.Context, userID *int64) ([]GetUnreadCountByFeedForUserRow, error)
+	GetUserByID(ctx context.Context, id int64) (User, error)
+	GetUserByUsername(ctx context.Context, username string) (User, error)
+	ListUsers(ctx context.Context) ([]ListUsersRow, error)
+	MarkAllItemsReadForUser(ctx context.Context, userID int64) error
+	MarkFeedItemsReadForUser(ctx context.Context, arg MarkFeedItemsReadForUserParams) error
+	SetItemRead(ctx context.Context, arg SetItemReadParams) error
+	SetItemStarred(ctx context.Context, arg SetItemStarredParams) error
 	UpdateFeedLastFetched(ctx context.Context, id int32) error
 	UpdateFeedMetadata(ctx context.Context, arg UpdateFeedMetadataParams) error
-	UpsertItem(ctx context.Context, arg UpsertItemParams) (Item, error)
+	UpdateUserPassword(ctx context.Context, arg UpdateUserPasswordParams) error
+	UpsertItem(ctx context.Context, arg UpsertItemParams) (UpsertItemRow, error)
 	UpsertSetting(ctx context.Context, arg UpsertSettingParams) error
 }
 

@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
 	"time"
 
@@ -18,6 +17,8 @@ import (
 
 func TestListItems(t *testing.T) {
 	store := mockstore.New()
+	user := makeUser(t, store, "alice", true)
+	store.Feeds = []domain.Feed{{ID: 1, UserID: user.ID, URL: "https://x.com/rss", Title: "X"}}
 	now := time.Now()
 	store.Items = []domain.Item{
 		{ID: 1, FeedID: 1, GUID: "1", Title: "Post 1", URL: "https://ex.com/1", PublishedAt: &now},
@@ -25,16 +26,18 @@ func TestListItems(t *testing.T) {
 	}
 
 	h := handlers.New(store, nil, nil)
-	req := httptest.NewRequest("GET", "/api/items?per_page=10", nil)
+	r := authedRouter(h, user)
+
+	req := authReq("GET", "/api/items?per_page=10", "", user)
 	w := httptest.NewRecorder()
-	h.Router().ServeHTTP(w, req)
+	r.ServeHTTP(w, req)
 
 	assert.Equal(t, http.StatusOK, w.Code)
 
 	var resp struct {
 		Items []domain.Item `json:"items"`
-		Total int64         `json:"total"`
-		Page  int           `json:"page"`
+		Total int64          `json:"total"`
+		Page  int            `json:"page"`
 	}
 	err := json.Unmarshal(w.Body.Bytes(), &resp)
 	require.NoError(t, err)
@@ -44,6 +47,11 @@ func TestListItems(t *testing.T) {
 
 func TestListItems_WithFeedFilter(t *testing.T) {
 	store := mockstore.New()
+	user := makeUser(t, store, "alice", true)
+	store.Feeds = []domain.Feed{
+		{ID: 1, UserID: user.ID, URL: "https://x.com/rss", Title: "X"},
+		{ID: 2, UserID: user.ID, URL: "https://y.com/rss", Title: "Y"},
+	}
 	now := time.Now()
 	store.Items = []domain.Item{
 		{ID: 1, FeedID: 1, GUID: "1", Title: "Feed 1 Post", URL: "https://ex.com/1", PublishedAt: &now},
@@ -51,9 +59,11 @@ func TestListItems_WithFeedFilter(t *testing.T) {
 	}
 
 	h := handlers.New(store, nil, nil)
-	req := httptest.NewRequest("GET", "/api/items?feed_id=1&per_page=10", nil)
+	r := authedRouter(h, user)
+
+	req := authReq("GET", "/api/items?feed_id=1&per_page=10", "", user)
 	w := httptest.NewRecorder()
-	h.Router().ServeHTTP(w, req)
+	r.ServeHTTP(w, req)
 
 	assert.Equal(t, http.StatusOK, w.Code)
 
@@ -62,22 +72,27 @@ func TestListItems_WithFeedFilter(t *testing.T) {
 	}
 	json.Unmarshal(w.Body.Bytes(), &resp)
 	assert.Len(t, resp.Items, 1)
-	assert.Equal(t, "Feed 1 Post", resp.Items[0].Title)
+	if len(resp.Items) > 0 {
+		assert.Equal(t, "Feed 1 Post", resp.Items[0].Title)
+	}
 }
 
 func TestUpdateItem_MarkRead(t *testing.T) {
 	store := mockstore.New()
+	user := makeUser(t, store, "alice", true)
+	store.Feeds = []domain.Feed{{ID: 1, UserID: user.ID, URL: "https://x.com/rss", Title: "X"}}
 	now := time.Now()
 	store.Items = []domain.Item{
 		{ID: 1, FeedID: 1, GUID: "1", Title: "Post", URL: "https://ex.com/1", PublishedAt: &now},
 	}
 
 	h := handlers.New(store, nil, nil)
-	body := `{"read":true}`
-	req := httptest.NewRequest("PATCH", "/api/items/1", strings.NewReader(body))
+	r := authedRouter(h, user)
+
+	req := authReq("PATCH", "/api/items/1", `{"read":true}`, user)
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
-	h.Router().ServeHTTP(w, req)
+	r.ServeHTTP(w, req)
 
 	assert.Equal(t, http.StatusOK, w.Code)
 
@@ -88,17 +103,20 @@ func TestUpdateItem_MarkRead(t *testing.T) {
 
 func TestUpdateItem_MarkStarred(t *testing.T) {
 	store := mockstore.New()
+	user := makeUser(t, store, "alice", true)
+	store.Feeds = []domain.Feed{{ID: 1, UserID: user.ID, URL: "https://x.com/rss", Title: "X"}}
 	now := time.Now()
 	store.Items = []domain.Item{
 		{ID: 1, FeedID: 1, GUID: "1", Title: "Post", URL: "https://ex.com/1", PublishedAt: &now},
 	}
 
 	h := handlers.New(store, nil, nil)
-	body := `{"starred":true}`
-	req := httptest.NewRequest("PATCH", "/api/items/1", strings.NewReader(body))
+	r := authedRouter(h, user)
+
+	req := authReq("PATCH", "/api/items/1", `{"starred":true}`, user)
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
-	h.Router().ServeHTTP(w, req)
+	r.ServeHTTP(w, req)
 
 	assert.Equal(t, http.StatusOK, w.Code)
 
@@ -107,13 +125,15 @@ func TestUpdateItem_MarkStarred(t *testing.T) {
 	assert.True(t, item.Starred)
 }
 
-func TestHealth(t *testing.T) {
+func TestItems_Health(t *testing.T) {
 	store := mockstore.New()
+	user := makeUser(t, store, "alice", true)
 	h := handlers.New(store, nil, nil)
+	r := authedRouter(h, user)
 
-	req := httptest.NewRequest("GET", "/api/health", nil)
+	req := authReq("GET", "/api/health", "", user)
 	w := httptest.NewRecorder()
-	h.Router().ServeHTTP(w, req)
+	r.ServeHTTP(w, req)
 
 	assert.Equal(t, http.StatusOK, w.Code)
 }

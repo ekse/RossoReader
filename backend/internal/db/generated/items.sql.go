@@ -13,34 +13,65 @@ import (
 
 const countItems = `-- name: CountItems :one
 SELECT COUNT(*)
-FROM items
-WHERE ($1::int IS NULL OR feed_id = $1::int)
-  AND ($2::bool IS NULL OR read = $2::bool)
-  AND ($3::bool IS NULL OR starred = $3::bool)
+FROM items i
+JOIN feeds f ON f.id = i.feed_id AND f.user_id = $1::bigint
+LEFT JOIN user_item_states uis ON uis.item_id = i.id AND uis.user_id = $1::bigint
+WHERE ($2::int IS NULL OR i.feed_id = $2::int)
+  AND ($3::bool IS NULL OR COALESCE(uis.read, false) = $3::bool)
+  AND ($4::bool IS NULL OR COALESCE(uis.starred, false) = $4::bool)
 `
 
 type CountItemsParams struct {
+	UserID  int64  `json:"user_id"`
 	FeedID  *int32 `json:"feed_id"`
 	Read    *bool  `json:"read"`
 	Starred *bool  `json:"starred"`
 }
 
 func (q *Queries) CountItems(ctx context.Context, arg CountItemsParams) (int64, error) {
-	row := q.db.QueryRow(ctx, countItems, arg.FeedID, arg.Read, arg.Starred)
+	row := q.db.QueryRow(ctx, countItems,
+		arg.UserID,
+		arg.FeedID,
+		arg.Read,
+		arg.Starred,
+	)
 	var count int64
 	err := row.Scan(&count)
 	return count, err
 }
 
 const getItemByID = `-- name: GetItemByID :one
-SELECT id, feed_id, guid, title, url, content, description, author, published_at, fetched_at, read, starred
-FROM items
-WHERE id = $1
+SELECT i.id, i.feed_id, i.guid, i.title, i.url, i.content, i.description, i.author, i.published_at, i.fetched_at,
+       COALESCE(uis.read, false) AS is_read, COALESCE(uis.starred, false) AS is_starred
+FROM items i
+JOIN feeds f ON f.id = i.feed_id AND f.user_id = $2::bigint
+LEFT JOIN user_item_states uis ON uis.item_id = i.id AND uis.user_id = $2::bigint
+WHERE i.id = $1
 `
 
-func (q *Queries) GetItemByID(ctx context.Context, id int32) (Item, error) {
-	row := q.db.QueryRow(ctx, getItemByID, id)
-	var i Item
+type GetItemByIDParams struct {
+	ID     int32 `json:"id"`
+	UserID int64 `json:"user_id"`
+}
+
+type GetItemByIDRow struct {
+	ID          int32              `json:"id"`
+	FeedID      int32              `json:"feed_id"`
+	Guid        string             `json:"guid"`
+	Title       string             `json:"title"`
+	Url         string             `json:"url"`
+	Content     *string            `json:"content"`
+	Description *string            `json:"description"`
+	Author      *string            `json:"author"`
+	PublishedAt pgtype.Timestamptz `json:"published_at"`
+	FetchedAt   pgtype.Timestamptz `json:"fetched_at"`
+	IsRead      bool               `json:"is_read"`
+	IsStarred   bool               `json:"is_starred"`
+}
+
+func (q *Queries) GetItemByID(ctx context.Context, arg GetItemByIDParams) (GetItemByIDRow, error) {
+	row := q.db.QueryRow(ctx, getItemByID, arg.ID, arg.UserID)
+	var i GetItemByIDRow
 	err := row.Scan(
 		&i.ID,
 		&i.FeedID,
@@ -52,23 +83,27 @@ func (q *Queries) GetItemByID(ctx context.Context, id int32) (Item, error) {
 		&i.Author,
 		&i.PublishedAt,
 		&i.FetchedAt,
-		&i.Read,
-		&i.Starred,
+		&i.IsRead,
+		&i.IsStarred,
 	)
 	return i, err
 }
 
 const getItems = `-- name: GetItems :many
-SELECT id, feed_id, guid, title, url, content, description, author, published_at, fetched_at, read, starred
-FROM items
-WHERE ($1::int IS NULL OR feed_id = $1::int)
-  AND ($2::bool IS NULL OR read = $2::bool)
-  AND ($3::bool IS NULL OR starred = $3::bool)
-ORDER BY published_at DESC NULLS LAST
-LIMIT $5 OFFSET $4
+SELECT i.id, i.feed_id, i.guid, i.title, i.url, i.content, i.description, i.author, i.published_at, i.fetched_at,
+       COALESCE(uis.read, false) AS is_read, COALESCE(uis.starred, false) AS is_starred
+FROM items i
+JOIN feeds f ON f.id = i.feed_id AND f.user_id = $1::bigint
+LEFT JOIN user_item_states uis ON uis.item_id = i.id AND uis.user_id = $1::bigint
+WHERE ($2::int IS NULL OR i.feed_id = $2::int)
+  AND ($3::bool IS NULL OR COALESCE(uis.read, false) = $3::bool)
+  AND ($4::bool IS NULL OR COALESCE(uis.starred, false) = $4::bool)
+ORDER BY i.published_at DESC NULLS LAST
+LIMIT $6 OFFSET $5
 `
 
 type GetItemsParams struct {
+	UserID  int64  `json:"user_id"`
 	FeedID  *int32 `json:"feed_id"`
 	Read    *bool  `json:"read"`
 	Starred *bool  `json:"starred"`
@@ -76,8 +111,24 @@ type GetItemsParams struct {
 	Limit   int32  `json:"limit"`
 }
 
-func (q *Queries) GetItems(ctx context.Context, arg GetItemsParams) ([]Item, error) {
+type GetItemsRow struct {
+	ID          int32              `json:"id"`
+	FeedID      int32              `json:"feed_id"`
+	Guid        string             `json:"guid"`
+	Title       string             `json:"title"`
+	Url         string             `json:"url"`
+	Content     *string            `json:"content"`
+	Description *string            `json:"description"`
+	Author      *string            `json:"author"`
+	PublishedAt pgtype.Timestamptz `json:"published_at"`
+	FetchedAt   pgtype.Timestamptz `json:"fetched_at"`
+	IsRead      bool               `json:"is_read"`
+	IsStarred   bool               `json:"is_starred"`
+}
+
+func (q *Queries) GetItems(ctx context.Context, arg GetItemsParams) ([]GetItemsRow, error) {
 	rows, err := q.db.Query(ctx, getItems,
+		arg.UserID,
 		arg.FeedID,
 		arg.Read,
 		arg.Starred,
@@ -88,9 +139,9 @@ func (q *Queries) GetItems(ctx context.Context, arg GetItemsParams) ([]Item, err
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Item
+	var items []GetItemsRow
 	for rows.Next() {
-		var i Item
+		var i GetItemsRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.FeedID,
@@ -102,8 +153,8 @@ func (q *Queries) GetItems(ctx context.Context, arg GetItemsParams) ([]Item, err
 			&i.Author,
 			&i.PublishedAt,
 			&i.FetchedAt,
-			&i.Read,
-			&i.Starred,
+			&i.IsRead,
+			&i.IsStarred,
 		); err != nil {
 			return nil, err
 		}
@@ -115,27 +166,29 @@ func (q *Queries) GetItems(ctx context.Context, arg GetItemsParams) ([]Item, err
 	return items, nil
 }
 
-const getUnreadCountByFeed = `-- name: GetUnreadCountByFeed :many
-SELECT feed_id, COUNT(*)::int AS count
-FROM items
-WHERE read = FALSE
-GROUP BY feed_id
+const getUnreadCountByFeedForUser = `-- name: GetUnreadCountByFeedForUser :many
+SELECT i.feed_id, COUNT(*)::int AS count
+FROM items i
+JOIN feeds f ON f.id = i.feed_id AND f.user_id = $1
+LEFT JOIN user_item_states uis ON uis.user_id = $1 AND uis.item_id = i.id
+WHERE uis.item_id IS NULL OR uis.read = false
+GROUP BY i.feed_id
 `
 
-type GetUnreadCountByFeedRow struct {
+type GetUnreadCountByFeedForUserRow struct {
 	FeedID int32 `json:"feed_id"`
 	Count  int32 `json:"count"`
 }
 
-func (q *Queries) GetUnreadCountByFeed(ctx context.Context) ([]GetUnreadCountByFeedRow, error) {
-	rows, err := q.db.Query(ctx, getUnreadCountByFeed)
+func (q *Queries) GetUnreadCountByFeedForUser(ctx context.Context, userID *int64) ([]GetUnreadCountByFeedForUserRow, error) {
+	rows, err := q.db.Query(ctx, getUnreadCountByFeedForUser, userID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []GetUnreadCountByFeedRow
+	var items []GetUnreadCountByFeedForUserRow
 	for rows.Next() {
-		var i GetUnreadCountByFeedRow
+		var i GetUnreadCountByFeedForUserRow
 		if err := rows.Scan(&i.FeedID, &i.Count); err != nil {
 			return nil, err
 		}
@@ -147,57 +200,69 @@ func (q *Queries) GetUnreadCountByFeed(ctx context.Context) ([]GetUnreadCountByF
 	return items, nil
 }
 
-const markAllItemsRead = `-- name: MarkAllItemsRead :exec
-UPDATE items
-SET read = TRUE
-WHERE read = FALSE
+const markAllItemsReadForUser = `-- name: MarkAllItemsReadForUser :exec
+INSERT INTO user_item_states (user_id, item_id, read, starred)
+SELECT $1, i.id, true, false FROM items i
+  JOIN feeds f ON f.id = i.feed_id AND f.user_id = $1
+ON CONFLICT (user_id, item_id) DO UPDATE SET read = true
 `
 
-func (q *Queries) MarkAllItemsRead(ctx context.Context) error {
-	_, err := q.db.Exec(ctx, markAllItemsRead)
+func (q *Queries) MarkAllItemsReadForUser(ctx context.Context, userID int64) error {
+	_, err := q.db.Exec(ctx, markAllItemsReadForUser, userID)
 	return err
 }
 
-const markFeedItemsRead = `-- name: MarkFeedItemsRead :exec
-UPDATE items
-SET read = TRUE
-WHERE feed_id = $1 AND read = FALSE
+const markFeedItemsReadForUser = `-- name: MarkFeedItemsReadForUser :exec
+INSERT INTO user_item_states (user_id, item_id, read, starred)
+SELECT $1, i.id, true, false FROM items i WHERE i.feed_id = $2
+ON CONFLICT (user_id, item_id) DO UPDATE SET read = true
 `
 
-func (q *Queries) MarkFeedItemsRead(ctx context.Context, feedID int32) error {
-	_, err := q.db.Exec(ctx, markFeedItemsRead, feedID)
+type MarkFeedItemsReadForUserParams struct {
+	UserID int64 `json:"user_id"`
+	FeedID int32 `json:"feed_id"`
+}
+
+func (q *Queries) MarkFeedItemsReadForUser(ctx context.Context, arg MarkFeedItemsReadForUserParams) error {
+	_, err := q.db.Exec(ctx, markFeedItemsReadForUser, arg.UserID, arg.FeedID)
 	return err
 }
 
-const markItemRead = `-- name: MarkItemRead :exec
-UPDATE items
-SET read = $2
-WHERE id = $1
+const setItemRead = `-- name: SetItemRead :exec
+INSERT INTO user_item_states (user_id, item_id, read, starred)
+SELECT $1, i.id, $3, false
+FROM items i JOIN feeds f ON f.id = i.feed_id AND f.user_id = $1
+WHERE i.id = $2
+ON CONFLICT (user_id, item_id) DO UPDATE SET read = EXCLUDED.read
 `
 
-type MarkItemReadParams struct {
-	ID   int32 `json:"id"`
-	Read bool  `json:"read"`
+type SetItemReadParams struct {
+	UserID int64 `json:"user_id"`
+	ID     int32 `json:"id"`
+	Read   bool  `json:"read"`
 }
 
-func (q *Queries) MarkItemRead(ctx context.Context, arg MarkItemReadParams) error {
-	_, err := q.db.Exec(ctx, markItemRead, arg.ID, arg.Read)
+func (q *Queries) SetItemRead(ctx context.Context, arg SetItemReadParams) error {
+	_, err := q.db.Exec(ctx, setItemRead, arg.UserID, arg.ID, arg.Read)
 	return err
 }
 
-const markItemStarred = `-- name: MarkItemStarred :exec
-UPDATE items
-SET starred = $2
-WHERE id = $1
+const setItemStarred = `-- name: SetItemStarred :exec
+INSERT INTO user_item_states (user_id, item_id, read, starred)
+SELECT $1, i.id, false, $3
+FROM items i JOIN feeds f ON f.id = i.feed_id AND f.user_id = $1
+WHERE i.id = $2
+ON CONFLICT (user_id, item_id) DO UPDATE SET starred = EXCLUDED.starred
 `
 
-type MarkItemStarredParams struct {
+type SetItemStarredParams struct {
+	UserID  int64 `json:"user_id"`
 	ID      int32 `json:"id"`
 	Starred bool  `json:"starred"`
 }
 
-func (q *Queries) MarkItemStarred(ctx context.Context, arg MarkItemStarredParams) error {
-	_, err := q.db.Exec(ctx, markItemStarred, arg.ID, arg.Starred)
+func (q *Queries) SetItemStarred(ctx context.Context, arg SetItemStarredParams) error {
+	_, err := q.db.Exec(ctx, setItemStarred, arg.UserID, arg.ID, arg.Starred)
 	return err
 }
 
@@ -213,7 +278,7 @@ DO UPDATE SET
     author = EXCLUDED.author,
     published_at = EXCLUDED.published_at,
     fetched_at = NOW()
-RETURNING id, feed_id, guid, title, url, content, description, author, published_at, fetched_at, read, starred
+RETURNING id, feed_id, guid, title, url, content, description, author, published_at, fetched_at
 `
 
 type UpsertItemParams struct {
@@ -227,7 +292,20 @@ type UpsertItemParams struct {
 	PublishedAt pgtype.Timestamptz `json:"published_at"`
 }
 
-func (q *Queries) UpsertItem(ctx context.Context, arg UpsertItemParams) (Item, error) {
+type UpsertItemRow struct {
+	ID          int32              `json:"id"`
+	FeedID      int32              `json:"feed_id"`
+	Guid        string             `json:"guid"`
+	Title       string             `json:"title"`
+	Url         string             `json:"url"`
+	Content     *string            `json:"content"`
+	Description *string            `json:"description"`
+	Author      *string            `json:"author"`
+	PublishedAt pgtype.Timestamptz `json:"published_at"`
+	FetchedAt   pgtype.Timestamptz `json:"fetched_at"`
+}
+
+func (q *Queries) UpsertItem(ctx context.Context, arg UpsertItemParams) (UpsertItemRow, error) {
 	row := q.db.QueryRow(ctx, upsertItem,
 		arg.FeedID,
 		arg.Guid,
@@ -238,7 +316,7 @@ func (q *Queries) UpsertItem(ctx context.Context, arg UpsertItemParams) (Item, e
 		arg.Author,
 		arg.PublishedAt,
 	)
-	var i Item
+	var i UpsertItemRow
 	err := row.Scan(
 		&i.ID,
 		&i.FeedID,
@@ -250,8 +328,6 @@ func (q *Queries) UpsertItem(ctx context.Context, arg UpsertItemParams) (Item, e
 		&i.Author,
 		&i.PublishedAt,
 		&i.FetchedAt,
-		&i.Read,
-		&i.Starred,
 	)
 	return i, err
 }

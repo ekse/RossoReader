@@ -2,32 +2,50 @@ package store
 
 import (
 	"context"
+	"time"
 
 	"github.com/ekse/rssreader/internal/domain"
 )
 
 type Store interface {
 	// Feeds
-	GetFeeds(ctx context.Context) ([]domain.Feed, error)
-	GetFeed(ctx context.Context, id int64) (domain.Feed, error)
-	CreateFeed(ctx context.Context, url, title, description, siteLink, iconURL string) (domain.Feed, error)
-	DeleteFeed(ctx context.Context, id int64) error
+	GetFeeds(ctx context.Context, userID int64) ([]domain.Feed, error)
+	GetAllFeeds(ctx context.Context) ([]domain.Feed, error)
+	GetFeed(ctx context.Context, userID, id int64) (domain.Feed, error)
+	GetFeedByIDAny(ctx context.Context, id int64) (domain.Feed, error)
+	CreateFeed(ctx context.Context, userID int64, url, title, description, siteLink, iconURL string) (domain.Feed, error)
+	DeleteFeed(ctx context.Context, userID, id int64) error
 	UpdateFeedLastFetched(ctx context.Context, id int64) error
 	UpdateFeedMetadata(ctx context.Context, id int64, title, description, siteLink, iconURL string) error
 
 	// Items
 	GetItems(ctx context.Context, q domain.ItemsQuery) ([]domain.Item, int64, error)
-	GetItem(ctx context.Context, id int64) (domain.Item, error)
+	GetItem(ctx context.Context, userID, id int64) (domain.Item, error)
 	UpsertItem(ctx context.Context, item domain.Item) (domain.Item, error)
-	MarkItemRead(ctx context.Context, id int64, read bool) error
-	MarkItemStarred(ctx context.Context, id int64, starred bool) error
-	MarkAllFeedItemsRead(ctx context.Context, feedID int64) error
-	MarkAllItemsRead(ctx context.Context) error
-	GetUnreadCountByFeed(ctx context.Context) (map[int64]int, error)
+	MarkItemRead(ctx context.Context, userID, id int64, read bool) error
+	MarkItemStarred(ctx context.Context, userID, id int64, starred bool) error
+	MarkAllFeedItemsRead(ctx context.Context, userID, feedID int64) error
+	MarkAllItemsRead(ctx context.Context, userID int64) error
+	GetUnreadCountByFeed(ctx context.Context, userID int64) (map[int64]int, error)
 
 	// Settings
-	GetSettings(ctx context.Context) (map[string]string, error)
-	GetSetting(ctx context.Context, key string) (string, error)
-	UpsertSetting(ctx context.Context, key, value string) error
-	DeleteSetting(ctx context.Context, key string) error
+	GetSettings(ctx context.Context, userID int64) (map[string]string, error)
+	GetSetting(ctx context.Context, userID int64, key string) (string, error)
+	UpsertSetting(ctx context.Context, userID int64, key, value string) error
+	DeleteSetting(ctx context.Context, userID int64, key string) error
+
+	// Users
+	CreateUser(ctx context.Context, username, passwordHash string, isAdmin bool) (domain.User, error)
+	GetUserByUsername(ctx context.Context, username string) (domain.User, string, error)
+	GetUserByID(ctx context.Context, id int64) (domain.User, string, error)
+	ListUsers(ctx context.Context) ([]domain.User, error)
+	UpdateUserPassword(ctx context.Context, id int64, passwordHash string) error
+	DeleteUser(ctx context.Context, id int64) error
+	CountUsers(ctx context.Context) (int64, error)
+
+	// Sessions
+	CreateSession(ctx context.Context, id [16]byte, userID int64, expiresAt time.Time) error
+	GetSession(ctx context.Context, id [16]byte) (domain.Session, error)
+	DeleteSession(ctx context.Context, id [16]byte) error
+	DeleteExpiredSessions(ctx context.Context) error
 }

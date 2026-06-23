@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -16,12 +15,15 @@ import (
 
 func TestGetSettings(t *testing.T) {
 	store := mockstore.New()
-	store.Settings = map[string]string{"fetch_interval": "30"}
+	user := makeUser(t, store, "alice", true)
+	store.UpsertSetting(nil, user.ID, "fetch_interval", "30")
 
 	h := handlers.New(store, nil, nil)
-	req := httptest.NewRequest("GET", "/api/settings", nil)
+	r := authedRouter(h, user)
+
+	req := authReq("GET", "/api/settings", "", user)
 	w := httptest.NewRecorder()
-	h.Router().ServeHTTP(w, req)
+	r.ServeHTTP(w, req)
 
 	assert.Equal(t, http.StatusOK, w.Code)
 
@@ -33,13 +35,14 @@ func TestGetSettings(t *testing.T) {
 
 func TestUpdateSettings(t *testing.T) {
 	store := mockstore.New()
+	user := makeUser(t, store, "alice", true)
 	h := handlers.New(store, nil, nil)
+	r := authedRouter(h, user)
 
-	body := `{"fetch_interval":"60"}`
-	req := httptest.NewRequest("PATCH", "/api/settings", strings.NewReader(body))
+	req := authReq("PATCH", "/api/settings", `{"fetch_interval":"60"}`, user)
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
-	h.Router().ServeHTTP(w, req)
+	r.ServeHTTP(w, req)
 
 	assert.Equal(t, http.StatusOK, w.Code)
 

@@ -3,6 +3,7 @@ import { createPinia } from 'pinia'
 import App from './App.vue'
 import router from './router'
 import './style.css'
+import { useAuthStore } from './stores/auth'
 
 const saved = localStorage.getItem('theme')
 if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
@@ -10,6 +11,13 @@ if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dar
 }
 
 const app = createApp(App)
-app.use(createPinia())
-app.use(router)
-app.mount('#app')
+const pinia = createPinia()
+app.use(pinia)
+
+// Restore the session before installing the router so the initial navigation
+// guard sees the authenticated user and doesn't bounce to /login.
+const auth = useAuthStore()
+auth.fetchMe().finally(() => {
+  app.use(router)
+  app.mount('#app')
+})

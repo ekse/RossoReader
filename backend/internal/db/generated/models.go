@@ -18,6 +18,7 @@ type Feed struct {
 	CreatedAt     pgtype.Timestamptz `json:"created_at"`
 	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
 	IconUrl       *string            `json:"icon_url"`
+	UserID        *int64             `json:"user_id"`
 }
 
 type Item struct {
@@ -35,7 +36,31 @@ type Item struct {
 	Starred     bool               `json:"starred"`
 }
 
+type Session struct {
+	ID        pgtype.UUID        `json:"id"`
+	UserID    int64              `json:"user_id"`
+	ExpiresAt pgtype.Timestamptz `json:"expires_at"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+}
+
 type Setting struct {
-	Key   string `json:"key"`
-	Value string `json:"value"`
+	Key    string `json:"key"`
+	Value  string `json:"value"`
+	UserID *int64 `json:"user_id"`
+}
+
+type User struct {
+	ID           int64              `json:"id"`
+	Username     string             `json:"username"`
+	PasswordHash string             `json:"password_hash"`
+	IsAdmin      bool               `json:"is_admin"`
+	CreatedAt    pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`
+}
+
+type UserItemState struct {
+	UserID  int64 `json:"user_id"`
+	ItemID  int32 `json:"item_id"`
+	Read    bool  `json:"read"`
+	Starred bool  `json:"starred"`
 }

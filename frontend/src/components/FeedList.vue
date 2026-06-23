@@ -2,10 +2,12 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useFeedsStore } from '@/stores/feeds'
+import { useAuthStore } from '@/stores/auth'
 import AddFeedDialog from './AddFeedDialog.vue'
 import ThemeToggle from './ThemeToggle.vue'
 
 const feedsStore = useFeedsStore()
+const auth = useAuthStore()
 const router = useRouter()
 const route = useRoute()
 const showAddFeed = ref(false)
@@ -16,6 +18,11 @@ onMounted(() => {
 
 function selectFeed(id: number) {
   router.push(`/feed/${id}`)
+}
+
+async function logout() {
+  await auth.logout()
+  router.push('/login')
 }
 
 function formatDate(dateStr?: string): string {
@@ -42,7 +49,7 @@ const totalUnread = computed(() =>
     <div class="flex-1 p-4 overflow-y-auto">
       <div class="px-3 mb-3 flex items-center justify-between">
         <span class="flex items-center gap-2 font-bold tracking-[0.2em] text-red-600 select-none">
-          🌹Rosso
+         🌹Rosso
         </span>
         <ThemeToggle />
       </div>
@@ -99,6 +106,22 @@ const totalUnread = computed(() =>
       class="shrink-0 px-4 py-3 border-t border-gray-200 dark:border-gray-700 text-xs text-gray-400 dark:text-gray-500">
       Last updated: {{ formatDate(lastUpdate) }}
     </div>
+
+    <div v-if="auth.user" class="shrink-0 px-4 py-3 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
+      <router-link to="/settings" class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+        </svg>
+        <span>{{ auth.user.username }}</span>
+        <span v-if="auth.isAdmin" class="px-1.5 py-0.5 text-[10px] font-medium rounded bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">admin</span>
+      </router-link>
+      <button @click="logout" title="Sign out" class="text-gray-400 hover:text-gray-700 dark:hover:text-gray-200">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+        </svg>
+      </button>
+    </div>
+
     <AddFeedDialog v-if="showAddFeed" @close="showAddFeed = false" />
   </div>
 </template>

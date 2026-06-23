@@ -11,6 +11,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	chimw "github.com/go-chi/chi/v5/middleware"
 
+	"github.com/ekse/rssreader/internal/bootstrap"
 	"github.com/ekse/rssreader/internal/db"
 	"github.com/ekse/rssreader/internal/fetcher"
 	"github.com/ekse/rssreader/internal/handlers"
@@ -46,6 +47,12 @@ func main() {
 	}
 
 	store := pgstore.New(pool)
+
+	log.Printf("running bootstrap...")
+	if err := bootstrap.Run(ctx, pool, store); err != nil {
+		log.Fatalf("bootstrap failed: %v", err)
+	}
+
 	f := fetcher.NewHTTPFetcher()
 	sched := scheduler.New(store, f)
 
@@ -57,7 +64,7 @@ func main() {
 	r.Use(middleware.CORS)
 	r.Use(chimw.Recoverer)
 
-	r.Mount("/", h.Router())
+	r.Mount("/", h.MountRouter())
 
 	log.Printf("initial feed fetch...")
 	if err := sched.FetchAll(ctx); err != nil {

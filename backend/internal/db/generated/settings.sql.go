@@ -11,23 +11,38 @@ import (
 
 const deleteSetting = `-- name: DeleteSetting :exec
 DELETE FROM settings
-WHERE key = $1
+WHERE user_id = $1 AND key = $2
 `
 
-func (q *Queries) DeleteSetting(ctx context.Context, key string) error {
-	_, err := q.db.Exec(ctx, deleteSetting, key)
+type DeleteSettingParams struct {
+	UserID *int64 `json:"user_id"`
+	Key    string `json:"key"`
+}
+
+func (q *Queries) DeleteSetting(ctx context.Context, arg DeleteSettingParams) error {
+	_, err := q.db.Exec(ctx, deleteSetting, arg.UserID, arg.Key)
 	return err
 }
 
 const getSetting = `-- name: GetSetting :one
 SELECT key, value
 FROM settings
-WHERE key = $1
+WHERE user_id = $1 AND key = $2
 `
 
-func (q *Queries) GetSetting(ctx context.Context, key string) (Setting, error) {
-	row := q.db.QueryRow(ctx, getSetting, key)
-	var i Setting
+type GetSettingParams struct {
+	UserID *int64 `json:"user_id"`
+	Key    string `json:"key"`
+}
+
+type GetSettingRow struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
+}
+
+func (q *Queries) GetSetting(ctx context.Context, arg GetSettingParams) (GetSettingRow, error) {
+	row := q.db.QueryRow(ctx, getSetting, arg.UserID, arg.Key)
+	var i GetSettingRow
 	err := row.Scan(&i.Key, &i.Value)
 	return i, err
 }
@@ -35,17 +50,23 @@ func (q *Queries) GetSetting(ctx context.Context, key string) (Setting, error) {
 const getSettings = `-- name: GetSettings :many
 SELECT key, value
 FROM settings
+WHERE user_id = $1
 `
 
-func (q *Queries) GetSettings(ctx context.Context) ([]Setting, error) {
-	rows, err := q.db.Query(ctx, getSettings)
+type GetSettingsRow struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
+}
+
+func (q *Queries) GetSettings(ctx context.Context, userID *int64) ([]GetSettingsRow, error) {
+	rows, err := q.db.Query(ctx, getSettings, userID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Setting
+	var items []GetSettingsRow
 	for rows.Next() {
-		var i Setting
+		var i GetSettingsRow
 		if err := rows.Scan(&i.Key, &i.Value); err != nil {
 			return nil, err
 		}
@@ -58,17 +79,18 @@ func (q *Queries) GetSettings(ctx context.Context) ([]Setting, error) {
 }
 
 const upsertSetting = `-- name: UpsertSetting :exec
-INSERT INTO settings (key, value)
-VALUES ($1, $2)
-ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value
+INSERT INTO settings (user_id, key, value)
+VALUES ($1, $2, $3)
+ON CONFLICT (user_id, key) DO UPDATE SET value = EXCLUDED.value
 `
 
 type UpsertSettingParams struct {
-	Key   string `json:"key"`
-	Value string `json:"value"`
+	UserID *int64 `json:"user_id"`
+	Key    string `json:"key"`
+	Value  string `json:"value"`
 }
 
 func (q *Queries) UpsertSetting(ctx context.Context, arg UpsertSettingParams) error {
-	_, err := q.db.Exec(ctx, upsertSetting, arg.Key, arg.Value)
+	_, err := q.db.Exec(ctx, upsertSetting, arg.UserID, arg.Key, arg.Value)
 	return err
 }

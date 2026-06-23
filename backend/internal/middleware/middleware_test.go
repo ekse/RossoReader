@@ -22,6 +22,7 @@ func TestCORS_SetsHeaders(t *testing.T) {
 	handler.ServeHTTP(w, req)
 
 	assert.Equal(t, "http://localhost:5173", w.Header().Get("Access-Control-Allow-Origin"))
+	assert.Equal(t, "true", w.Header().Get("Access-Control-Allow-Credentials"))
 }
 
 func TestCORS_HandlesPreflight(t *testing.T) {

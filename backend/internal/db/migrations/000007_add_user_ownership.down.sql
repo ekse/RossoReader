@@ -1,0 +1,5 @@
+DROP TABLE IF EXISTS user_item_states;
+
+ALTER TABLE settings DROP COLUMN IF EXISTS user_id;
+
+ALTER TABLE feeds DROP COLUMN IF EXISTS user_id;
