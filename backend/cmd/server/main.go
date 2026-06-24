@@ -26,7 +26,7 @@ func main() {
 
 	databaseURL := os.Getenv("DATABASE_URL")
 	if databaseURL == "" {
-		databaseURL = "postgres://postgres:postgres@localhost:5432/rssreader?sslmode=disable"
+		databaseURL = "postgres://postgres:postgres@localhost:5433/rssreader?sslmode=disable"
 	}
 
 	serverPort := os.Getenv("SERVER_PORT")

@@ -11,7 +11,7 @@ import (
 func Connect(ctx context.Context) (*pgxpool.Pool, error) {
 	databaseURL := os.Getenv("DATABASE_URL")
 	if databaseURL == "" {
-		databaseURL = "postgres://postgres:postgres@localhost:5432/rssreader?sslmode=disable"
+		databaseURL = "postgres://postgres:postgres@localhost:5433/rssreader?sslmode=disable"
 	}
 
 	pool, err := pgxpool.New(ctx, databaseURL)

@@ -1,29 +1,29 @@
 services:
-  db:
+  db-dev:
     image: postgres:16-alpine
     restart: unless-stopped
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - postgres-data-dev:/var/lib/postgresql/data
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: rssreader
     ports:
-      - "5432:5432"
+      - "5433:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
       timeout: 5s
       retries: 5
 
-  api:
+  api-dev:
     build:
       context: ./backend
       dockerfile: Dockerfile.dev
     ports:
-      - "8080:8080"
+      - "8081:8080"
     environment:
-      DATABASE_URL: postgres://postgres:postgres@db:5432/rssreader?sslmode=disable
+      DATABASE_URL: postgres://postgres:postgres@db-dev:5432/${POSTGRES_DB:-rssreader}?sslmode=disable
       SERVER_PORT: "8080"
       FETCH_INTERVAL_MINUTES: "30"
       CORS_ORIGIN: http://localhost:5173
@@ -33,10 +33,10 @@ services:
     volumes:
       - ./backend:/app
     depends_on:
-      db:
+      db-dev:
         condition: service_healthy
 
-  web:
+  web-dev:
     build:
       context: ./frontend
       dockerfile: Dockerfile.dev
@@ -46,9 +46,9 @@ services:
       - ./frontend:/app
       - /app/node_modules
     environment:
-      VITE_API_URL: http://localhost:8080
+      VITE_API_URL: http://localhost:8081
     depends_on:
-      - api
+      - api-dev
 
 volumes:
-  postgres-data:
+  postgres-data-dev:
