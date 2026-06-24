@@ -4,6 +4,7 @@ import type { Item } from '@/types'
 defineProps<{
   items: Item[]
   loading?: boolean
+  feedNames?: Record<number, string>
 }>()
 
 const emit = defineEmits<{
@@ -53,7 +54,7 @@ function stripHtml(s?: string): string {
               {{ stripHtml(item.description) }}
             </p>
             <div class="mt-1 flex items-center gap-3 text-xs text-gray-400 dark:text-gray-500">
-              <span v-if="item.author">{{ item.author }}</span>
+              <span v-if="feedNames?.[item.feed_id]">{{ feedNames[item.feed_id] }}</span>
               <span>{{ formatDate(item.published_at) }}</span>
             </div>
           </div>

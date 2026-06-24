@@ -1,11 +1,19 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import type { Feed } from '@/types'
 import * as api from '@/api/client'
 
 export const useFeedsStore = defineStore('feeds', () => {
   const feeds = ref<Feed[]>([])
   const loading = ref(false)
+
+  const feedNames = computed(() => {
+    const map: Record<number, string> = {}
+    for (const f of feeds.value) {
+      map[f.id] = f.title || f.url
+    }
+    return map
+  })
 
   async function loadFeeds() {
     loading.value = true
@@ -32,5 +40,5 @@ export const useFeedsStore = defineStore('feeds', () => {
     await loadFeeds()
   }
 
-  return { feeds, loading, loadFeeds, addFeed, removeFeed, refreshFeed }
+  return { feeds, loading, feedNames, loadFeeds, addFeed, removeFeed, refreshFeed }
 })

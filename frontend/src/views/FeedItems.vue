@@ -1,11 +1,10 @@
 <script setup lang="ts">
-import { onMounted, watch } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useItemsStore } from '@/stores/items'
 import { useFeedsStore } from '@/stores/feeds'
 import ItemList from '@/components/ItemList.vue'
 import AddFeedDialog from '@/components/AddFeedDialog.vue'
-import { ref } from 'vue'
 import * as api from '@/api/client'
 
 const route = useRoute()
@@ -60,6 +59,7 @@ function loadFeed() {
     <ItemList
       :items="itemsStore.items"
       :loading="itemsStore.loading"
+      :feed-names="feedsStore.feedNames"
       @toggle-read="itemsStore.toggleRead"
       @toggle-starred="itemsStore.toggleStarred"
       @load-more="itemsStore.loadMore"
