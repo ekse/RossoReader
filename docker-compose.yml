@@ -21,7 +21,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile.dev
     ports:
-      - "8080:8080"
+      - "8081:8080"
     environment:
       DATABASE_URL: postgres://postgres:postgres@db-dev:5432/${POSTGRES_DB:-rssreader}?sslmode=disable
       SERVER_PORT: "8080"
@@ -46,7 +46,7 @@ services:
       - ./frontend:/app
       - /app/node_modules
     environment:
-      VITE_API_URL: http://localhost:8080
+      VITE_API_URL: http://localhost:8081
     depends_on:
       - api-dev
 
