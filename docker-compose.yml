@@ -9,7 +9,7 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: rssreader
     ports:
-      - "5433:5432"
+      - "${DB_PORT:-5433}:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
@@ -21,12 +21,12 @@ services:
       context: ./backend
       dockerfile: Dockerfile.dev
     ports:
-      - "8081:8080"
+      - "${API_PORT:-8081}:8080"
     environment:
       DATABASE_URL: postgres://postgres:postgres@db-dev:5432/${POSTGRES_DB:-rssreader}?sslmode=disable
       SERVER_PORT: "8080"
       FETCH_INTERVAL_MINUTES: "30"
-      CORS_ORIGIN: http://localhost:5173
+      CORS_ORIGIN: http://localhost:${WEB_PORT:-5173}
       SESSION_MAX_AGE_DAYS: "30"
       SESSION_COOKIE_NAME: session
       COOKIE_SECURE: "false"
@@ -41,12 +41,12 @@ services:
       context: ./frontend
       dockerfile: Dockerfile.dev
     ports:
-      - "5173:5173"
+      - "${WEB_PORT:-5173}:5173"
     volumes:
       - ./frontend:/app
       - /app/node_modules
     environment:
-      VITE_API_URL: http://localhost:8081
+      VITE_API_URL: http://localhost:${API_PORT:-8081}
     depends_on:
       - api-dev
 
