@@ -22,6 +22,12 @@ Periodically fetches RSS/Atom feeds on a configurable schedule, stores articles 
 | `FETCH_INTERVAL_MINUTES` | `30` | RSS fetch interval |
 | `CORS_ORIGIN` | `http://localhost:5173` | Allowed CORS origin (dev) |
 | `VITE_API_URL` | `http://localhost:8080` | Backend URL for frontend |
+| `SESSION_MAX_AGE_DAYS` | `30` | Session max age in days |
+| `SESSION_COOKIE_NAME` | `session` | Session cookie name |
+| `COOKIE_SECURE` | `false` | Set cookie Secure flag |
+| `DB_PORT` | `5433` (dev) / `5432` (prod) | Host port mapped to PostgreSQL |
+| `API_PORT` | `8081` (dev) / `8080` (prod) | Host port mapped to the Go API |
+| `WEB_PORT` | `5173` (dev) / `80` (prod) | Host port mapped to the frontend |
 
 ### Production (Docker Compose)
 
@@ -55,36 +61,13 @@ docker compose -f docker-compose.prod.yml up -d
 ### Prerequisites
 
 - Docker & Docker Compose
-- VS Code (recommended) with Dev Containers extension
 
-### Quick start (Dev Containers)
-
-```bash
-# Open the project in VS Code
-code .
-
-# Reopen in container when prompted
-# (or Cmd+Shift+P → "Dev Containers: Reopen in Container")
-```
-
-The dev container includes Go, Node.js, pnpm, and connects to a PostgreSQL service automatically. Ports 5173 (Vite), 8080 (API), and 5432 (Postgres) are forwarded.
-
-### Manual start (without Dev Containers)
+### Quick start
 
 ```bash
 # Start PostgreSQL and run the app stack
 docker compose up -d
 
-# Backend hot-reload (standalone)
-cd backend
-go mod tidy
-air
-
-# Frontend dev server (standalone)
-cd frontend
-pnpm install
-pnpm dev
-```
 
 ### Running tests
 
