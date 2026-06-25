@@ -2,6 +2,7 @@
 import { onMounted, onUnmounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import FeedList from './components/FeedList.vue'
+import SvgSprites from './components/SvgSprites.vue'
 import { useSidebar } from './composables/useSidebar'
 
 const route = useRoute()
@@ -39,6 +40,7 @@ watch(() => route.path, () => {
 
 <template>
   <div class="flex h-screen overflow-hidden">
+    <SvgSprites />
     <!-- Backdrop overlay for mobile screen when sidebar is open -->
     <Transition name="fade">
       <div

@@ -64,24 +64,16 @@ function stripHtml(s?: string): string {
               class="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
               :title="item.read ? 'Mark as unread' : 'Mark as read'"
             >
-              <svg v-if="item.read" class="w-4 h-4 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255V19a2 2 0 01-2 2H5a2 2 0 01-2-2v-5.745m16 0A2 2 0 0019.586 12.55l-5.586-2.548-5.586 2.548A2 2 0 005 13.255m16 0l-4.5-2.625M5 13.255l4.5-2.625" />
-              </svg>
-              <svg v-else class="w-4 h-4 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-              </svg>
+              <svg v-if="item.read" class="w-4 h-4 text-gray-400 dark:text-gray-500"><use href="#icon-envelope-open" /></svg>
+              <svg v-else class="w-4 h-4 text-gray-400 dark:text-gray-500"><use href="#icon-envelope" /></svg>
             </button>
             <button
               @click="emit('toggleStarred', item)"
               class="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
               :title="item.starred ? 'Unstar' : 'Star'"
             >
-              <svg v-if="item.starred" class="w-4 h-4 text-yellow-500" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-              </svg>
-              <svg v-else class="w-4 h-4 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-              </svg>
+              <svg v-if="item.starred" class="w-4 h-4 text-yellow-500"><use href="#icon-star-filled" /></svg>
+              <svg v-else class="w-4 h-4 text-gray-400 dark:text-gray-500"><use href="#icon-star" /></svg>
             </button>
           </div>
         </div>
