@@ -8,7 +8,7 @@ import { useHeader } from './composables/useHeader'
 
 const route = useRoute()
 const { isOpen, close } = useSidebar()
-const { isHeaderVisible, lastScrollTop } = useHeader()
+const { isHeaderVisible, handleScroll } = useHeader()
 
 let wasMobile = false
 
@@ -31,26 +31,6 @@ onMounted(() => {
 onUnmounted(() => {
   window.removeEventListener('resize', handleResize)
 })
-
-function handleScroll(e: Event) {
-  if (window.innerWidth >= 768) {
-    isHeaderVisible.value = true
-    return
-  }
-
-  const target = e.target as HTMLElement
-  const scrollTop = target.scrollTop
-
-  if (scrollTop < 0) return
-
-  if (scrollTop > lastScrollTop.value && scrollTop > 50) {
-    isHeaderVisible.value = false
-  } else {
-    isHeaderVisible.value = true
-  }
-
-  lastScrollTop.value = scrollTop
-}
 
 // Close sidebar on mobile when navigating
 watch(() => route.path, () => {
