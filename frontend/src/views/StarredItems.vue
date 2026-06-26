@@ -18,7 +18,7 @@ onMounted(() => {
 
 <template>
   <div
-    class="sticky top-0 z-10 px-4 py-3 md:px-6 md:py-4 border-b border-gray-200 dark:border-gray-700 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm flex items-center justify-between transition-transform duration-300 ease-in-out md:translate-y-0"
+    class="sticky top-0 z-10 px-4 py-2 md:px-6 md:py-2 border-b border-gray-200 dark:border-gray-700 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm flex items-center justify-between transition-transform duration-300 ease-in-out md:translate-y-0"
     :class="isHeaderVisible ? 'translate-y-0' : '-translate-y-full'"
   >
     <div class="flex items-center gap-3">
