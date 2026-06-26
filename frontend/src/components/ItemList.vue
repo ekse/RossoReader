@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import type { Item } from '@/types'
 
 defineProps<{
@@ -12,6 +13,12 @@ const emit = defineEmits<{
   toggleStarred: [item: Item]
   loadMore: []
 }>()
+
+const expandedItems = ref<Record<number, boolean>>({})
+
+function toggleExpand(itemId: number) {
+  expandedItems.value[itemId] = !expandedItems.value[itemId]
+}
 
 function formatDate(dateStr?: string): string {
 	if (!dateStr) return ''
@@ -50,7 +57,12 @@ function stripHtml(s?: string): string {
                 {{ item.title }}
               </a>
             </h3>
-            <p v-if="item.description" class="mt-1 text-sm text-gray-500 dark:text-gray-400 line-clamp-5">
+            <p
+              v-if="item.description"
+              @click="toggleExpand(item.id)"
+              class="mt-1 text-sm text-gray-500 dark:text-gray-400 line-clamp-3 cursor-pointer hover:text-gray-700 dark:hover:text-gray-300 transition-colors duration-200"
+              :class="{ '!line-clamp-none': expandedItems[item.id] }"
+            >
               {{ stripHtml(item.description) }}
             </p>
             <div class="mt-1 flex items-center gap-3 text-xs text-gray-400 dark:text-gray-500">
