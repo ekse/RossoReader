@@ -14,12 +14,15 @@ export default defineConfig({
         navigateFallbackDenylist: [/^\/api/],
       },
       manifest: {
+        id: '/',
         name: 'Rosso Reader',
         short_name: 'Rosso',
         description: 'A self-hosted RSS feed reader',
         theme_color: '#f26522',
         background_color: '#ffffff',
         display: 'standalone',
+        display_override: ['window-controls-overlay', 'standalone'],
+        orientation: 'portrait',
         start_url: '/',
         icons: [
           {
@@ -37,6 +40,25 @@ export default defineConfig({
             sizes: '512x512',
             type: 'image/png',
             purpose: 'maskable',
+          },
+        ],
+        screenshots: [
+          {
+            src: 'screenshot-desktop.png',
+            sizes: '1024x811',
+            type: 'image/png',
+            form_factor: 'wide',
+          },
+          {
+            src: 'screenshot-mobile.png',
+            sizes: '563x1024',
+            type: 'image/png',
+          },
+        ],
+        protocol_handlers: [
+          {
+            protocol: 'web+feed',
+            url: '/?feed=%s',
           },
         ],
       },
