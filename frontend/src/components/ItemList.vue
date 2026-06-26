@@ -50,7 +50,7 @@ function stripHtml(s?: string): string {
                 {{ item.title }}
               </a>
             </h3>
-            <p v-if="item.description" class="mt-1 text-sm text-gray-500 dark:text-gray-400 line-clamp-2">
+            <p v-if="item.description" class="mt-1 text-sm text-gray-500 dark:text-gray-400 line-clamp-5">
               {{ stripHtml(item.description) }}
             </p>
             <div class="mt-1 flex items-center gap-3 text-xs text-gray-400 dark:text-gray-500">
