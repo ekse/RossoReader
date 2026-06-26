@@ -67,7 +67,7 @@ docker compose -f docker-compose.prod.yml up -d
 ```bash
 # Start PostgreSQL and run the app stack
 docker compose up -d
-
+```
 
 ### Running tests
 
