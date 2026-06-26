@@ -4,9 +4,11 @@ import { useRoute } from 'vue-router'
 import FeedList from './components/FeedList.vue'
 import SvgSprites from './components/SvgSprites.vue'
 import { useSidebar } from './composables/useSidebar'
+import { useHeader } from './composables/useHeader'
 
 const route = useRoute()
 const { isOpen, close } = useSidebar()
+const { isHeaderVisible, handleScroll } = useHeader()
 
 let wasMobile = false
 
@@ -35,6 +37,7 @@ watch(() => route.path, () => {
   if (window.innerWidth < 768) {
     close()
   }
+  isHeaderVisible.value = true
 })
 </script>
 
@@ -61,7 +64,7 @@ watch(() => route.path, () => {
     >
       <FeedList />
     </aside>
-    <main class="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900">
+    <main class="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900" @scroll="handleScroll">
       <router-view />
     </main>
   </div>
