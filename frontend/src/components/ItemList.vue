@@ -90,7 +90,7 @@ function stripHtml(s?: string): string {
             </button>
           </div>
         </div>
-        <div v-if="expandedItems[item.id]" class="mt-2 border-t border-gray-200 dark:border-gray-700 pt-2">
+        <div v-if="expandedItems[item.id]" class="mt-2 border-t border-gray-200 dark:border-gray-700 pt-2 cursor-default" @click.stop>
           <ItemDetail :item="item" />
         </div>
       </div>
