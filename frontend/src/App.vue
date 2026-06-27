@@ -7,11 +7,17 @@ import SvgSprites from './components/SvgSprites.vue'
 import { useSidebar } from './composables/useSidebar'
 import { useHeader } from './composables/useHeader'
 import { useAddFeed } from './composables/useAddFeed'
+import { useFeedsStore } from './stores/feeds'
 
 const route = useRoute()
 const { isOpen, close } = useSidebar()
 const { isHeaderVisible, handleScroll } = useHeader()
 const { showAddFeed, close: closeAddFeed } = useAddFeed()
+const feedsStore = useFeedsStore()
+
+watch(() => feedsStore.totalUnread, (n) => {
+  document.title = n > 0 ? `(${n}) Rosso Reader` : 'Rosso Reader'
+}, { immediate: true })
 
 let wasMobile = false
 

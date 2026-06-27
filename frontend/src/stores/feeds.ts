@@ -7,6 +7,10 @@ export const useFeedsStore = defineStore('feeds', () => {
   const feeds = ref<Feed[]>([])
   const loading = ref(false)
 
+  const totalUnread = computed(() =>
+    feeds.value.reduce((sum, f) => sum + (f.unread_count || 0), 0)
+  )
+
   const feedNames = computed(() => {
     const map: Record<number, string> = {}
     for (const f of feeds.value) {
@@ -40,5 +44,5 @@ export const useFeedsStore = defineStore('feeds', () => {
     await loadFeeds()
   }
 
-  return { feeds, loading, feedNames, loadFeeds, addFeed, removeFeed, refreshFeed }
+  return { feeds, loading, totalUnread, feedNames, loadFeeds, addFeed, removeFeed, refreshFeed }
 })

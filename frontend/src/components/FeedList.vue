@@ -38,9 +38,7 @@ const lastUpdate = computed(() => {
   return dates[dates.length - 1]
 })
 
-const totalUnread = computed(() =>
-  feedsStore.feeds.reduce((sum, f) => sum + (f.unread_count || 0), 0)
-)
+const totalUnread = computed(() => feedsStore.totalUnread)
 
 const { open: openAddFeed } = useAddFeed()
 </script>
