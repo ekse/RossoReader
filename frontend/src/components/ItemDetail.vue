@@ -15,7 +15,7 @@ function formatDate(dateStr?: string): string {
   <div v-if="!item" class="flex items-center justify-center h-full text-gray-400 dark:text-gray-500">
     Select an item to read
   </div>
-  <article v-else class="max-w-3xl mx-auto px-6 py-8">
+  <article v-else class="max-w-3xl mx-auto px-6 py-2">
     <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ item.title }}</h1>
     <div class="mt-2 flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
       <span v-if="item.author">By {{ item.author }}</span>
@@ -37,8 +37,7 @@ function formatDate(dateStr?: string): string {
     <div
       v-else-if="item.description"
       class="mt-6 prose prose-sm max-w-none text-gray-700 dark:text-gray-300 dark:prose-invert"
-    >
-      {{ item.description }}
-    </div>
+      v-html="item.description"
+    />
   </article>
 </template>

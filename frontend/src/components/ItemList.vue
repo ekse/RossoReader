@@ -63,7 +63,7 @@ function stripHtml(s?: string): string {
                 </span>
               </h3>
             </div>
-            <span v-if="feedNames?.[item.feed_id]" class="md:hidden mt-0.5 text-xs text-gray-400 dark:text-gray-500">{{ feedNames[item.feed_id] }}</span>
+            <span v-if="!expandedItems[item.id] && feedNames?.[item.feed_id]" class="md:hidden mt-0.5 text-xs text-gray-400 dark:text-gray-500">{{ feedNames[item.feed_id] }}</span>
             <span
               v-if="item.description && !expandedItems[item.id]"
               class="text-sm text-gray-500 dark:text-gray-400 line-clamp-3 md:line-clamp-1"
@@ -90,7 +90,7 @@ function stripHtml(s?: string): string {
             </button>
           </div>
         </div>
-        <div v-if="expandedItems[item.id]" class="mt-4 border-t border-gray-200 dark:border-gray-700 pt-4">
+        <div v-if="expandedItems[item.id]" class="mt-2 border-t border-gray-200 dark:border-gray-700 pt-2">
           <ItemDetail :item="item" />
         </div>
       </div>
