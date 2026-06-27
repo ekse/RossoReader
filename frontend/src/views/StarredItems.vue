@@ -14,7 +14,7 @@ onMounted(() => {
 
 <template>
   <TopBar title="Starred" />
-  <ItemList :items="itemsStore.items" :loading="itemsStore.loading" :feed-names="feedsStore.feedNames"
+  <ItemList :items="itemsStore.items" :loading="itemsStore.loading" :has-more="itemsStore.hasMore" :feed-names="feedsStore.feedNames"
     @toggle-read="itemsStore.toggleRead" @toggle-starred="itemsStore.toggleStarred" @load-more="itemsStore.loadMore" />
 </template>
 

@@ -27,6 +27,7 @@ async function markAllRead() {
     <ItemList
       :items="itemsStore.items"
       :loading="itemsStore.loading"
+      :has-more="itemsStore.hasMore"
       :feed-names="feedsStore.feedNames"
       @toggle-read="itemsStore.toggleRead"
       @toggle-starred="itemsStore.toggleStarred"

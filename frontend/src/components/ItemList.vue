@@ -6,6 +6,7 @@ import ItemDetail from './ItemDetail.vue'
 defineProps<{
   items: Item[]
   loading?: boolean
+  hasMore?: boolean
   feedNames?: Record<number, string>
 }>()
 
@@ -97,7 +98,7 @@ function stripHtml(s?: string): string {
     </div>
 
     <div
-      v-if="!loading && items.length > 0"
+      v-if="!loading && items.length > 0 && hasMore"
       class="flex justify-center py-4"
     >
       <button
