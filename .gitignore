@@ -11,6 +11,7 @@ backend/server
 node_modules/
 .pnpm-store/
 frontend/dist/
+frontend/dev-dist/
 
 # IDE
 .idea/
