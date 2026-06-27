@@ -5,6 +5,9 @@ import { useFeedsStore } from '@/stores/feeds'
 import { useAuthStore } from '@/stores/auth'
 import ThemeToggle from './ThemeToggle.vue'
 import { useAddFeed } from '@/composables/useAddFeed'
+import { useTheme } from '@/composables/useTheme'
+import whiteLogo from '@/assets/rosso_reader_white_112px.png'
+import transparentLogo from '@/assets/rosso_reader_transparent_112px.png'
 
 const feedsStore = useFeedsStore()
 const auth = useAuthStore()
@@ -41,14 +44,15 @@ const lastUpdate = computed(() => {
 const totalUnread = computed(() => feedsStore.totalUnread)
 
 const { open: openAddFeed } = useAddFeed()
+const { isDark } = useTheme()
 </script>
 
 <template>
   <div class="flex flex-col h-full">
     <div class="flex-1 p-4 overflow-y-auto">
-      <div class="px-3 mb-3 flex items-center justify-between">
-        <span class="flex items-center gap-2 font-bold tracking-[0.2em] text-red-600 select-none">
-         🌹Rosso
+      <div class="px-3 mb-3 flex items-start justify-between">
+        <span class="flex items-center select-none">
+          <img :src="isDark ? transparentLogo : whiteLogo" alt="Rosso" class="w-[112px] h-auto" />
         </span>
         <ThemeToggle />
       </div>
