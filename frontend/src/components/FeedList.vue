@@ -1,16 +1,15 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useFeedsStore } from '@/stores/feeds'
 import { useAuthStore } from '@/stores/auth'
-import AddFeedDialog from './AddFeedDialog.vue'
 import ThemeToggle from './ThemeToggle.vue'
+import { useAddFeed } from '@/composables/useAddFeed'
 
 const feedsStore = useFeedsStore()
 const auth = useAuthStore()
 const router = useRouter()
 const route = useRoute()
-const showAddFeed = ref(false)
 
 onMounted(() => {
   feedsStore.loadFeeds()
@@ -42,6 +41,8 @@ const lastUpdate = computed(() => {
 const totalUnread = computed(() =>
   feedsStore.feeds.reduce((sum, f) => sum + (f.unread_count || 0), 0)
 )
+
+const { open: openAddFeed } = useAddFeed()
 </script>
 
 <template>
@@ -78,7 +79,7 @@ const totalUnread = computed(() =>
       <div class="mt-6">
         <div class="px-3 flex items-center">
           <h3 class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Feeds</h3>
-          <button @click="showAddFeed = true"
+          <button @click="openAddFeed"
             class="w-5 h-5 flex items-center font-bold justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:text-gray-300 dark:hover:bg-gray-700 transition-colors">
             +
           </button>
@@ -121,7 +122,5 @@ const totalUnread = computed(() =>
         </svg>
       </button>
     </div>
-
-    <AddFeedDialog v-if="showAddFeed" @close="showAddFeed = false" />
   </div>
 </template>

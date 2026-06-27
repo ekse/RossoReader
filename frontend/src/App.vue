@@ -2,13 +2,16 @@
 import { onMounted, onUnmounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import FeedList from './components/FeedList.vue'
+import AddFeedDialog from './components/AddFeedDialog.vue'
 import SvgSprites from './components/SvgSprites.vue'
 import { useSidebar } from './composables/useSidebar'
 import { useHeader } from './composables/useHeader'
+import { useAddFeed } from './composables/useAddFeed'
 
 const route = useRoute()
 const { isOpen, close } = useSidebar()
 const { isHeaderVisible, handleScroll } = useHeader()
+const { showAddFeed, close: closeAddFeed } = useAddFeed()
 
 let wasMobile = false
 
@@ -67,6 +70,8 @@ watch(() => route.path, () => {
     <main class="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900" @scroll="handleScroll">
       <router-view />
     </main>
+
+    <AddFeedDialog v-if="showAddFeed" @close="closeAddFeed" />
   </div>
 </template>
 
