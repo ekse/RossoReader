@@ -4,6 +4,8 @@ A self-hosted RSS feed reader with a Go backend and Vue 3 frontend.
 
 Periodically fetches RSS/Atom feeds on a configurable schedule, stores articles in PostgreSQL, and provides a clean web UI for browsing, searching, and managing your subscriptions.
 
+![rosso_logo](logos/rosso_reader_transparent.png)
+
 ## Tech Stack
 
 **Backend:** Go 1.22+, chi router, sqlc (type-safe queries), golang-migrate, pgx, gofeed, robfig/cron  
