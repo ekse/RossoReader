@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import type { Item } from '@/types'
+import ItemDetail from './ItemDetail.vue'
 
 defineProps<{
   items: Item[]
@@ -47,32 +48,32 @@ function stripHtml(s?: string): string {
       <div
         v-for="item in items"
         :key="item.id"
-        class="px-6 py-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
-        :class="{ 'bg-white dark:bg-gray-800': !item.read, 'bg-gray-50 dark:bg-gray-800/30': item.read }"
+        class="px-6 py-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors cursor-pointer"
+        :class="{ 'bg-white dark:bg-gray-800': !item.read && !expandedItems[item.id], 'bg-gray-50 dark:bg-gray-800/30': item.read || expandedItems[item.id] }"
+        @click="toggleExpand(item.id)"
       >
         <div class="flex items-start justify-between gap-4">
           <div class="flex-1 min-w-0">
-            <h3 class="text-sm font-medium">
-              <a :href="item.url" target="_blank" rel="noopener noreferrer" :class="[item.read ? 'text-gray-500 dark:text-gray-400' : 'text-gray-900 dark:text-gray-100 hover:text-blue-600 dark:hover:text-blue-400', 'hover:underline']">
-                {{ item.title }}
-              </a>
-            </h3>
-            <p
-              v-if="item.description"
-              @click="toggleExpand(item.id)"
-              class="mt-1 text-sm text-gray-500 dark:text-gray-400 line-clamp-3 cursor-pointer hover:text-gray-700 dark:hover:text-gray-300 transition-colors duration-200"
-              :class="{ '!line-clamp-none': expandedItems[item.id] }"
+            <div class="flex flex-wrap items-baseline gap-x-2 text-xs text-gray-400 dark:text-gray-500">
+              <span v-if="feedNames?.[item.feed_id]" class="hidden md:inline">{{ feedNames[item.feed_id] }}</span>
+              <span class="hidden md:inline">{{ formatDate(item.published_at) }}</span>
+              <h3 class="text-sm font-medium">
+                <span :class="[item.read ? 'text-gray-500 dark:text-gray-400' : 'text-gray-900 dark:text-gray-100 hover:text-blue-600 dark:hover:text-blue-400', 'hover:underline']">
+                  {{ item.title }}
+                </span>
+              </h3>
+            </div>
+            <span v-if="feedNames?.[item.feed_id]" class="md:hidden mt-0.5 text-xs text-gray-400 dark:text-gray-500">{{ feedNames[item.feed_id] }}</span>
+            <span
+              v-if="item.description && !expandedItems[item.id]"
+              class="text-sm text-gray-500 dark:text-gray-400 line-clamp-3 md:line-clamp-1"
             >
               {{ stripHtml(item.description) }}
-            </p>
-            <div class="mt-1 flex items-center gap-3 text-xs text-gray-400 dark:text-gray-500">
-              <span v-if="feedNames?.[item.feed_id]">{{ feedNames[item.feed_id] }}</span>
-              <span>{{ formatDate(item.published_at) }}</span>
-            </div>
+            </span>
           </div>
           <div class="flex items-center gap-2 shrink-0">
             <button
-              @click="emit('toggleRead', item)"
+              @click.stop="emit('toggleRead', item)"
               class="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
               :title="item.read ? 'Mark as unread' : 'Mark as read'"
             >
@@ -80,7 +81,7 @@ function stripHtml(s?: string): string {
               <svg v-else class="w-4 h-4 text-gray-400 dark:text-gray-500"><use href="#icon-envelope" /></svg>
             </button>
             <button
-              @click="emit('toggleStarred', item)"
+              @click.stop="emit('toggleStarred', item)"
               class="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
               :title="item.starred ? 'Unstar' : 'Star'"
             >
@@ -88,6 +89,9 @@ function stripHtml(s?: string): string {
               <svg v-else class="w-4 h-4 text-gray-400 dark:text-gray-500"><use href="#icon-star" /></svg>
             </button>
           </div>
+        </div>
+        <div v-if="expandedItems[item.id]" class="mt-4 border-t border-gray-200 dark:border-gray-700 pt-4">
+          <ItemDetail :item="item" />
         </div>
       </div>
     </div>

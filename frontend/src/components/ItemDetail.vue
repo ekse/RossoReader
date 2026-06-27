@@ -26,7 +26,7 @@ function formatDate(dateStr?: string): string {
         target="_blank"
         class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
       >
-        View original →
+        View original
       </a>
     </div>
     <div
