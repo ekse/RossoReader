@@ -18,7 +18,7 @@ func TestGetSettings(t *testing.T) {
 	user := makeUser(t, store, "alice", true)
 	store.UpsertSetting(nil, user.ID, "fetch_interval", "30")
 
-	h := handlers.New(store, nil, nil)
+	h := handlers.New(store, nil, nil, newTestPasskeyHandler(store))
 	r := authedRouter(h, user)
 
 	req := authReq("GET", "/api/settings", "", user)
@@ -36,7 +36,7 @@ func TestGetSettings(t *testing.T) {
 func TestUpdateSettings(t *testing.T) {
 	store := mockstore.New()
 	user := makeUser(t, store, "alice", true)
-	h := handlers.New(store, nil, nil)
+	h := handlers.New(store, nil, nil, newTestPasskeyHandler(store))
 	r := authedRouter(h, user)
 
 	req := authReq("PATCH", "/api/settings", `{"fetch_interval":"60"}`, user)

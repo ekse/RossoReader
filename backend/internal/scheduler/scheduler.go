@@ -52,6 +52,12 @@ func (s *Scheduler) Start() {
 		}
 		log.Printf("scheduler: feed fetch cycle complete")
 	})
+	s.cron.AddFunc("@every 30m", func() {
+		ctx := context.Background()
+		if err := s.store.DeleteExpiredAuthStates(ctx); err != nil {
+			log.Printf("scheduler: auth state cleanup error: %v", err)
+		}
+	})
 	s.cron.Start()
 	log.Printf("scheduler: started, fetching every %d minutes", minutes)
 }

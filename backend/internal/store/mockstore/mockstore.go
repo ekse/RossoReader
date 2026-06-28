@@ -19,22 +19,34 @@ type MockStore struct {
 	// PasswdHash indexed by user ID
 	Passwords map[int64]string
 
-	NextFeedID int64
-	NextItemID int64
-	NextUserID int64
+	NextFeedID    int64
+	NextItemID    int64
+	NextUserID    int64
+	NextPasskeyID int64
+
+	Passkeys   map[int64][]domain.Passkey
+	AuthStates map[[16]byte]authStateRow
+}
+
+type authStateRow struct {
+	StateType string
+	StateData []byte
 }
 
 func New() *MockStore {
 	return &MockStore{
-		Feeds:      []domain.Feed{},
-		Items:      []domain.Item{},
-		Settings:   make(map[int64]map[string]string),
-		Users:      []domain.User{},
-		Sessions:   make(map[[16]byte]domain.Session),
-		Passwords:  make(map[int64]string),
-		NextFeedID: 1,
-		NextItemID: 1,
-		NextUserID: 1,
+		Feeds:         []domain.Feed{},
+		Items:         []domain.Item{},
+		Settings:      make(map[int64]map[string]string),
+		Users:         []domain.User{},
+		Sessions:      make(map[[16]byte]domain.Session),
+		Passwords:     make(map[int64]string),
+		NextFeedID:    1,
+		NextItemID:    1,
+		NextUserID:    1,
+		NextPasskeyID: 1,
+		Passkeys:      make(map[int64][]domain.Passkey),
+		AuthStates:    make(map[[16]byte]authStateRow),
 	}
 }
 
@@ -452,6 +464,117 @@ func (m *MockStore) DeleteExpiredSessions(_ context.Context) error {
 		if s.ExpiresAt.Before(now) {
 			delete(m.Sessions, id)
 		}
+	}
+	return nil
+}
+
+// Passkeys
+
+func (m *MockStore) CreatePasskey(_ context.Context, userID int64, name string, credentialID, publicKey []byte, attestationType string, transports []string, signCount int64, backupEligible, backupState bool, aaguid []byte) (domain.Passkey, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	now := time.Now()
+	pk := domain.Passkey{
+		ID:              m.NextPasskeyID,
+		UserID:          userID,
+		Name:            name,
+		CredentialID:    credentialID,
+		PublicKey:       publicKey,
+		AttestationType: attestationType,
+		Transports:      transports,
+		SignCount:       signCount,
+		BackupEligible:  backupEligible,
+		BackupState:     backupState,
+		AAGUID:          aaguid,
+		CreatedAt:       now,
+		UpdatedAt:       now,
+	}
+	m.NextPasskeyID++
+	m.Passkeys[userID] = append(m.Passkeys[userID], pk)
+	return pk, nil
+}
+
+func (m *MockStore) GetPasskeysByUserID(_ context.Context, userID int64) ([]domain.Passkey, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	result := make([]domain.Passkey, len(m.Passkeys[userID]))
+	copy(result, m.Passkeys[userID])
+	return result, nil
+}
+
+func (m *MockStore) GetPasskeyByCredentialID(_ context.Context, credentialID []byte) (domain.Passkey, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	for _, passkeys := range m.Passkeys {
+		for _, pk := range passkeys {
+			if string(pk.CredentialID) == string(credentialID) {
+				return pk, nil
+			}
+		}
+	}
+	return domain.Passkey{}, fmt.Errorf("passkey not found")
+}
+
+func (m *MockStore) UpdatePasskeySignCount(_ context.Context, id int64, signCount int64) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	for _, passkeys := range m.Passkeys {
+		for i, pk := range passkeys {
+			if pk.ID == id {
+				passkeys[i].SignCount = signCount
+				passkeys[i].UpdatedAt = time.Now()
+				return nil
+			}
+		}
+	}
+	return fmt.Errorf("passkey %d not found", id)
+}
+
+func (m *MockStore) DeletePasskey(_ context.Context, userID, id int64) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	passkeys := m.Passkeys[userID]
+	for i, pk := range passkeys {
+		if pk.ID == id {
+			m.Passkeys[userID] = append(passkeys[:i], passkeys[i+1:]...)
+			return nil
+		}
+	}
+	return fmt.Errorf("passkey %d not found", id)
+}
+
+// Passkey Auth State
+
+func (m *MockStore) SaveAuthState(_ context.Context, id [16]byte, stateType string, stateData []byte, _ time.Time) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.AuthStates[id] = authStateRow{StateType: stateType, StateData: stateData}
+	return nil
+}
+
+func (m *MockStore) GetAuthState(_ context.Context, id [16]byte) (string, []byte, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	s, ok := m.AuthStates[id]
+	if !ok {
+		return "", nil, fmt.Errorf("auth state not found")
+	}
+	return s.StateType, s.StateData, nil
+}
+
+func (m *MockStore) DeleteAuthState(_ context.Context, id [16]byte) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	delete(m.AuthStates, id)
+	return nil
+}
+
+func (m *MockStore) DeleteExpiredAuthStates(_ context.Context) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	for id, s := range m.AuthStates {
+		_ = s
+		delete(m.AuthStates, id)
 	}
 	return nil
 }

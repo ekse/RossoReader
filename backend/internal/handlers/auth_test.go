@@ -31,7 +31,7 @@ func TestAuth_Login_Success(t *testing.T) {
 	store := mockstore.New()
 	user, _ := makeUserWithPassword(t, store, "alice", "passw0rd", true)
 
-	h := handlers.New(store, nil, nil)
+	h := handlers.New(store, nil, nil, newTestPasskeyHandler(store))
 	r := authedRouter(h, user)
 
 	req := httptest.NewRequest("POST", "/api/auth/login",
@@ -60,7 +60,7 @@ func TestAuth_Login_BadPassword(t *testing.T) {
 	store := mockstore.New()
 	user, _ := makeUserWithPassword(t, store, "alice", "passw0rd", false)
 
-	h := handlers.New(store, nil, nil)
+	h := handlers.New(store, nil, nil, newTestPasskeyHandler(store))
 	r := authedRouter(h, user)
 
 	req := httptest.NewRequest("POST", "/api/auth/login",
@@ -76,7 +76,7 @@ func TestAuth_Login_UnknownUser(t *testing.T) {
 	store := mockstore.New()
 	user := makeUser(t, store, "alice", true)
 
-	h := handlers.New(store, nil, nil)
+	h := handlers.New(store, nil, nil, newTestPasskeyHandler(store))
 	r := authedRouter(h, user)
 
 	req := httptest.NewRequest("POST", "/api/auth/login",
@@ -92,7 +92,7 @@ func TestAuth_Me(t *testing.T) {
 	store := mockstore.New()
 	user := makeUser(t, store, "alice", true)
 
-	h := handlers.New(store, nil, nil)
+	h := handlers.New(store, nil, nil, newTestPasskeyHandler(store))
 	r := authedRouter(h, user)
 
 	req := authReq("GET", "/api/auth/me", "", user)
@@ -112,7 +112,7 @@ func TestAuth_ChangePassword(t *testing.T) {
 	store := mockstore.New()
 	user, _ := makeUserWithPassword(t, store, "alice", "oldpass", false)
 
-	h := handlers.New(store, nil, nil)
+	h := handlers.New(store, nil, nil, newTestPasskeyHandler(store))
 	r := authedRouter(h, user)
 
 	req := authReq("PUT", "/api/auth/password",
@@ -136,7 +136,7 @@ func TestAuth_ChangePassword_WrongCurrent(t *testing.T) {
 	store := mockstore.New()
 	user, _ := makeUserWithPassword(t, store, "alice", "oldpass", false)
 
-	h := handlers.New(store, nil, nil)
+	h := handlers.New(store, nil, nil, newTestPasskeyHandler(store))
 	r := authedRouter(h, user)
 
 	req := authReq("PUT", "/api/auth/password",
@@ -154,7 +154,7 @@ func TestAuth_ListUsers_AdminOnly(t *testing.T) {
 	makeUser(t, store, "alice", false)
 	makeUser(t, store, "bob", false)
 
-	h := handlers.New(store, nil, nil)
+	h := handlers.New(store, nil, nil, newTestPasskeyHandler(store))
 	r := authedRouter(h, admin)
 
 	req := authReq("GET", "/api/users", "", admin)
@@ -173,7 +173,7 @@ func TestAuth_CreateUser_AdminOnly(t *testing.T) {
 	store := mockstore.New()
 	admin := makeUser(t, store, "admin", true)
 
-	h := handlers.New(store, nil, nil)
+	h := handlers.New(store, nil, nil, newTestPasskeyHandler(store))
 	r := authedRouter(h, admin)
 
 	req := authReq("POST", "/api/users",
@@ -194,7 +194,7 @@ func TestAuth_CreateUser_NonAdmin_Forbidden(t *testing.T) {
 	store := mockstore.New()
 	alice := makeUser(t, store, "alice", false)
 
-	h := handlers.New(store, nil, nil)
+	h := handlers.New(store, nil, nil, newTestPasskeyHandler(store))
 	r := authedRouter(h, alice)
 
 	req := authReq("POST", "/api/users",
@@ -210,7 +210,7 @@ func TestAuth_DeleteUser_CannotDeleteSelf(t *testing.T) {
 	store := mockstore.New()
 	admin := makeUser(t, store, "admin", true)
 
-	h := handlers.New(store, nil, nil)
+	h := handlers.New(store, nil, nil, newTestPasskeyHandler(store))
 	r := authedRouter(h, admin)
 
 	req := authReq("DELETE", "/api/users/1", "", admin)
@@ -224,7 +224,7 @@ func TestAuth_DeleteUser_LastUser(t *testing.T) {
 	store := mockstore.New()
 	admin := makeUser(t, store, "admin", true)
 
-	h := handlers.New(store, nil, nil)
+	h := handlers.New(store, nil, nil, newTestPasskeyHandler(store))
 	r := authedRouter(h, admin)
 
 	req := authReq("DELETE", "/api/users/999", "", admin)

@@ -4,8 +4,9 @@ import { useFeedsStore } from '@/stores/feeds'
 import { useAuthStore } from '@/stores/auth'
 import AddFeedDialog from '@/components/AddFeedDialog.vue'
 import { useSidebar } from '@/composables/useSidebar'
+import { startPasskeyRegistration } from '@/lib/webauthn'
 import * as api from '@/api/client'
-import type { User } from '@/types'
+import type { User, Passkey } from '@/types'
 
 const feedsStore = useFeedsStore()
 const auth = useAuthStore()
@@ -14,6 +15,7 @@ const { toggle } = useSidebar()
 
 onMounted(() => {
   feedsStore.loadFeeds()
+  loadPasskeys()
   if (auth.isAdmin) {
     loadUsers()
   }
@@ -101,6 +103,54 @@ async function deleteUser(u: User) {
     await loadUsers()
   } catch (e: any) {
     userError.value = e.response?.data || 'Failed to delete user.'
+  }
+}
+
+// --- Passkeys ---
+const passkeys = ref<Passkey[]>([])
+const passkeyError = ref('')
+const passkeySuccess = ref(false)
+const registeringPasskey = ref(false)
+
+async function loadPasskeys() {
+  try {
+    passkeys.value = await api.listPasskeys()
+  } catch {
+    passkeys.value = []
+  }
+}
+
+async function registerPasskey() {
+  passkeyError.value = ''
+  passkeySuccess.value = false
+  const name = window.prompt('Name for this passkey:')
+  if (!name) return
+  registeringPasskey.value = true
+  try {
+    await startPasskeyRegistration(
+      () => api.passkeyRegisterBegin(),
+      (stateId, _name, credential) => api.passkeyRegisterFinish(stateId, _name, credential),
+      name,
+    )
+    passkeySuccess.value = true
+    await loadPasskeys()
+  } catch (e: any) {
+    if (e.name === 'NotAllowedError' || e.message?.includes('cancelled')) {
+      return
+    }
+    passkeyError.value = e.response?.data || e.message || 'Failed to register passkey.'
+  } finally {
+    registeringPasskey.value = false
+  }
+}
+
+async function deletePasskey(pk: Passkey) {
+  if (!confirm(`Delete passkey "${pk.name}"?`)) return
+  try {
+    await api.deletePasskey(pk.id)
+    passkeys.value = passkeys.value.filter(p => p.id !== pk.id)
+  } catch (e: any) {
+    passkeyError.value = e.response?.data || 'Failed to delete passkey.'
   }
 }
 </script>
@@ -204,6 +254,54 @@ async function deleteUser(u: User) {
           </button>
         </div>
       </div>
+    </section>
+
+    <!-- Passkeys -->
+    <section class="mt-10">
+      <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Passkeys</h2>
+      <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+        Register a passkey to sign in without a password.
+      </p>
+
+      <div class="mt-4 space-y-2">
+        <div
+          v-for="pk in passkeys"
+          :key="pk.id"
+          class="flex items-center justify-between px-4 py-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700"
+        >
+          <div class="min-w-0 flex-1">
+            <div class="flex items-center gap-2">
+              <span class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ pk.name }}</span>
+              <span v-if="pk.backup_eligible" class="text-xs text-green-600 dark:text-green-400">syncable</span>
+            </div>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+              Created {{ new Date(pk.created_at).toLocaleDateString() }}
+              <span v-if="pk.transports.length">· {{ pk.transports.join(', ') }}</span>
+            </p>
+          </div>
+          <button
+            @click="deletePasskey(pk)"
+            class="ml-4 text-sm text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
+          >
+            Delete
+          </button>
+        </div>
+
+        <p v-if="passkeys.length === 0" class="text-sm text-gray-500 dark:text-gray-400 mt-2">
+          No passkeys registered yet.
+        </p>
+      </div>
+
+      <p v-if="passkeyError" class="mt-2 text-sm text-red-600 dark:text-red-400">{{ passkeyError }}</p>
+      <p v-if="passkeySuccess" class="mt-2 text-sm text-green-600 dark:text-green-400">Passkey registered.</p>
+
+      <button
+        @click="registerPasskey"
+        :disabled="registeringPasskey"
+        class="mt-3 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
+      >
+        {{ registeringPasskey ? 'Registering...' : 'Register new passkey' }}
+      </button>
     </section>
 
     <!-- Administration -->

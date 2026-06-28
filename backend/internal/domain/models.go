@@ -62,3 +62,19 @@ type Session struct {
 	User      User      `json:"user"`
 	ExpiresAt time.Time `json:"expires_at"`
 }
+
+type Passkey struct {
+	ID              int64     `json:"id"`
+	UserID          int64     `json:"-"`
+	Name            string    `json:"name"`
+	CredentialID    []byte    `json:"-"`
+	PublicKey       []byte    `json:"-"`
+	AttestationType string    `json:"-"`
+	Transports      []string  `json:"transports"`
+	SignCount       int64     `json:"-"`
+	BackupEligible  bool      `json:"backup_eligible"`
+	BackupState     bool      `json:"backup_state"`
+	AAGUID          []byte    `json:"-"`
+	CreatedAt       time.Time `json:"created_at"`
+	UpdatedAt       time.Time `json:"-"`
+}

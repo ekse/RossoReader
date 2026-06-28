@@ -1,4 +1,24 @@
 services:
+  traefik:
+    image: traefik:v3
+    restart: unless-stopped
+    command:
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entryPoint.scheme=https"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.letsencrypt.acme.tlschallenge=true"
+      - "--certificatesresolvers.letsencrypt.acme.email=${LETSENCRYPT_EMAIL}"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - letsencrypt-data:/letsencrypt
+
   db:
     image: postgres:16-alpine
     restart: unless-stopped
@@ -29,7 +49,9 @@ services:
       CORS_ORIGIN: "${CORS_ORIGIN}"
       SESSION_MAX_AGE_DAYS: "${SESSION_MAX_AGE_DAYS:-30}"
       SESSION_COOKIE_NAME: "${SESSION_COOKIE_NAME:-session}"
-      COOKIE_SECURE: "${COOKIE_SECURE:-false}"
+      COOKIE_SECURE: "${COOKIE_SECURE:-true}"
+      RP_ID: "${DOMAIN}"
+      RP_ORIGIN: "${RP_ORIGIN}"
     depends_on:
       db:
         condition: service_healthy
@@ -39,11 +61,18 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    ports:
-      - "${WEB_PORT:-80}:80"
+    expose:
+      - "80"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.web.rule=Host(`${DOMAIN:-localhost}`)"
+      - "traefik.http.routers.web.entrypoints=websecure"
+      - "traefik.http.routers.web.tls.certresolver=letsencrypt"
+      - "traefik.http.services.web.loadbalancer.server.port=80"
     depends_on:
       - api
     restart: unless-stopped
 
 volumes:
   postgres-data:
+  letsencrypt-data:

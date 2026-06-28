@@ -1,10 +1,8 @@
-# RssReader
+# Rosso Reader
 
-A self-hosted RSS feed reader with a Go backend and Vue 3 frontend.
+A self-hosted RSS feed reader. Periodically fetches RSS/Atom feeds on a configurable schedule, stores articles in PostgreSQL, and provides a clean web UI for browsing, searching, and managing your subscriptions.
 
-Periodically fetches RSS/Atom feeds on a configurable schedule, stores articles in PostgreSQL, and provides a clean web UI for browsing, searching, and managing your subscriptions.
-
-![rosso_logo](logos/rosso_reader_transparent.png)
+<img src="logos/rosso_reader_transparent.png" width="600"/>
 
 ## Tech Stack
 

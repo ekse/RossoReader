@@ -30,6 +30,8 @@ services:
       SESSION_MAX_AGE_DAYS: "30"
       SESSION_COOKIE_NAME: session
       COOKIE_SECURE: "false"
+      RP_ID: localhost
+      RP_ORIGIN: http://localhost:${WEB_PORT:-5173}
     volumes:
       - ./backend:/app
     depends_on:

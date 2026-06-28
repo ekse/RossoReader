@@ -37,6 +37,9 @@ func authedRouter(h *handlers.Handler, user domain.User) chi.Router {
 	r.Post("/api/auth/login", h.Auth.Login)
 	r.Post("/api/auth/logout", h.Auth.Logout)
 
+	r.Post("/api/auth/passkey/login/begin", h.Passkey.LoginBegin)
+	r.Post("/api/auth/passkey/login/finish", h.Passkey.LoginFinish)
+
 	r.Group(func(r chi.Router) {
 		r.Use(func(next http.Handler) http.Handler {
 			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -45,6 +48,10 @@ func authedRouter(h *handlers.Handler, user domain.User) chi.Router {
 		})
 		r.Get("/api/auth/me", h.Auth.Me)
 		r.Put("/api/auth/password", h.Auth.ChangePassword)
+		r.Post("/api/auth/passkey/register/begin", h.Passkey.RegisterBegin)
+		r.Post("/api/auth/passkey/register/finish", h.Passkey.RegisterFinish)
+		r.Get("/api/auth/passkeys", h.Passkey.ListPasskeys)
+		r.Delete("/api/auth/passkeys/{id}", h.Passkey.DeletePasskey)
 		r.Get("/api/feeds", h.ListFeeds)
 		r.Post("/api/feeds", h.AddFeed)
 		r.Post("/api/feeds/discover", h.DiscoverFeeds)
@@ -83,7 +90,7 @@ func TestListFeeds(t *testing.T) {
 		{ID: 2, UserID: user.ID, URL: "https://b.com/rss", Title: "B"},
 	}
 
-	h := handlers.New(store, nil, nil)
+	h := handlers.New(store, nil, nil, newTestPasskeyHandler(store))
 	r := authedRouter(h, user)
 
 	req := authReq("GET", "/api/feeds", "", user)
@@ -100,7 +107,7 @@ func TestListFeeds(t *testing.T) {
 func TestListFeeds_Empty(t *testing.T) {
 	store := mockstore.New()
 	user := makeUser(t, store, "alice", true)
-	h := handlers.New(store, nil, nil)
+	h := handlers.New(store, nil, nil, newTestPasskeyHandler(store))
 	r := authedRouter(h, user)
 
 	req := authReq("GET", "/api/feeds", "", user)
@@ -116,7 +123,7 @@ func TestListFeeds_Empty(t *testing.T) {
 func TestAddFeed(t *testing.T) {
 	store := mockstore.New()
 	user := makeUser(t, store, "alice", true)
-	h := handlers.New(store, nil, nil)
+	h := handlers.New(store, nil, nil, newTestPasskeyHandler(store))
 	r := authedRouter(h, user)
 
 	req := authReq("POST", "/api/feeds", `{"url":"https://example.com/rss"}`, user)
@@ -135,7 +142,7 @@ func TestAddFeed(t *testing.T) {
 func TestAddFeed_EmptyURL(t *testing.T) {
 	store := mockstore.New()
 	user := makeUser(t, store, "alice", true)
-	h := handlers.New(store, nil, nil)
+	h := handlers.New(store, nil, nil, newTestPasskeyHandler(store))
 	r := authedRouter(h, user)
 
 	req := authReq("POST", "/api/feeds", `{"url":""}`, user)
@@ -150,7 +157,7 @@ func TestRemoveFeed(t *testing.T) {
 	store := mockstore.New()
 	user := makeUser(t, store, "alice", true)
 	store.Feeds = []domain.Feed{{ID: 1, UserID: user.ID, URL: "https://a.com/rss", Title: "A"}}
-	h := handlers.New(store, nil, nil)
+	h := handlers.New(store, nil, nil, newTestPasskeyHandler(store))
 	r := authedRouter(h, user)
 
 	req := authReq("DELETE", "/api/feeds/1", "", user)
@@ -163,7 +170,7 @@ func TestRemoveFeed(t *testing.T) {
 func TestRemoveFeed_InvalidID(t *testing.T) {
 	store := mockstore.New()
 	user := makeUser(t, store, "alice", true)
-	h := handlers.New(store, nil, nil)
+	h := handlers.New(store, nil, nil, newTestPasskeyHandler(store))
 	r := authedRouter(h, user)
 
 	req := authReq("DELETE", "/api/feeds/abc", "", user)
@@ -181,7 +188,7 @@ func TestMarkFeedRead(t *testing.T) {
 		{ID: 1, FeedID: 1, GUID: "1", Title: "Post 1", URL: "https://ex.com/1"},
 		{ID: 2, FeedID: 1, GUID: "2", Title: "Post 2", URL: "https://ex.com/2"},
 	}
-	h := handlers.New(store, nil, nil)
+	h := handlers.New(store, nil, nil, newTestPasskeyHandler(store))
 	r := authedRouter(h, user)
 
 	req := authReq("POST", "/api/feeds/1/read-all", "", user)
@@ -198,7 +205,7 @@ func TestMarkFeedRead(t *testing.T) {
 func TestMarkFeedRead_InvalidID(t *testing.T) {
 	store := mockstore.New()
 	user := makeUser(t, store, "alice", true)
-	h := handlers.New(store, nil, nil)
+	h := handlers.New(store, nil, nil, newTestPasskeyHandler(store))
 	r := authedRouter(h, user)
 
 	req := authReq("POST", "/api/feeds/abc/read-all", "", user)
