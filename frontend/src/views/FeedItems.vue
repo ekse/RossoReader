@@ -1,38 +1,41 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
-import { useItemsStore } from '@/stores/items'
-import { useFeedsStore } from '@/stores/feeds'
-import ItemList from '@/components/ItemList.vue'
-import TopBar from '@/components/TopBar.vue'
-import * as api from '@/api/client'
+import { onMounted, ref, watch } from "vue";
+import { useRoute } from "vue-router";
+import { useItemsStore } from "@/stores/items";
+import { useFeedsStore } from "@/stores/feeds";
+import ItemList from "@/components/ItemList.vue";
+import TopBar from "@/components/TopBar.vue";
+import * as api from "@/api/client";
 
-const route = useRoute()
-const itemsStore = useItemsStore()
-const feedsStore = useFeedsStore()
-const feedId = ref<number | null>(null)
+const route = useRoute();
+const itemsStore = useItemsStore();
+const feedsStore = useFeedsStore();
+const feedId = ref<number | null>(null);
 
 onMounted(() => {
-  loadFeed()
-})
+  loadFeed();
+});
 
-watch(() => route.params.id, () => {
-  loadFeed()
-})
+watch(
+  () => route.params.id,
+  () => {
+    loadFeed();
+  },
+);
 
 async function markAllRead() {
-  if (!feedId.value) return
-  await api.markFeedRead(feedId.value)
-  itemsStore.loadItems()
-  const feed = feedsStore.feeds.find(f => f.id === feedId.value)
-  if (feed) feed.unread_count = 0
+  if (!feedId.value) return;
+  await api.markFeedRead(feedId.value);
+  itemsStore.loadItems();
+  const feed = feedsStore.feeds.find((f) => f.id === feedId.value);
+  if (feed) feed.unread_count = 0;
 }
 
 function loadFeed() {
-  const id = Number(route.params.id)
+  const id = Number(route.params.id);
   if (id) {
-    feedId.value = id
-    itemsStore.setFilterFeedId(id)
+    feedId.value = id;
+    itemsStore.setFilterFeedId(id);
   }
 }
 </script>
@@ -52,4 +55,3 @@ function loadFeed() {
     />
   </div>
 </template>
-

@@ -1,52 +1,52 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useFeedsStore } from '@/stores/feeds'
-import * as api from '@/api/client'
-import type { DiscoveredFeed } from '@/types'
+import { ref } from "vue";
+import { useFeedsStore } from "@/stores/feeds";
+import * as api from "@/api/client";
+import type { DiscoveredFeed } from "@/types";
 
 const emits = defineEmits<{
-  close: []
-}>()
+  close: [];
+}>();
 
-const feedsStore = useFeedsStore()
-const url = ref('')
-const loading = ref(false)
-const adding = ref<number | null>(null)
-const error = ref('')
-const discovered = ref<DiscoveredFeed[]>([])
+const feedsStore = useFeedsStore();
+const url = ref("");
+const loading = ref(false);
+const adding = ref<number | null>(null);
+const error = ref("");
+const discovered = ref<DiscoveredFeed[]>([]);
 
 async function submit() {
-  if (!url.value.trim()) return
-  loading.value = true
-  error.value = ''
-  discovered.value = []
+  if (!url.value.trim()) return;
+  loading.value = true;
+  error.value = "";
+  discovered.value = [];
   try {
-    const feeds = await api.discoverFeeds(url.value.trim())
+    const feeds = await api.discoverFeeds(url.value.trim());
     if (feeds.length === 0) {
-      error.value = 'No RSS feeds found at this URL.'
+      error.value = "No RSS feeds found at this URL.";
     } else {
-      discovered.value = feeds
+      discovered.value = feeds;
     }
   } catch (e: any) {
-    error.value = e.response?.data || 'Failed to discover feeds'
+    error.value = e.response?.data || "Failed to discover feeds";
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
 
 async function addSelected(feed: DiscoveredFeed, index: number) {
-  adding.value = index
+  adding.value = index;
   try {
-    await feedsStore.addFeed(feed.url)
-    discovered.value.splice(index, 1)
+    await feedsStore.addFeed(feed.url);
+    discovered.value.splice(index, 1);
     if (discovered.value.length === 0) {
-      url.value = ''
-      emits('close')
+      url.value = "";
+      emits("close");
     }
   } catch (e: any) {
-    error.value = e.response?.data || 'Failed to add feed'
+    error.value = e.response?.data || "Failed to add feed";
   } finally {
-    adding.value = null
+    adding.value = null;
   }
 }
 </script>
@@ -78,13 +78,15 @@ async function addSelected(feed: DiscoveredFeed, index: number) {
             :disabled="loading || !url.trim()"
             class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
           >
-            {{ loading ? 'Discovering...' : 'Discover' }}
+            {{ loading ? "Discovering..." : "Discover" }}
           </button>
         </div>
       </form>
 
       <div v-else class="mt-4">
-        <p class="text-sm text-gray-500 dark:text-gray-400 mb-3">Found {{ discovered.length }} feed(s):</p>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mb-3">
+          Found {{ discovered.length }} feed(s):
+        </p>
         <div class="space-y-2 max-h-60 overflow-y-auto">
           <div
             v-for="(feed, index) in discovered"
@@ -92,7 +94,9 @@ async function addSelected(feed: DiscoveredFeed, index: number) {
             class="flex items-center justify-between px-3 py-2 rounded-md border border-gray-200 dark:border-gray-700"
           >
             <div class="min-w-0 flex-1">
-              <p class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{{ feed.title || feed.url }}</p>
+              <p class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                {{ feed.title || feed.url }}
+              </p>
               <p class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ feed.url }}</p>
             </div>
             <button
@@ -100,7 +104,7 @@ async function addSelected(feed: DiscoveredFeed, index: number) {
               :disabled="adding !== null"
               class="ml-3 shrink-0 px-3 py-1 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
             >
-              {{ adding === index ? 'Adding...' : 'Add' }}
+              {{ adding === index ? "Adding..." : "Add" }}
             </button>
           </div>
         </div>
@@ -108,7 +112,10 @@ async function addSelected(feed: DiscoveredFeed, index: number) {
         <div class="mt-4 flex justify-end gap-3">
           <button
             type="button"
-            @click="discovered = []; error = ''"
+            @click="
+              discovered = [];
+              error = '';
+            "
             class="px-4 py-2 text-sm text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100"
           >
             Back

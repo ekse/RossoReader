@@ -1,22 +1,22 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
-import { useItemsStore } from '@/stores/items'
-import { useFeedsStore } from '@/stores/feeds'
-import ItemList from '@/components/ItemList.vue'
-import TopBar from '@/components/TopBar.vue'
-import * as api from '@/api/client'
+import { onMounted } from "vue";
+import { useItemsStore } from "@/stores/items";
+import { useFeedsStore } from "@/stores/feeds";
+import ItemList from "@/components/ItemList.vue";
+import TopBar from "@/components/TopBar.vue";
+import * as api from "@/api/client";
 
-const itemsStore = useItemsStore()
-const feedsStore = useFeedsStore()
+const itemsStore = useItemsStore();
+const feedsStore = useFeedsStore();
 onMounted(() => {
-  itemsStore.setFilterRead(false)
-})
+  itemsStore.setFilterRead(false);
+});
 
 async function markAllRead() {
-  await api.markAllItemsRead()
-  itemsStore.loadItems()
+  await api.markAllItemsRead();
+  itemsStore.loadItems();
   for (const feed of feedsStore.feeds) {
-    feed.unread_count = 0
+    feed.unread_count = 0;
   }
 }
 </script>
@@ -35,4 +35,3 @@ async function markAllRead() {
     />
   </div>
 </template>
-

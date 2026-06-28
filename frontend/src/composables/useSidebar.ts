@@ -1,16 +1,16 @@
-import { ref } from 'vue'
+import { ref } from "vue";
 
-const isOpen = ref(true)
+const isOpen = ref(true);
 
 export function useSidebar() {
   function toggle() {
-    isOpen.value = !isOpen.value
+    isOpen.value = !isOpen.value;
   }
   function close() {
-    isOpen.value = false
+    isOpen.value = false;
   }
   function open() {
-    isOpen.value = true
+    isOpen.value = true;
   }
 
   return {
@@ -18,5 +18,5 @@ export function useSidebar() {
     toggle,
     close,
     open,
-  }
+  };
 }

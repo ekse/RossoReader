@@ -1,15 +1,15 @@
-import { describe, it, expect, beforeEach } from 'vitest'
-import { setActivePinia, createPinia } from 'pinia'
-import { useFeedsStore } from '../feeds'
+import { describe, it, expect, beforeEach } from "vitest";
+import { setActivePinia, createPinia } from "pinia";
+import { useFeedsStore } from "../feeds";
 
-describe('useFeedsStore', () => {
+describe("useFeedsStore", () => {
   beforeEach(() => {
-    setActivePinia(createPinia())
-  })
+    setActivePinia(createPinia());
+  });
 
-  it('starts with an empty feed list', () => {
-    const store = useFeedsStore()
-    expect(store.feeds).toEqual([])
-    expect(store.loading).toBe(false)
-  })
-})
+  it("starts with an empty feed list", () => {
+    const store = useFeedsStore();
+    expect(store.feeds).toEqual([]);
+    expect(store.loading).toBe(false);
+  });
+});

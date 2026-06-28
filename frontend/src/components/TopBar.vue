@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useSidebar } from '@/composables/useSidebar'
-import { useHeader } from '@/composables/useHeader'
-import AddFeedDialog from '@/components/AddFeedDialog.vue'
+import { ref } from "vue";
+import { useSidebar } from "@/composables/useSidebar";
+import { useHeader } from "@/composables/useHeader";
+import AddFeedDialog from "@/components/AddFeedDialog.vue";
 
-defineProps<{ title?: string; showMarkAllRead?: boolean }>()
-defineEmits<{ markAllRead: [] }>()
+defineProps<{ title?: string; showMarkAllRead?: boolean }>();
+defineEmits<{ markAllRead: [] }>();
 
-const { toggle } = useSidebar()
-const { isHeaderVisible } = useHeader()
-const showAddFeed = ref(false)
+const { toggle } = useSidebar();
+const { isHeaderVisible } = useHeader();
+const showAddFeed = ref(false);
 </script>
 
 <template>
@@ -24,14 +24,22 @@ const showAddFeed = ref(false)
         title="Toggle Sidebar"
       >
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M4 6h16M4 12h16M4 18h16"
+          />
         </svg>
       </button>
-      <h2 v-if="title" class="text-sm font-semibold text-gray-900 dark:text-gray-100">{{ title }}</h2>
+      <h2 v-if="title" class="text-sm font-semibold text-gray-900 dark:text-gray-100">
+        {{ title }}
+      </h2>
       <button
         @click="showAddFeed = true"
         class="px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
-      >Add Feed
+      >
+        Add Feed
       </button>
     </div>
     <button

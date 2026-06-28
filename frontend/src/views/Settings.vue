@@ -1,156 +1,156 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
-import { useFeedsStore } from '@/stores/feeds'
-import { useAuthStore } from '@/stores/auth'
-import AddFeedDialog from '@/components/AddFeedDialog.vue'
-import { useSidebar } from '@/composables/useSidebar'
-import { startPasskeyRegistration } from '@/lib/webauthn'
-import * as api from '@/api/client'
-import type { User, Passkey } from '@/types'
+import { onMounted, ref } from "vue";
+import { useFeedsStore } from "@/stores/feeds";
+import { useAuthStore } from "@/stores/auth";
+import AddFeedDialog from "@/components/AddFeedDialog.vue";
+import { useSidebar } from "@/composables/useSidebar";
+import { startPasskeyRegistration } from "@/lib/webauthn";
+import * as api from "@/api/client";
+import type { User, Passkey } from "@/types";
 
-const feedsStore = useFeedsStore()
-const auth = useAuthStore()
-const showAddFeed = ref(false)
-const { toggle } = useSidebar()
+const feedsStore = useFeedsStore();
+const auth = useAuthStore();
+const showAddFeed = ref(false);
+const { toggle } = useSidebar();
 
 onMounted(() => {
-  feedsStore.loadFeeds()
-  loadPasskeys()
+  feedsStore.loadFeeds();
+  loadPasskeys();
   if (auth.isAdmin) {
-    loadUsers()
+    loadUsers();
   }
-})
+});
 
 // --- Account / change password ---
-const currentPassword = ref('')
-const newPassword = ref('')
-const confirmPassword = ref('')
-const passwordError = ref('')
-const passwordSuccess = ref(false)
-const changingPassword = ref(false)
+const currentPassword = ref("");
+const newPassword = ref("");
+const confirmPassword = ref("");
+const passwordError = ref("");
+const passwordSuccess = ref(false);
+const changingPassword = ref(false);
 
 async function changePassword() {
-  passwordError.value = ''
-  passwordSuccess.value = false
+  passwordError.value = "";
+  passwordSuccess.value = false;
   if (!currentPassword.value || !newPassword.value) {
-    passwordError.value = 'Both fields are required.'
-    return
+    passwordError.value = "Both fields are required.";
+    return;
   }
   if (newPassword.value !== confirmPassword.value) {
-    passwordError.value = 'New passwords do not match.'
-    return
+    passwordError.value = "New passwords do not match.";
+    return;
   }
-  changingPassword.value = true
+  changingPassword.value = true;
   try {
-    await api.changePassword(currentPassword.value, newPassword.value)
-    passwordSuccess.value = true
-    currentPassword.value = ''
-    newPassword.value = ''
-    confirmPassword.value = ''
+    await api.changePassword(currentPassword.value, newPassword.value);
+    passwordSuccess.value = true;
+    currentPassword.value = "";
+    newPassword.value = "";
+    confirmPassword.value = "";
   } catch (e: any) {
-    passwordError.value = e.response?.data || 'Failed to change password.'
+    passwordError.value = e.response?.data || "Failed to change password.";
   } finally {
-    changingPassword.value = false
+    changingPassword.value = false;
   }
 }
 
 // --- Administration / users ---
-const users = ref<User[]>([])
-const newUserUsername = ref('')
-const newUserPassword = ref('')
-const newUserAdmin = ref(false)
-const userError = ref('')
-const creatingUser = ref(false)
+const users = ref<User[]>([]);
+const newUserUsername = ref("");
+const newUserPassword = ref("");
+const newUserAdmin = ref(false);
+const userError = ref("");
+const creatingUser = ref(false);
 
 async function loadUsers() {
   try {
-    users.value = await api.listUsers()
+    users.value = await api.listUsers();
   } catch {
-    users.value = []
+    users.value = [];
   }
 }
 
 const canDeleteUser = (u: User) => {
-  if (!auth.user) return false
-  if (u.id === auth.user.id) return false
-  return users.value.length > 1
-}
+  if (!auth.user) return false;
+  if (u.id === auth.user.id) return false;
+  return users.value.length > 1;
+};
 
 async function createUser() {
-  userError.value = ''
+  userError.value = "";
   if (!newUserUsername.value || !newUserPassword.value) {
-    userError.value = 'Username and password are required.'
-    return
+    userError.value = "Username and password are required.";
+    return;
   }
-  creatingUser.value = true
+  creatingUser.value = true;
   try {
-    await api.createUser(newUserUsername.value, newUserPassword.value, newUserAdmin.value)
-    newUserUsername.value = ''
-    newUserPassword.value = ''
-    newUserAdmin.value = false
-    await loadUsers()
+    await api.createUser(newUserUsername.value, newUserPassword.value, newUserAdmin.value);
+    newUserUsername.value = "";
+    newUserPassword.value = "";
+    newUserAdmin.value = false;
+    await loadUsers();
   } catch (e: any) {
-    userError.value = e.response?.data || 'Failed to create user.'
+    userError.value = e.response?.data || "Failed to create user.";
   } finally {
-    creatingUser.value = false
+    creatingUser.value = false;
   }
 }
 
 async function deleteUser(u: User) {
-  if (!confirm(`Delete user ${u.username}?`)) return
+  if (!confirm(`Delete user ${u.username}?`)) return;
   try {
-    await api.deleteUser(u.id)
-    await loadUsers()
+    await api.deleteUser(u.id);
+    await loadUsers();
   } catch (e: any) {
-    userError.value = e.response?.data || 'Failed to delete user.'
+    userError.value = e.response?.data || "Failed to delete user.";
   }
 }
 
 // --- Passkeys ---
-const passkeys = ref<Passkey[]>([])
-const passkeyError = ref('')
-const passkeySuccess = ref(false)
-const registeringPasskey = ref(false)
+const passkeys = ref<Passkey[]>([]);
+const passkeyError = ref("");
+const passkeySuccess = ref(false);
+const registeringPasskey = ref(false);
 
 async function loadPasskeys() {
   try {
-    passkeys.value = await api.listPasskeys()
+    passkeys.value = await api.listPasskeys();
   } catch {
-    passkeys.value = []
+    passkeys.value = [];
   }
 }
 
 async function registerPasskey() {
-  passkeyError.value = ''
-  passkeySuccess.value = false
-  const name = window.prompt('Name for this passkey:')
-  if (!name) return
-  registeringPasskey.value = true
+  passkeyError.value = "";
+  passkeySuccess.value = false;
+  const name = window.prompt("Name for this passkey:");
+  if (!name) return;
+  registeringPasskey.value = true;
   try {
     await startPasskeyRegistration(
       () => api.passkeyRegisterBegin(),
       (stateId, _name, credential) => api.passkeyRegisterFinish(stateId, _name, credential),
       name,
-    )
-    passkeySuccess.value = true
-    await loadPasskeys()
+    );
+    passkeySuccess.value = true;
+    await loadPasskeys();
   } catch (e: any) {
-    if (e.name === 'NotAllowedError' || e.message?.includes('cancelled')) {
-      return
+    if (e.name === "NotAllowedError" || e.message?.includes("cancelled")) {
+      return;
     }
-    passkeyError.value = e.response?.data || e.message || 'Failed to register passkey.'
+    passkeyError.value = e.response?.data || e.message || "Failed to register passkey.";
   } finally {
-    registeringPasskey.value = false
+    registeringPasskey.value = false;
   }
 }
 
 async function deletePasskey(pk: Passkey) {
-  if (!confirm(`Delete passkey "${pk.name}"?`)) return
+  if (!confirm(`Delete passkey "${pk.name}"?`)) return;
   try {
-    await api.deletePasskey(pk.id)
-    passkeys.value = passkeys.value.filter(p => p.id !== pk.id)
+    await api.deletePasskey(pk.id);
+    passkeys.value = passkeys.value.filter((p) => p.id !== pk.id);
   } catch (e: any) {
-    passkeyError.value = e.response?.data || 'Failed to delete passkey.'
+    passkeyError.value = e.response?.data || "Failed to delete passkey.";
   }
 }
 </script>
@@ -164,12 +164,16 @@ async function deletePasskey(pk: Passkey) {
         title="Toggle Sidebar"
       >
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M4 6h16M4 12h16M4 18h16"
+          />
         </svg>
       </button>
       <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Settings</h1>
     </div>
-
 
     <!-- Feed Subscriptions -->
     <section class="mt-8">
@@ -190,7 +194,9 @@ async function deletePasskey(pk: Passkey) {
           class="flex items-center justify-between px-4 py-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700"
         >
           <div class="min-w-0 flex-1">
-            <p class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{{ feed.title || feed.url }}</p>
+            <p class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+              {{ feed.title || feed.url }}
+            </p>
             <p class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ feed.url }}</p>
           </div>
           <button
@@ -216,7 +222,8 @@ async function deletePasskey(pk: Passkey) {
         <span
           v-if="auth.isAdmin"
           class="ml-2 px-2 py-0.5 text-xs font-medium rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
-        >admin</span>
+          >admin</span
+        >
       </p>
 
       <div class="mt-4 max-w-md">
@@ -243,14 +250,18 @@ async function deletePasskey(pk: Passkey) {
             autocomplete="new-password"
             class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-blue-500 focus:border-blue-500"
           />
-          <p v-if="passwordError" class="text-sm text-red-600 dark:text-red-400">{{ passwordError }}</p>
-          <p v-if="passwordSuccess" class="text-sm text-green-600 dark:text-green-400">Password updated.</p>
+          <p v-if="passwordError" class="text-sm text-red-600 dark:text-red-400">
+            {{ passwordError }}
+          </p>
+          <p v-if="passwordSuccess" class="text-sm text-green-600 dark:text-green-400">
+            Password updated.
+          </p>
           <button
             @click="changePassword"
             :disabled="changingPassword"
             class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
           >
-            {{ changingPassword ? 'Saving...' : 'Change password' }}
+            {{ changingPassword ? "Saving..." : "Change password" }}
           </button>
         </div>
       </div>
@@ -271,12 +282,16 @@ async function deletePasskey(pk: Passkey) {
         >
           <div class="min-w-0 flex-1">
             <div class="flex items-center gap-2">
-              <span class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ pk.name }}</span>
-              <span v-if="pk.backup_eligible" class="text-xs text-green-600 dark:text-green-400">syncable</span>
+              <span class="text-sm font-medium text-gray-900 dark:text-gray-100">{{
+                pk.name
+              }}</span>
+              <span v-if="pk.backup_eligible" class="text-xs text-green-600 dark:text-green-400"
+                >syncable</span
+              >
             </div>
             <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
               Created {{ new Date(pk.created_at).toLocaleDateString() }}
-              <span v-if="pk.transports.length">· {{ pk.transports.join(', ') }}</span>
+              <span v-if="pk.transports.length">· {{ pk.transports.join(", ") }}</span>
             </p>
           </div>
           <button
@@ -292,15 +307,19 @@ async function deletePasskey(pk: Passkey) {
         </p>
       </div>
 
-      <p v-if="passkeyError" class="mt-2 text-sm text-red-600 dark:text-red-400">{{ passkeyError }}</p>
-      <p v-if="passkeySuccess" class="mt-2 text-sm text-green-600 dark:text-green-400">Passkey registered.</p>
+      <p v-if="passkeyError" class="mt-2 text-sm text-red-600 dark:text-red-400">
+        {{ passkeyError }}
+      </p>
+      <p v-if="passkeySuccess" class="mt-2 text-sm text-green-600 dark:text-green-400">
+        Passkey registered.
+      </p>
 
       <button
         @click="registerPasskey"
         :disabled="registeringPasskey"
         class="mt-3 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
       >
-        {{ registeringPasskey ? 'Registering...' : 'Register new passkey' }}
+        {{ registeringPasskey ? "Registering..." : "Register new passkey" }}
       </button>
     </section>
 
@@ -317,11 +336,14 @@ async function deletePasskey(pk: Passkey) {
             class="flex items-center justify-between px-4 py-2 bg-white dark:bg-gray-800 rounded-md border border-gray-200 dark:border-gray-700"
           >
             <div class="flex items-center gap-2">
-              <span class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ u.username }}</span>
+              <span class="text-sm font-medium text-gray-900 dark:text-gray-100">{{
+                u.username
+              }}</span>
               <span
                 v-if="u.is_admin"
                 class="px-2 py-0.5 text-xs font-medium rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
-              >admin</span>
+                >admin</span
+              >
             </div>
             <button
               v-if="canDeleteUser(u)"
@@ -362,7 +384,7 @@ async function deletePasskey(pk: Passkey) {
             :disabled="creatingUser"
             class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
           >
-            {{ creatingUser ? 'Creating...' : 'Create user' }}
+            {{ creatingUser ? "Creating..." : "Create user" }}
           </button>
         </div>
       </div>

@@ -1,53 +1,60 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, watch } from 'vue'
-import { useRoute } from 'vue-router'
-import FeedList from './components/FeedList.vue'
-import AddFeedDialog from './components/AddFeedDialog.vue'
-import SvgSprites from './components/SvgSprites.vue'
-import { useSidebar } from './composables/useSidebar'
-import { useHeader } from './composables/useHeader'
-import { useAddFeed } from './composables/useAddFeed'
-import { useFeedsStore } from './stores/feeds'
+import { onMounted, onUnmounted, watch } from "vue";
+import { useRoute } from "vue-router";
+import FeedList from "./components/FeedList.vue";
+import AddFeedDialog from "./components/AddFeedDialog.vue";
+import SvgSprites from "./components/SvgSprites.vue";
+import { useSidebar } from "./composables/useSidebar";
+import { useHeader } from "./composables/useHeader";
+import { useAddFeed } from "./composables/useAddFeed";
+import { useFeedsStore } from "./stores/feeds";
 
-const route = useRoute()
-const { isOpen, close } = useSidebar()
-const { isHeaderVisible, handleScroll } = useHeader()
-const { showAddFeed, close: closeAddFeed } = useAddFeed()
-const feedsStore = useFeedsStore()
+const route = useRoute();
+const { isOpen, close } = useSidebar();
+const { isHeaderVisible, handleScroll } = useHeader();
+const { showAddFeed, close: closeAddFeed } = useAddFeed();
+const feedsStore = useFeedsStore();
 
-watch(() => feedsStore.totalUnread, (n) => {
-  document.title = n > 0 ? `(${n}) Rosso Reader` : 'Rosso Reader'
-}, { immediate: true })
+watch(
+  () => feedsStore.totalUnread,
+  (n) => {
+    document.title = n > 0 ? `(${n}) Rosso Reader` : "Rosso Reader";
+  },
+  { immediate: true },
+);
 
-let wasMobile = false
+let wasMobile = false;
 
 function handleResize() {
-  const isMobile = window.innerWidth < 768
+  const isMobile = window.innerWidth < 768;
   if (wasMobile && !isMobile) {
-    isOpen.value = true
+    isOpen.value = true;
   }
-  wasMobile = isMobile
+  wasMobile = isMobile;
 }
 
 onMounted(() => {
-  wasMobile = window.innerWidth < 768
+  wasMobile = window.innerWidth < 768;
   if (wasMobile) {
-    isOpen.value = false
+    isOpen.value = false;
   }
-  window.addEventListener('resize', handleResize)
-})
+  window.addEventListener("resize", handleResize);
+});
 
 onUnmounted(() => {
-  window.removeEventListener('resize', handleResize)
-})
+  window.removeEventListener("resize", handleResize);
+});
 
 // Close sidebar on mobile when navigating
-watch(() => route.path, () => {
-  if (window.innerWidth < 768) {
-    close()
-  }
-  isHeaderVisible.value = true
-})
+watch(
+  () => route.path,
+  () => {
+    if (window.innerWidth < 768) {
+      close();
+    }
+    isHeaderVisible.value = true;
+  },
+);
 </script>
 
 <template>
@@ -68,7 +75,7 @@ watch(() => route.path, () => {
       :class="[
         isOpen
           ? 'w-72 translate-x-0'
-          : 'w-72 -translate-x-full md:w-0 md:border-r-0 md:translate-x-0'
+          : 'w-72 -translate-x-full md:w-0 md:border-r-0 md:translate-x-0',
       ]"
     >
       <FeedList />
@@ -80,4 +87,3 @@ watch(() => route.path, () => {
     <AddFeedDialog v-if="showAddFeed" @close="closeAddFeed" />
   </div>
 </template>
-

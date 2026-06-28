@@ -1,18 +1,21 @@
 <script setup lang="ts">
-import type { Item } from '@/types'
+import type { Item } from "@/types";
 
 defineProps<{
-  item: Item | null
-}>()
+  item: Item | null;
+}>();
 
 function formatDate(dateStr?: string): string {
-  if (!dateStr) return ''
-  return new Date(dateStr).toLocaleString()
+  if (!dateStr) return "";
+  return new Date(dateStr).toLocaleString();
 }
 </script>
 
 <template>
-  <div v-if="!item" class="flex items-center justify-center h-full text-gray-400 dark:text-gray-500">
+  <div
+    v-if="!item"
+    class="flex items-center justify-center h-full text-gray-400 dark:text-gray-500"
+  >
     Select an item to read
   </div>
   <article v-else class="max-w-3xl mx-auto px-6 py-2">
