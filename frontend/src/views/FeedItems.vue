@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useItemsStore } from '@/stores/items'
 import { useFeedsStore } from '@/stores/feeds'
@@ -11,7 +11,6 @@ const route = useRoute()
 const itemsStore = useItemsStore()
 const feedsStore = useFeedsStore()
 const feedId = ref<number | null>(null)
-const feedName = computed(() => feedId.value ? feedsStore.feedNames[feedId.value] : undefined)
 
 onMounted(() => {
   loadFeed()

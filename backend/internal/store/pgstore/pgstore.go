@@ -410,7 +410,125 @@ func (s *PGStore) DeleteExpiredSessions(ctx context.Context) error {
 	return nil
 }
 
+// Passkeys
+
+func (s *PGStore) CreatePasskey(ctx context.Context, userID int64, name string, credentialID, publicKey []byte, attestationType string, transports []string, signCount int64, backupEligible, backupState bool, aaguid []byte) (domain.Passkey, error) {
+	r, err := s.q.CreatePasskey(ctx, generated.CreatePasskeyParams{
+		UserID:          userID,
+		Name:            name,
+		CredentialID:    credentialID,
+		PublicKey:       publicKey,
+		AttestationType: attestationType,
+		Transports:      transports,
+		SignCount:       signCount,
+		BackupEligible:  backupEligible,
+		BackupState:     backupState,
+		Aaguid:          aaguid,
+	})
+	if err != nil {
+		return domain.Passkey{}, fmt.Errorf("create passkey: %w", err)
+	}
+	return toDomainPasskey(r), nil
+}
+
+func (s *PGStore) GetPasskeysByUserID(ctx context.Context, userID int64) ([]domain.Passkey, error) {
+	rows, err := s.q.GetPasskeysByUserID(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("get passkeys for user %d: %w", userID, err)
+	}
+	passkeys := make([]domain.Passkey, 0, len(rows))
+	for _, r := range rows {
+		passkeys = append(passkeys, toDomainPasskey(r))
+	}
+	return passkeys, nil
+}
+
+func (s *PGStore) GetPasskeyByCredentialID(ctx context.Context, credentialID []byte) (domain.Passkey, error) {
+	r, err := s.q.GetPasskeyByCredentialID(ctx, credentialID)
+	if err != nil {
+		return domain.Passkey{}, fmt.Errorf("get passkey by credential: %w", err)
+	}
+	return toDomainPasskey(r), nil
+}
+
+func (s *PGStore) UpdatePasskeySignCount(ctx context.Context, id int64, signCount int64) error {
+	err := s.q.UpdatePasskeySignCount(ctx, generated.UpdatePasskeySignCountParams{
+		ID:        id,
+		SignCount: signCount,
+	})
+	if err != nil {
+		return fmt.Errorf("update passkey %d sign count: %w", id, err)
+	}
+	return nil
+}
+
+func (s *PGStore) DeletePasskey(ctx context.Context, userID, id int64) error {
+	err := s.q.DeletePasskey(ctx, generated.DeletePasskeyParams{
+		ID:     id,
+		UserID: userID,
+	})
+	if err != nil {
+		return fmt.Errorf("delete passkey %d: %w", id, err)
+	}
+	return nil
+}
+
+func (s *PGStore) SaveAuthState(ctx context.Context, id [16]byte, stateType string, stateData []byte, expiresAt time.Time) error {
+	err := s.q.SaveAuthState(ctx, generated.SaveAuthStateParams{
+		ID:        pgUUIDFromBytes(id),
+		StateType: stateType,
+		StateData: stateData,
+		ExpiresAt: pgtype.Timestamptz{Time: expiresAt, Valid: true},
+	})
+	if err != nil {
+		return fmt.Errorf("save auth state: %w", err)
+	}
+	return nil
+}
+
+func (s *PGStore) GetAuthState(ctx context.Context, id [16]byte) (string, []byte, error) {
+	r, err := s.q.GetAuthState(ctx, pgUUIDFromBytes(id))
+	if err != nil {
+		return "", nil, fmt.Errorf("get auth state: %w", err)
+	}
+	return r.StateType, r.StateData, nil
+}
+
+func (s *PGStore) DeleteAuthState(ctx context.Context, id [16]byte) error {
+	err := s.q.DeleteAuthState(ctx, pgUUIDFromBytes(id))
+	if err != nil {
+		return fmt.Errorf("delete auth state: %w", err)
+	}
+	return nil
+}
+
+func (s *PGStore) DeleteExpiredAuthStates(ctx context.Context) error {
+	err := s.q.DeleteExpiredAuthStates(ctx)
+	if err != nil {
+		return fmt.Errorf("delete expired auth states: %w", err)
+	}
+	return nil
+}
+
 // Helpers
+
+func toDomainPasskey(r generated.Passkey) domain.Passkey {
+	return domain.Passkey{
+		ID:              r.ID,
+		UserID:          r.UserID,
+		Name:            r.Name,
+		CredentialID:    r.CredentialID,
+		PublicKey:       r.PublicKey,
+		AttestationType: r.AttestationType,
+		Transports:      r.Transports,
+		SignCount:       r.SignCount,
+		BackupEligible:  r.BackupEligible,
+		BackupState:     r.BackupState,
+		AAGUID:          r.Aaguid,
+		CreatedAt:       r.CreatedAt.Time,
+		UpdatedAt:       r.UpdatedAt.Time,
+	}
+}
 
 func toDomainFeed(r generated.Feed) domain.Feed {
 	return domain.Feed{

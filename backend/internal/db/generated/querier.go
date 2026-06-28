@@ -14,19 +14,26 @@ type Querier interface {
 	CountItems(ctx context.Context, arg CountItemsParams) (int64, error)
 	CountUsers(ctx context.Context) (int64, error)
 	CreateFeed(ctx context.Context, arg CreateFeedParams) (Feed, error)
+	CreatePasskey(ctx context.Context, arg CreatePasskeyParams) (Passkey, error)
 	CreateSession(ctx context.Context, arg CreateSessionParams) (Session, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
+	DeleteAuthState(ctx context.Context, id pgtype.UUID) error
+	DeleteExpiredAuthStates(ctx context.Context) error
 	DeleteExpiredSessions(ctx context.Context) error
 	DeleteFeed(ctx context.Context, arg DeleteFeedParams) error
+	DeletePasskey(ctx context.Context, arg DeletePasskeyParams) error
 	DeleteSession(ctx context.Context, id pgtype.UUID) error
 	DeleteSetting(ctx context.Context, arg DeleteSettingParams) error
 	DeleteUser(ctx context.Context, id int64) error
 	GetAllFeeds(ctx context.Context) ([]Feed, error)
+	GetAuthState(ctx context.Context, id pgtype.UUID) (GetAuthStateRow, error)
 	GetFeedByID(ctx context.Context, arg GetFeedByIDParams) (Feed, error)
 	GetFeedByIDAny(ctx context.Context, id int32) (Feed, error)
 	GetFeeds(ctx context.Context, userID *int64) ([]Feed, error)
 	GetItemByID(ctx context.Context, arg GetItemByIDParams) (GetItemByIDRow, error)
 	GetItems(ctx context.Context, arg GetItemsParams) ([]GetItemsRow, error)
+	GetPasskeyByCredentialID(ctx context.Context, credentialID []byte) (Passkey, error)
+	GetPasskeysByUserID(ctx context.Context, userID int64) ([]Passkey, error)
 	GetSessionWithUser(ctx context.Context, id pgtype.UUID) (GetSessionWithUserRow, error)
 	GetSetting(ctx context.Context, arg GetSettingParams) (GetSettingRow, error)
 	GetSettings(ctx context.Context, userID *int64) ([]GetSettingsRow, error)
@@ -36,10 +43,12 @@ type Querier interface {
 	ListUsers(ctx context.Context) ([]ListUsersRow, error)
 	MarkAllItemsReadForUser(ctx context.Context, userID int64) error
 	MarkFeedItemsReadForUser(ctx context.Context, arg MarkFeedItemsReadForUserParams) error
+	SaveAuthState(ctx context.Context, arg SaveAuthStateParams) error
 	SetItemRead(ctx context.Context, arg SetItemReadParams) error
 	SetItemStarred(ctx context.Context, arg SetItemStarredParams) error
 	UpdateFeedLastFetched(ctx context.Context, id int32) error
 	UpdateFeedMetadata(ctx context.Context, arg UpdateFeedMetadataParams) error
+	UpdatePasskeySignCount(ctx context.Context, arg UpdatePasskeySignCountParams) error
 	UpdateUserPassword(ctx context.Context, arg UpdateUserPasswordParams) error
 	UpsertItem(ctx context.Context, arg UpsertItemParams) (UpsertItemRow, error)
 	UpsertSetting(ctx context.Context, arg UpsertSettingParams) error

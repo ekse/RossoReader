@@ -36,6 +36,30 @@ type Item struct {
 	Starred     bool               `json:"starred"`
 }
 
+type Passkey struct {
+	ID              int64              `json:"id"`
+	UserID          int64              `json:"user_id"`
+	Name            string             `json:"name"`
+	CredentialID    []byte             `json:"credential_id"`
+	PublicKey       []byte             `json:"public_key"`
+	AttestationType string             `json:"attestation_type"`
+	Transports      []string           `json:"transports"`
+	SignCount       int64              `json:"sign_count"`
+	BackupEligible  bool               `json:"backup_eligible"`
+	BackupState     bool               `json:"backup_state"`
+	Aaguid          []byte             `json:"aaguid"`
+	CreatedAt       pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt       pgtype.Timestamptz `json:"updated_at"`
+}
+
+type PasskeyAuthState struct {
+	ID        pgtype.UUID        `json:"id"`
+	StateType string             `json:"state_type"`
+	StateData []byte             `json:"state_data"`
+	ExpiresAt pgtype.Timestamptz `json:"expires_at"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+}
+
 type Session struct {
 	ID        pgtype.UUID        `json:"id"`
 	UserID    int64              `json:"user_id"`

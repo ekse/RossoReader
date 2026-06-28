@@ -2,6 +2,8 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { startPasskeyLogin } from '@/lib/webauthn'
+import * as api from '@/api/client'
 
 const auth = useAuthStore()
 const router = useRouter()
@@ -10,6 +12,7 @@ const username = ref('')
 const password = ref('')
 const error = ref('')
 const loading = ref(false)
+const passkeyLoading = ref(false)
 
 async function submit() {
   if (!username.value || !password.value) return
@@ -22,6 +25,26 @@ async function submit() {
     error.value = e.response?.data || 'Invalid credentials'
   } finally {
     loading.value = false
+  }
+}
+
+async function loginWithPasskey() {
+  passkeyLoading.value = true
+  error.value = ''
+  try {
+    const user = await startPasskeyLogin(
+      () => api.passkeyLoginBegin(),
+      (stateId, credential) => api.passkeyLoginFinish(stateId, credential),
+    )
+    auth.user = user
+    router.push('/unread')
+  } catch (e: any) {
+    if (e.name === 'NotAllowedError' || e.message?.includes('cancelled')) {
+      return
+    }
+    error.value = e.response?.data || e.message || 'Passkey login failed'
+  } finally {
+    passkeyLoading.value = false
   }
 }
 </script>
@@ -65,6 +88,20 @@ async function submit() {
           {{ loading ? 'Signing in...' : 'Sign in' }}
         </button>
       </form>
+
+      <div class="mt-4 flex items-center gap-2">
+        <div class="flex-1 border-t border-gray-300 dark:border-gray-600"></div>
+        <span class="text-xs text-gray-400">or</span>
+        <div class="flex-1 border-t border-gray-300 dark:border-gray-600"></div>
+      </div>
+
+      <button
+        @click="loginWithPasskey"
+        :disabled="passkeyLoading"
+        class="mt-4 w-full px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 transition-colors"
+      >
+        {{ passkeyLoading ? 'Checking...' : 'Sign in with passkey' }}
+      </button>
     </div>
   </div>
 </template>

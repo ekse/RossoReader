@@ -1,5 +1,5 @@
 import axios from 'axios'
-import type { Feed, Item, ItemsResponse, DiscoveredFeed, User } from '@/types'
+import type { Feed, Item, ItemsResponse, DiscoveredFeed, User, Passkey } from '@/types'
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || '',
@@ -118,4 +118,35 @@ export async function fetchSettings(): Promise<Record<string, string>> {
 export async function updateSettings(data: Record<string, string>): Promise<Record<string, string>> {
   const res = await api.patch('/api/settings', data)
   return res.data
+}
+
+// Passkeys
+
+export async function passkeyRegisterBegin(): Promise<{ state_id: string; options: any }> {
+  const res = await api.post('/api/auth/passkey/register/begin')
+  return res.data
+}
+
+export async function passkeyRegisterFinish(stateId: string, name: string, credential: any): Promise<Passkey> {
+  const res = await api.post('/api/auth/passkey/register/finish', { state_id: stateId, name, credential })
+  return res.data
+}
+
+export async function passkeyLoginBegin(): Promise<{ state_id: string; options: any }> {
+  const res = await api.post('/api/auth/passkey/login/begin')
+  return res.data
+}
+
+export async function passkeyLoginFinish(stateId: string, credential: any): Promise<User> {
+  const res = await api.post('/api/auth/passkey/login/finish', { state_id: stateId, credential })
+  return res.data
+}
+
+export async function listPasskeys(): Promise<Passkey[]> {
+  const res = await api.get('/api/auth/passkeys')
+  return res.data
+}
+
+export async function deletePasskey(id: number): Promise<void> {
+  await api.delete(`/api/auth/passkeys/${id}`)
 }

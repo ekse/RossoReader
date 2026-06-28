@@ -42,3 +42,11 @@ export interface User {
   username: string
   is_admin: boolean
 }
+
+export interface Passkey {
+  id: number
+  name: string
+  transports: string[]
+  backup_eligible: boolean
+  created_at: string
+}

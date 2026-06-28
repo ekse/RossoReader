@@ -48,4 +48,17 @@ type Store interface {
 	GetSession(ctx context.Context, id [16]byte) (domain.Session, error)
 	DeleteSession(ctx context.Context, id [16]byte) error
 	DeleteExpiredSessions(ctx context.Context) error
+
+	// Passkeys
+	CreatePasskey(ctx context.Context, userID int64, name string, credentialID, publicKey []byte, attestationType string, transports []string, signCount int64, backupEligible, backupState bool, aaguid []byte) (domain.Passkey, error)
+	GetPasskeysByUserID(ctx context.Context, userID int64) ([]domain.Passkey, error)
+	GetPasskeyByCredentialID(ctx context.Context, credentialID []byte) (domain.Passkey, error)
+	UpdatePasskeySignCount(ctx context.Context, id int64, signCount int64) error
+	DeletePasskey(ctx context.Context, userID, id int64) error
+
+	// Passkey Auth State
+	SaveAuthState(ctx context.Context, id [16]byte, stateType string, stateData []byte, expiresAt time.Time) error
+	GetAuthState(ctx context.Context, id [16]byte) (string, []byte, error)
+	DeleteAuthState(ctx context.Context, id [16]byte) error
+	DeleteExpiredAuthStates(ctx context.Context) error
 }

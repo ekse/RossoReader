@@ -16,10 +16,11 @@ type Handler struct {
 	Scheduler  *scheduler.Scheduler
 	Discoverer fetcher.Discoverer
 	Auth       *AuthHandler
+	Passkey    *PasskeyHandler
 }
 
-func New(s store.Store, sch *scheduler.Scheduler, d fetcher.Discoverer) *Handler {
-	return &Handler{Store: s, Scheduler: sch, Discoverer: d, Auth: NewAuthHandler(s)}
+func New(s store.Store, sch *scheduler.Scheduler, d fetcher.Discoverer, p *PasskeyHandler) *Handler {
+	return &Handler{Store: s, Scheduler: sch, Discoverer: d, Auth: NewAuthHandler(s), Passkey: p}
 }
 
 // Router returns the public (unauthenticated) routes only. The full router
@@ -33,6 +34,9 @@ func (h *Handler) Router() chi.Router {
 	r.Post("/api/auth/login", h.Auth.Login)
 	r.Post("/api/auth/logout", h.Auth.Logout)
 
+	r.Post("/api/auth/passkey/login/begin", h.Passkey.LoginBegin)
+	r.Post("/api/auth/passkey/login/finish", h.Passkey.LoginFinish)
+
 	return r
 }
 
@@ -42,6 +46,11 @@ func (h *Handler) ProtectedRouter() chi.Router {
 
 	r.Get("/api/auth/me", h.Auth.Me)
 	r.Put("/api/auth/password", h.Auth.ChangePassword)
+
+	r.Post("/api/auth/passkey/register/begin", h.Passkey.RegisterBegin)
+	r.Post("/api/auth/passkey/register/finish", h.Passkey.RegisterFinish)
+	r.Get("/api/auth/passkeys", h.Passkey.ListPasskeys)
+	r.Delete("/api/auth/passkeys/{id}", h.Passkey.DeletePasskey)
 
 	r.Get("/api/feeds", h.ListFeeds)
 	r.Post("/api/feeds", h.AddFeed)
@@ -82,12 +91,20 @@ func (h *Handler) MountRouter() chi.Router {
 	r.Post("/api/auth/login", h.Auth.Login)
 	r.Post("/api/auth/logout", h.Auth.Logout)
 
+	r.Post("/api/auth/passkey/login/begin", h.Passkey.LoginBegin)
+	r.Post("/api/auth/passkey/login/finish", h.Passkey.LoginFinish)
+
 	// Authenticated routes.
 	r.Group(func(r chi.Router) {
 		r.Use(middleware.Authenticate(h.Store, h.Auth.cookieName()))
 
 		r.Get("/api/auth/me", h.Auth.Me)
 		r.Put("/api/auth/password", h.Auth.ChangePassword)
+
+		r.Post("/api/auth/passkey/register/begin", h.Passkey.RegisterBegin)
+		r.Post("/api/auth/passkey/register/finish", h.Passkey.RegisterFinish)
+		r.Get("/api/auth/passkeys", h.Passkey.ListPasskeys)
+		r.Delete("/api/auth/passkeys/{id}", h.Passkey.DeletePasskey)
 
 		r.Get("/api/feeds", h.ListFeeds)
 		r.Post("/api/feeds", h.AddFeed)

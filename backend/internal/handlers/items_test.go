@@ -25,7 +25,7 @@ func TestListItems(t *testing.T) {
 		{ID: 2, FeedID: 1, GUID: "2", Title: "Post 2", URL: "https://ex.com/2", PublishedAt: &now},
 	}
 
-	h := handlers.New(store, nil, nil)
+	h := handlers.New(store, nil, nil, newTestPasskeyHandler(store))
 	r := authedRouter(h, user)
 
 	req := authReq("GET", "/api/items?per_page=10", "", user)
@@ -58,7 +58,7 @@ func TestListItems_WithFeedFilter(t *testing.T) {
 		{ID: 2, FeedID: 2, GUID: "2", Title: "Feed 2 Post", URL: "https://ex.com/2", PublishedAt: &now},
 	}
 
-	h := handlers.New(store, nil, nil)
+	h := handlers.New(store, nil, nil, newTestPasskeyHandler(store))
 	r := authedRouter(h, user)
 
 	req := authReq("GET", "/api/items?feed_id=1&per_page=10", "", user)
@@ -86,7 +86,7 @@ func TestUpdateItem_MarkRead(t *testing.T) {
 		{ID: 1, FeedID: 1, GUID: "1", Title: "Post", URL: "https://ex.com/1", PublishedAt: &now},
 	}
 
-	h := handlers.New(store, nil, nil)
+	h := handlers.New(store, nil, nil, newTestPasskeyHandler(store))
 	r := authedRouter(h, user)
 
 	req := authReq("PATCH", "/api/items/1", `{"read":true}`, user)
@@ -110,7 +110,7 @@ func TestUpdateItem_MarkStarred(t *testing.T) {
 		{ID: 1, FeedID: 1, GUID: "1", Title: "Post", URL: "https://ex.com/1", PublishedAt: &now},
 	}
 
-	h := handlers.New(store, nil, nil)
+	h := handlers.New(store, nil, nil, newTestPasskeyHandler(store))
 	r := authedRouter(h, user)
 
 	req := authReq("PATCH", "/api/items/1", `{"starred":true}`, user)
@@ -128,7 +128,7 @@ func TestUpdateItem_MarkStarred(t *testing.T) {
 func TestItems_Health(t *testing.T) {
 	store := mockstore.New()
 	user := makeUser(t, store, "alice", true)
-	h := handlers.New(store, nil, nil)
+	h := handlers.New(store, nil, nil, newTestPasskeyHandler(store))
 	r := authedRouter(h, user)
 
 	req := authReq("GET", "/api/health", "", user)

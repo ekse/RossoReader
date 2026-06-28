@@ -10,6 +10,8 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	chimw "github.com/go-chi/chi/v5/middleware"
+	"github.com/go-webauthn/webauthn/protocol"
+	"github.com/go-webauthn/webauthn/webauthn"
 
 	"github.com/ekse/rssreader/internal/bootstrap"
 	"github.com/ekse/rssreader/internal/db"
@@ -56,7 +58,31 @@ func main() {
 	f := fetcher.NewHTTPFetcher()
 	sched := scheduler.New(store, f)
 
-	h := handlers.New(store, sched, f)
+	rpID := os.Getenv("RP_ID")
+	if rpID == "" {
+		rpID = "localhost"
+	}
+	rpOrigin := os.Getenv("RP_ORIGIN")
+	if rpOrigin == "" {
+		rpOrigin = "http://localhost:5173"
+	}
+
+	wa, err := webauthn.New(&webauthn.Config{
+		RPDisplayName: "Rosso RSS Reader",
+		RPID:          rpID,
+		RPOrigins:     []string{rpOrigin},
+		AuthenticatorSelection: protocol.AuthenticatorSelection{
+			ResidentKey:      protocol.ResidentKeyRequirementRequired,
+			UserVerification: protocol.VerificationPreferred,
+		},
+	})
+	if err != nil {
+		log.Fatalf("failed to create webauthn instance: %v", err)
+	}
+
+	passkeyHandler := handlers.NewPasskeyHandler(store, wa)
+
+	h := handlers.New(store, sched, f, passkeyHandler)
 
 	r := chi.NewRouter()
 	r.Use(chimw.RequestID)
