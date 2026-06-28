@@ -13,7 +13,7 @@ import (
 
 const (
 	hashMemory      = 64 * 1024
-	hashIterations = 3
+	hashIterations  = 3
 	hashParallelism = 2
 	hashSaltLength  = 16
 	hashKeyLength   = 32

@@ -36,8 +36,8 @@ func TestListItems(t *testing.T) {
 
 	var resp struct {
 		Items []domain.Item `json:"items"`
-		Total int64          `json:"total"`
-		Page  int            `json:"page"`
+		Total int64         `json:"total"`
+		Page  int           `json:"page"`
 	}
 	err := json.Unmarshal(w.Body.Bytes(), &resp)
 	require.NoError(t, err)

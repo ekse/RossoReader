@@ -19,7 +19,7 @@ import (
 
 const (
 	defaultSessionMaxAgeDays = 30
-	defaultCookieName         = "session"
+	defaultCookieName        = "session"
 )
 
 type AuthHandler struct {

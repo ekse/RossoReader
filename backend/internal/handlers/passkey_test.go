@@ -319,8 +319,8 @@ func specLoginSessionData(t *testing.T) []byte {
 	t.Helper()
 	challenge := base64.RawURLEncoding.EncodeToString(mustDecodeHex(t, specLoginChallengeHex))
 	sd := webauthn.SessionData{
-		Challenge:            challenge,
-		UserVerification:     protocol.VerificationPreferred,
+		Challenge:        challenge,
+		UserVerification: protocol.VerificationPreferred,
 	}
 	data, err := json.Marshal(sd)
 	require.NoError(t, err)
