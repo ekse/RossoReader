@@ -217,6 +217,10 @@ func (h *AuthHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 
 	user, err := h.Store.CreateUser(r.Context(), req.Username, hash, req.IsAdmin)
 	if err != nil {
+		if errors.Is(err, domain.ErrUserAlreadyExists) {
+			http.Error(w, err.Error(), http.StatusConflict)
+			return
+		}
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}

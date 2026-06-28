@@ -1,6 +1,12 @@
 package domain
 
-import "time"
+import (
+	"errors"
+	"time"
+)
+
+var ErrFeedAlreadyExists = errors.New("You are already subscribed to this feed.")
+var ErrUserAlreadyExists = errors.New("This username is already taken.")
 
 type Feed struct {
 	ID            int64      `json:"id"`
