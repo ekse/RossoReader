@@ -2,9 +2,11 @@ package pgstore
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 
@@ -72,6 +74,10 @@ func (s *PGStore) CreateFeed(ctx context.Context, userID int64, url, title, desc
 		IconUrl:     nullableString(iconURL),
 	})
 	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "23505" && pgErr.ConstraintName == "feeds_user_url_key" {
+			return domain.Feed{}, domain.ErrFeedAlreadyExists
+		}
 		return domain.Feed{}, fmt.Errorf("create feed: %w", err)
 	}
 	return toDomainFeed(r), nil
@@ -293,6 +299,10 @@ func (s *PGStore) CreateUser(ctx context.Context, username, passwordHash string,
 		IsAdmin:      isAdmin,
 	})
 	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "23505" && pgErr.ConstraintName == "users_username_key" {
+			return domain.User{}, domain.ErrUserAlreadyExists
+		}
 		return domain.User{}, fmt.Errorf("create user: %w", err)
 	}
 	return toDomainUser(r, r.PasswordHash), nil
