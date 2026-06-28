@@ -1,6 +1,7 @@
 import { ref } from 'vue'
 
-const isDark = ref(document.documentElement.classList.contains('dark'))
+const saved = localStorage.getItem('theme')
+const isDark = ref(saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches))
 
 export function useTheme() {
   function toggle() {
