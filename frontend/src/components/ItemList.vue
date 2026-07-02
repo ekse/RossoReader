@@ -18,8 +18,14 @@ const emit = defineEmits<{
 
 const expandedItems = ref<Record<number, boolean>>({});
 
-function toggleExpand(itemId: number) {
-  expandedItems.value[itemId] = !expandedItems.value[itemId];
+function toggleExpand(item: Item) {
+  const itemId = item.id;
+  const isExpanding = !expandedItems.value[itemId];
+  expandedItems.value[itemId] = isExpanding;
+
+  if (isExpanding && !item.read) {
+    emit("toggleRead", item);
+  }
 }
 
 function formatDate(dateStr?: string): string {
@@ -58,7 +64,7 @@ function stripHtml(s?: string): string {
           'bg-white dark:bg-gray-800': !item.read && !expandedItems[item.id],
           'bg-gray-50 dark:bg-gray-800/30': item.read || expandedItems[item.id],
         }"
-        @click="toggleExpand(item.id)"
+        @click="toggleExpand(item)"
       >
         <div class="flex items-start justify-between gap-4">
           <div class="flex-1 min-w-0">

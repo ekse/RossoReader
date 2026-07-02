@@ -28,4 +28,41 @@ describe("ItemList", () => {
     });
     expect(wrapper.text()).toContain("No items to show.");
   });
+
+  it("emits toggleRead when an unread item is expanded", async () => {
+    const item = {
+      id: 1,
+      feed_id: 1,
+      guid: "1",
+      title: "Test Post",
+      url: "https://ex.com/1",
+      fetched_at: "2024-01-01T00:00:00Z",
+      read: false,
+      starred: false,
+    };
+    const wrapper = mount(ItemList, {
+      props: { items: [item] },
+    });
+    await wrapper.find(".cursor-pointer").trigger("click");
+    expect(wrapper.emitted("toggleRead")).toBeTruthy();
+    expect(wrapper.emitted("toggleRead")?.[0]).toEqual([item]);
+  });
+
+  it("does not emit toggleRead when an already read item is expanded", async () => {
+    const item = {
+      id: 1,
+      feed_id: 1,
+      guid: "1",
+      title: "Test Post",
+      url: "https://ex.com/1",
+      fetched_at: "2024-01-01T00:00:00Z",
+      read: true,
+      starred: false,
+    };
+    const wrapper = mount(ItemList, {
+      props: { items: [item] },
+    });
+    await wrapper.find(".cursor-pointer").trigger("click");
+    expect(wrapper.emitted("toggleRead")).toBeFalsy();
+  });
 });
