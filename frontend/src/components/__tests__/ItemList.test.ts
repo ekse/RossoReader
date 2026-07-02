@@ -65,4 +65,35 @@ describe("ItemList", () => {
     await wrapper.find(".cursor-pointer").trigger("click");
     expect(wrapper.emitted("toggleRead")).toBeFalsy();
   });
+
+  it("resets expanded items when items prop changes", async () => {
+    const item1 = {
+      id: 1,
+      feed_id: 1,
+      guid: "1",
+      title: "Test Post 1",
+      url: "https://ex.com/1",
+      fetched_at: "2024-01-01T00:00:00Z",
+      read: true,
+      starred: false,
+    };
+    const wrapper = mount(ItemList, {
+      props: { items: [item1] },
+    });
+    await wrapper.find(".cursor-pointer").trigger("click");
+    expect(wrapper.find(".cursor-default").exists()).toBe(true);
+
+    const item2 = {
+      id: 2,
+      feed_id: 1,
+      guid: "2",
+      title: "Test Post 2",
+      url: "https://ex.com/2",
+      fetched_at: "2024-01-01T00:00:00Z",
+      read: true,
+      starred: false,
+    };
+    await wrapper.setProps({ items: [item2] });
+    expect(wrapper.find(".cursor-default").exists()).toBe(false);
+  });
 });
