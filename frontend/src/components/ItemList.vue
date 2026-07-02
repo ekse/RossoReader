@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, watch } from "vue";
 import type { Item } from "@/types";
 import ItemDetail from "./ItemDetail.vue";
 
-defineProps<{
+const props = defineProps<{
   items: Item[];
   loading?: boolean;
   hasMore?: boolean;
@@ -17,6 +17,13 @@ const emit = defineEmits<{
 }>();
 
 const expandedItems = ref<Record<number, boolean>>({});
+
+watch(
+  () => props.items,
+  () => {
+    expandedItems.value = {};
+  }
+);
 
 function toggleExpand(item: Item) {
   const itemId = item.id;
