@@ -53,8 +53,8 @@ export const useFeedsStore = defineStore("feeds", () => {
         imported++;
       } catch (err: unknown) {
         if (err && typeof err === "object" && "response" in err) {
-          const axiosErr = err as { response?: { status?: number } };
-          if (axiosErr.response?.status === 409) {
+          const apiErr = err as { response?: { status?: number } };
+          if (apiErr.response?.status === 409) {
             skipped++;
             continue;
           }
