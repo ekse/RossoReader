@@ -76,8 +76,8 @@ async function request<T>(
   }
 
   const text = await res.text();
-  if (!text) return undefined as Promise<T>;
-  return JSON.parse(text) as Promise<T>;
+  if (!text) return undefined as unknown as Promise<T>;
+  return JSON.parse(text);
 }
 
 // Auth
