@@ -13,6 +13,7 @@ const password = ref("");
 const error = ref("");
 const loading = ref(false);
 const passkeyLoading = ref(false);
+const showPassword = ref(false);
 
 async function submit() {
   if (!username.value || !password.value) return;
@@ -70,12 +71,23 @@ async function loginWithPasskey() {
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Password</label>
-          <input
-            v-model="password"
-            type="password"
-            autocomplete="current-password"
-            class="w-full mt-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-blue-500 focus:border-blue-500"
-          />
+          <div class="relative mt-1">
+            <input
+              v-model="password"
+              :type="showPassword ? 'text' : 'password'"
+              autocomplete="current-password"
+              class="w-full px-3 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-blue-500 focus:border-blue-500"
+            />
+            <button
+              type="button"
+              @click="showPassword = !showPassword"
+              class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              tabindex="-1"
+            >
+              <svg v-if="showPassword" class="w-4 h-4"><use href="#icon-eye-slash" /></svg>
+              <svg v-else class="w-4 h-4"><use href="#icon-eye" /></svg>
+            </button>
+          </div>
         </div>
 
         <p v-if="error" class="text-sm text-red-600 dark:text-red-400">{{ error }}</p>

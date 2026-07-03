@@ -42,6 +42,9 @@ const confirmPassword = ref("");
 const passwordError = ref("");
 const passwordSuccess = ref(false);
 const changingPassword = ref(false);
+const showCurrentPassword = ref(false);
+const showNewPassword = ref(false);
+const showConfirmPassword = ref(false);
 
 async function changePassword() {
   passwordError.value = "";
@@ -75,6 +78,7 @@ const newUserPassword = ref("");
 const newUserAdmin = ref(false);
 const userError = ref("");
 const creatingUser = ref(false);
+const showNewUserPassword = ref(false);
 
 async function loadUsers() {
   try {
@@ -257,27 +261,60 @@ async function deletePasskey(pk: Passkey) {
       <div class="mt-4 max-w-md">
         <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300">Change password</h3>
         <div class="mt-2 space-y-3">
-          <input
-            v-model="currentPassword"
-            type="password"
-            placeholder="Current password"
-            autocomplete="current-password"
-            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-blue-500 focus:border-blue-500"
-          />
-          <input
-            v-model="newPassword"
-            type="password"
-            placeholder="New password"
-            autocomplete="new-password"
-            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-blue-500 focus:border-blue-500"
-          />
-          <input
-            v-model="confirmPassword"
-            type="password"
-            placeholder="Confirm new password"
-            autocomplete="new-password"
-            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-blue-500 focus:border-blue-500"
-          />
+          <div class="relative">
+            <input
+              v-model="currentPassword"
+              :type="showCurrentPassword ? 'text' : 'password'"
+              placeholder="Current password"
+              autocomplete="current-password"
+              class="w-full px-3 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-blue-500 focus:border-blue-500"
+            />
+            <button
+              type="button"
+              @click="showCurrentPassword = !showCurrentPassword"
+              class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              tabindex="-1"
+            >
+              <svg v-if="showCurrentPassword" class="w-4 h-4"><use href="#icon-eye-slash" /></svg>
+              <svg v-else class="w-4 h-4"><use href="#icon-eye" /></svg>
+            </button>
+          </div>
+          <div class="relative">
+            <input
+              v-model="newPassword"
+              :type="showNewPassword ? 'text' : 'password'"
+              placeholder="New password"
+              autocomplete="new-password"
+              class="w-full px-3 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-blue-500 focus:border-blue-500"
+            />
+            <button
+              type="button"
+              @click="showNewPassword = !showNewPassword"
+              class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              tabindex="-1"
+            >
+              <svg v-if="showNewPassword" class="w-4 h-4"><use href="#icon-eye-slash" /></svg>
+              <svg v-else class="w-4 h-4"><use href="#icon-eye" /></svg>
+            </button>
+          </div>
+          <div class="relative">
+            <input
+              v-model="confirmPassword"
+              :type="showConfirmPassword ? 'text' : 'password'"
+              placeholder="Confirm new password"
+              autocomplete="new-password"
+              class="w-full px-3 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-blue-500 focus:border-blue-500"
+            />
+            <button
+              type="button"
+              @click="showConfirmPassword = !showConfirmPassword"
+              class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              tabindex="-1"
+            >
+              <svg v-if="showConfirmPassword" class="w-4 h-4"><use href="#icon-eye-slash" /></svg>
+              <svg v-else class="w-4 h-4"><use href="#icon-eye" /></svg>
+            </button>
+          </div>
           <p v-if="passwordError" class="text-sm text-red-600 dark:text-red-400">
             {{ passwordError }}
           </p>
@@ -395,13 +432,24 @@ async function deletePasskey(pk: Passkey) {
             autocomplete="username"
             class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-blue-500 focus:border-blue-500"
           />
-          <input
-            v-model="newUserPassword"
-            type="password"
-            placeholder="Password"
-            autocomplete="new-password"
-            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-blue-500 focus:border-blue-500"
-          />
+          <div class="relative">
+            <input
+              v-model="newUserPassword"
+              :type="showNewUserPassword ? 'text' : 'password'"
+              placeholder="Password"
+              autocomplete="new-password"
+              class="w-full px-3 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-blue-500 focus:border-blue-500"
+            />
+            <button
+              type="button"
+              @click="showNewUserPassword = !showNewUserPassword"
+              class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+              tabindex="-1"
+            >
+              <svg v-if="showNewUserPassword" class="w-4 h-4"><use href="#icon-eye-slash" /></svg>
+              <svg v-else class="w-4 h-4"><use href="#icon-eye" /></svg>
+            </button>
+          </div>
           <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
             <input v-model="newUserAdmin" type="checkbox" class="rounded" />
             Admin
