@@ -2,6 +2,7 @@
 import { ref, watch } from "vue";
 import type { Item } from "@/types";
 import ItemDetail from "./ItemDetail.vue";
+import { useCurrentItem } from "@/composables/useCurrentItem";
 
 const props = defineProps<{
   items: Item[];
@@ -16,12 +17,14 @@ const emit = defineEmits<{
   loadMore: [];
 }>();
 
+const { set: setCurrentItem } = useCurrentItem();
 const expandedItems = ref<Record<number, boolean>>({});
 
 watch(
   () => props.items,
   () => {
     expandedItems.value = {};
+    setCurrentItem(null);
   }
 );
 
@@ -33,6 +36,8 @@ function toggleExpand(item: Item) {
   if (isExpanding && !item.read) {
     emit("toggleRead", item);
   }
+
+  setCurrentItem(isExpanding ? item.id : null);
 }
 
 function formatDate(dateStr?: string): string {
