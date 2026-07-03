@@ -59,6 +59,9 @@ func (h *Handler) ProtectedRouter() chi.Router {
 	r.Post("/api/feeds/{id}/refresh", h.RefreshFeed)
 	r.Post("/api/feeds/{id}/read-all", h.MarkFeedRead)
 
+	r.Get("/api/feeds/opml/export", h.ExportOPML)
+	r.Post("/api/feeds/opml/preview", h.PreviewOPMLImport)
+
 	r.Get("/api/items", h.ListItems)
 	r.Post("/api/items/read-all", h.MarkAllRead)
 	r.Patch("/api/items/{id}", h.UpdateItem)
@@ -112,6 +115,9 @@ func (h *Handler) MountRouter() chi.Router {
 		r.Delete("/api/feeds/{id}", h.RemoveFeed)
 		r.Post("/api/feeds/{id}/refresh", h.RefreshFeed)
 		r.Post("/api/feeds/{id}/read-all", h.MarkFeedRead)
+
+		r.Get("/api/feeds/opml/export", h.ExportOPML)
+		r.Post("/api/feeds/opml/preview", h.PreviewOPMLImport)
 
 		r.Get("/api/items", h.ListItems)
 		r.Post("/api/items/read-all", h.MarkAllRead)

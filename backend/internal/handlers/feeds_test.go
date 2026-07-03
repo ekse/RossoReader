@@ -1,13 +1,15 @@
 package handlers_test
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
+	"io"
+	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
@@ -16,6 +18,7 @@ import (
 	"github.com/ekse/rssreader/internal/domain"
 	"github.com/ekse/rssreader/internal/handlers"
 	"github.com/ekse/rssreader/internal/middleware"
+	"github.com/ekse/rssreader/internal/opml"
 	"github.com/ekse/rssreader/internal/store/mockstore"
 )
 
@@ -58,6 +61,8 @@ func authedRouter(h *handlers.Handler, user domain.User) chi.Router {
 		r.Delete("/api/feeds/{id}", h.RemoveFeed)
 		r.Post("/api/feeds/{id}/refresh", h.RefreshFeed)
 		r.Post("/api/feeds/{id}/read-all", h.MarkFeedRead)
+		r.Get("/api/feeds/opml/export", h.ExportOPML)
+		r.Post("/api/feeds/opml/preview", h.PreviewOPMLImport)
 		r.Get("/api/items", h.ListItems)
 		r.Post("/api/items/read-all", h.MarkAllRead)
 		r.Patch("/api/items/{id}", h.UpdateItem)
@@ -215,4 +220,146 @@ func TestMarkFeedRead_InvalidID(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
-var _ = time.Now
+func TestExportOPML_NoFeeds(t *testing.T) {
+	store := mockstore.New()
+	user := makeUser(t, store, "alice", true)
+	h := handlers.New(store, nil, nil, newTestPasskeyHandler(store))
+	r := authedRouter(h, user)
+
+	req := authReq("GET", "/api/feeds/opml/export", "", user)
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Equal(t, "application/xml", w.Header().Get("Content-Type"))
+	assert.Contains(t, w.Body.String(), "<body>")
+	assert.Contains(t, w.Body.String(), "</body>")
+}
+
+func TestExportOPML_WithFeeds(t *testing.T) {
+	store := mockstore.New()
+	user := makeUser(t, store, "alice", true)
+	store.Feeds = []domain.Feed{
+		{ID: 1, UserID: user.ID, URL: "https://a.com/rss", Title: "Feed A"},
+		{ID: 2, UserID: user.ID, URL: "https://b.com/rss", Title: "Feed B"},
+	}
+	h := handlers.New(store, nil, nil, newTestPasskeyHandler(store))
+	r := authedRouter(h, user)
+
+	req := authReq("GET", "/api/feeds/opml/export", "", user)
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Equal(t, "application/xml", w.Header().Get("Content-Type"))
+
+	feeds, err := opml.ParseOPML(strings.NewReader(w.Body.String()))
+	require.NoError(t, err)
+	require.Len(t, feeds, 2)
+	assert.Equal(t, "Feed A", feeds[0].Title)
+	assert.Equal(t, "https://a.com/rss", feeds[0].URL)
+}
+
+func TestExportOPML_Unauthenticated(t *testing.T) {
+	store := mockstore.New()
+	h := handlers.New(store, nil, nil, newTestPasskeyHandler(store))
+
+	req := httptest.NewRequest("GET", "/api/feeds/opml/export", nil)
+	w := httptest.NewRecorder()
+	h.MountRouter().ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusUnauthorized, w.Code)
+}
+
+func TestPreviewOPMLImport_ValidFile(t *testing.T) {
+	store := mockstore.New()
+	user := makeUser(t, store, "alice", true)
+	h := handlers.New(store, nil, nil, newTestPasskeyHandler(store))
+	r := authedRouter(h, user)
+
+	opmlContent := `<?xml version="1.0"?>
+<opml version="1.0">
+  <body>
+    <outline text="Test Feed" type="rss" xmlUrl="https://test.com/rss"/>
+  </body>
+</opml>`
+
+	var b bytes.Buffer
+	w := multipart.NewWriter(&b)
+	fw, err := w.CreateFormFile("file", "feeds.opml")
+	require.NoError(t, err)
+	_, err = io.Copy(fw, strings.NewReader(opmlContent))
+	require.NoError(t, err)
+	w.Close()
+
+	req := authReq("POST", "/api/feeds/opml/preview", b.String(), user)
+	req.Header.Set("Content-Type", w.FormDataContentType())
+	resp := httptest.NewRecorder()
+	r.ServeHTTP(resp, req)
+
+	assert.Equal(t, http.StatusOK, resp.Code)
+	var feeds []opml.OpmlFeed
+	err = json.Unmarshal(resp.Body.Bytes(), &feeds)
+	require.NoError(t, err)
+	require.Len(t, feeds, 1)
+	assert.Equal(t, "Test Feed", feeds[0].Title)
+	assert.Equal(t, "https://test.com/rss", feeds[0].URL)
+}
+
+func TestPreviewOPMLImport_InvalidFile(t *testing.T) {
+	store := mockstore.New()
+	user := makeUser(t, store, "alice", true)
+	h := handlers.New(store, nil, nil, newTestPasskeyHandler(store))
+	r := authedRouter(h, user)
+
+	var b bytes.Buffer
+	w := multipart.NewWriter(&b)
+	fw, err := w.CreateFormFile("file", "bad.opml")
+	require.NoError(t, err)
+	_, err = io.Copy(fw, strings.NewReader("not xml"))
+	require.NoError(t, err)
+	w.Close()
+
+	req := authReq("POST", "/api/feeds/opml/preview", b.String(), user)
+	req.Header.Set("Content-Type", w.FormDataContentType())
+	resp := httptest.NewRecorder()
+	r.ServeHTTP(resp, req)
+
+	assert.Equal(t, http.StatusBadRequest, resp.Code)
+}
+
+func TestPreviewOPMLImport_NoFile(t *testing.T) {
+	store := mockstore.New()
+	user := makeUser(t, store, "alice", true)
+	h := handlers.New(store, nil, nil, newTestPasskeyHandler(store))
+	r := authedRouter(h, user)
+
+	var b bytes.Buffer
+	w := multipart.NewWriter(&b)
+	w.Close()
+
+	req := authReq("POST", "/api/feeds/opml/preview", b.String(), user)
+	req.Header.Set("Content-Type", w.FormDataContentType())
+	resp := httptest.NewRecorder()
+	r.ServeHTTP(resp, req)
+
+	assert.Equal(t, http.StatusBadRequest, resp.Code)
+}
+
+func TestPreviewOPMLImport_Unauthenticated(t *testing.T) {
+	store := mockstore.New()
+	h := handlers.New(store, nil, nil, newTestPasskeyHandler(store))
+
+	var b bytes.Buffer
+	w := multipart.NewWriter(&b)
+	fw, _ := w.CreateFormFile("file", "f.opml")
+	io.Copy(fw, strings.NewReader("<opml><body></body></opml>"))
+	w.Close()
+
+	req := httptest.NewRequest("POST", "/api/feeds/opml/preview", &b)
+	req.Header.Set("Content-Type", w.FormDataContentType())
+	resp := httptest.NewRecorder()
+	h.MountRouter().ServeHTTP(resp, req)
+
+	assert.Equal(t, http.StatusUnauthorized, resp.Code)
+}

@@ -44,5 +44,26 @@ export const useFeedsStore = defineStore("feeds", () => {
     await loadFeeds();
   }
 
-  return { feeds, loading, totalUnread, feedNames, loadFeeds, addFeed, removeFeed, refreshFeed };
+  async function importFeeds(urls: string[]): Promise<{ imported: number; skipped: number }> {
+    let imported = 0;
+    let skipped = 0;
+    for (const url of urls) {
+      try {
+        await api.addFeed(url);
+        imported++;
+      } catch (err: unknown) {
+        if (err && typeof err === "object" && "response" in err) {
+          const axiosErr = err as { response?: { status?: number } };
+          if (axiosErr.response?.status === 409) {
+            skipped++;
+            continue;
+          }
+        }
+      }
+    }
+    await loadFeeds();
+    return { imported, skipped };
+  }
+
+  return { feeds, loading, totalUnread, feedNames, loadFeeds, addFeed, removeFeed, refreshFeed, importFeeds };
 });

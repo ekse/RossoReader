@@ -90,6 +90,18 @@ export async function markFeedRead(id: number): Promise<void> {
   await api.post(`/api/feeds/${id}/read-all`);
 }
 
+export async function exportOpml(): Promise<Blob> {
+  const res = await api.get("/api/feeds/opml/export", { responseType: "blob" });
+  return res.data;
+}
+
+export async function previewOpmlImport(file: File): Promise<DiscoveredFeed[]> {
+  const form = new FormData();
+  form.append("file", file);
+  const res = await api.post("/api/feeds/opml/preview", form);
+  return res.data;
+}
+
 // Items
 
 export async function fetchItems(params?: {

@@ -4,13 +4,19 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"io"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 
 	"github.com/ekse/rssreader/internal/domain"
+	"github.com/ekse/rssreader/internal/opml"
 )
+
+// maxOPMLSize is the maximum allowed OPML file size for import (10 MB).
+const maxOPMLSize = 10 << 20
 
 type addFeedRequest struct {
 	URL string `json:"url"`
@@ -160,4 +166,51 @@ func (h *Handler) MarkFeedRead(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+}
+
+func (h *Handler) ExportOPML(w http.ResponseWriter, r *http.Request) {
+	userID := currentUserID(r)
+	feeds, err := h.Store.GetFeeds(r.Context(), userID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	data, err := opml.GenerateOPML(feeds)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/xml")
+	w.Header().Set("Content-Disposition", `attachment; filename="feeds.opml"`)
+	w.Write(data)
+}
+
+func (h *Handler) PreviewOPMLImport(w http.ResponseWriter, r *http.Request) {
+	if err := r.ParseMultipartForm(maxOPMLSize); err != nil {
+		http.Error(w, "invalid multipart form", http.StatusBadRequest)
+		return
+	}
+
+	file, _, err := r.FormFile("file")
+	if err != nil {
+		http.Error(w, "file is required", http.StatusBadRequest)
+		return
+	}
+	defer file.Close()
+
+	data, err := io.ReadAll(file)
+	if err != nil {
+		http.Error(w, "failed to read file", http.StatusBadRequest)
+		return
+	}
+
+	feeds, err := opml.ParseOPML(io.LimitReader(strings.NewReader(string(data)), maxOPMLSize))
+	if err != nil {
+		http.Error(w, "failed to parse OPML file: "+err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	writeJSON(w, http.StatusOK, feeds)
 }

@@ -3,6 +3,7 @@ import { onMounted, ref } from "vue";
 import { useFeedsStore } from "@/stores/feeds";
 import { useAuthStore } from "@/stores/auth";
 import AddFeedDialog from "@/components/AddFeedDialog.vue";
+import ImportFeedsDialog from "@/components/ImportFeedsDialog.vue";
 import { useSidebar } from "@/composables/useSidebar";
 import { startPasskeyRegistration } from "@/lib/webauthn";
 import * as api from "@/api/client";
@@ -11,7 +12,20 @@ import type { User, Passkey } from "@/types";
 const feedsStore = useFeedsStore();
 const auth = useAuthStore();
 const showAddFeed = ref(false);
+const showImportDialog = ref(false);
 const { toggle } = useSidebar();
+
+async function handleExport() {
+  const blob = await api.exportOpml();
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "feeds.opml";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
 
 onMounted(() => {
   feedsStore.loadFeeds();
@@ -179,12 +193,26 @@ async function deletePasskey(pk: Passkey) {
     <section class="mt-8">
       <div class="flex items-center justify-between mb-4">
         <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Feed Subscriptions</h2>
-        <button
-          @click="showAddFeed = true"
-          class="px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
-        >
-          + Add Feed
-        </button>
+        <div class="flex items-center gap-2">
+          <button
+            @click="handleExport"
+            class="px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600"
+          >
+            Export
+          </button>
+          <button
+            @click="showImportDialog = true"
+            class="px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600"
+          >
+            Import
+          </button>
+          <button
+            @click="showAddFeed = true"
+            class="px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
+          >
+            + Add Feed
+          </button>
+        </div>
       </div>
 
       <div class="space-y-2">
@@ -391,5 +419,6 @@ async function deletePasskey(pk: Passkey) {
     </section>
 
     <AddFeedDialog v-if="showAddFeed" @close="showAddFeed = false" />
+    <ImportFeedsDialog v-if="showImportDialog" @close="showImportDialog = false" />
   </div>
 </template>
