@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { watch } from "vue";
 import type { Item } from "@/types";
 import ItemDetail from "./ItemDetail.vue";
 import { useCurrentItem } from "@/composables/useCurrentItem";
@@ -17,27 +17,29 @@ const emit = defineEmits<{
   loadMore: [];
 }>();
 
-const { set: setCurrentItem } = useCurrentItem();
-const expandedItems = ref<Record<number, boolean>>({});
+const { currentItemId, expandedItems, clearExpanded, isExpanded } = useCurrentItem();
 
 watch(
   () => props.items,
   () => {
-    expandedItems.value = {};
-    setCurrentItem(null);
+    clearExpanded();
   }
 );
 
 function toggleExpand(item: Item) {
   const itemId = item.id;
-  const isExpanding = !expandedItems.value[itemId];
-  expandedItems.value[itemId] = isExpanding;
+  const wasExpanded = isExpanded(itemId);
 
-  if (isExpanding && !item.read) {
-    emit("toggleRead", item);
+  if (wasExpanded) {
+    expandedItems.value[itemId] = false;
+    currentItemId.value = null;
+  } else {
+    expandedItems.value[itemId] = true;
+    currentItemId.value = itemId;
+    if (!item.read) {
+      emit("toggleRead", item);
+    }
   }
-
-  setCurrentItem(isExpanding ? item.id : null);
 }
 
 function formatDate(dateStr?: string): string {
@@ -71,10 +73,12 @@ function stripHtml(s?: string): string {
       <div
         v-for="item in items"
         :key="item.id"
+        :data-item-id="item.id"
         class="px-6 py-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors cursor-pointer"
         :class="{
-          'bg-white dark:bg-gray-800': !item.read && !expandedItems[item.id],
-          'bg-gray-50 dark:bg-gray-800/30': item.read || expandedItems[item.id],
+          'bg-white dark:bg-gray-800': !item.read && !isExpanded(item.id),
+          'bg-gray-50 dark:bg-gray-800/30': item.read || isExpanded(item.id),
+          'ring-2 ring-blue-400 dark:ring-blue-500 ring-inset': currentItemId === item.id && !isExpanded(item.id),
         }"
         @click="toggleExpand(item)"
       >
@@ -101,12 +105,12 @@ function stripHtml(s?: string): string {
               </h3>
             </div>
             <span
-              v-if="!expandedItems[item.id] && feedNames?.[item.feed_id]"
+              v-if="!isExpanded(item.id) && feedNames?.[item.feed_id]"
               class="md:hidden mt-0.5 text-xs text-gray-400 dark:text-gray-500"
               >{{ feedNames[item.feed_id] }}</span
             >
             <span
-              v-if="item.description && !expandedItems[item.id]"
+              v-if="item.description && !isExpanded(item.id)"
               class="text-sm text-gray-500 dark:text-gray-400 line-clamp-3 md:line-clamp-1"
             >
               {{ stripHtml(item.description) }}
@@ -140,7 +144,7 @@ function stripHtml(s?: string): string {
           </div>
         </div>
         <div
-          v-if="expandedItems[item.id]"
+          v-if="isExpanded(item.id)"
           class="mt-2 border-t border-gray-200 dark:border-gray-700 pt-2 cursor-default"
           @click.stop
         >

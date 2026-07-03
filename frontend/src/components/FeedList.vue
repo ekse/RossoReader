@@ -41,6 +41,8 @@ const lastUpdate = computed(() => {
 
 const totalUnread = computed(() => feedsStore.totalUnread);
 
+const visibleFeeds = computed(() => feedsStore.visibleFeeds);
+
 const { open: openAddFeed } = useAddFeed();
 const { isDark } = useTheme();
 </script>
@@ -98,22 +100,36 @@ const { isDark } = useTheme();
       </router-link>
 
       <div class="mt-6">
-        <div class="px-3 flex items-center">
-          <h3
-            class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"
-          >
-            Feeds
-          </h3>
+        <div class="px-3 flex items-center justify-between">
+          <div class="flex items-center gap-1">
+            <h3
+              class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+            >
+              Feeds
+            </h3>
+            <button
+              @click="openAddFeed"
+              class="w-5 h-5 flex items-center font-bold justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:text-gray-300 dark:hover:bg-gray-700 transition-colors"
+            >
+              +
+            </button>
+          </div>
           <button
-            @click="openAddFeed"
-            class="w-5 h-5 flex items-center font-bold justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:text-gray-300 dark:hover:bg-gray-700 transition-colors"
+            @click="feedsStore.filterUnreadOnly = !feedsStore.filterUnreadOnly"
+            :title="feedsStore.filterUnreadOnly ? 'Show all feeds' : 'Show only feeds with unread items'"
+            class="w-5 h-5 flex items-center justify-center rounded transition-colors"
+            :class="
+              feedsStore.filterUnreadOnly
+                ? 'text-blue-600 bg-blue-100 dark:text-blue-400 dark:bg-blue-900/50'
+                : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:text-gray-300 dark:hover:bg-gray-700'
+            "
           >
-            +
+            <svg class="w-3.5 h-3.5"><use href="#icon-filter" /></svg>
           </button>
         </div>
         <div class="mt-2 space-y-1">
           <button
-            v-for="feed in feedsStore.feeds"
+            v-for="feed in visibleFeeds"
             :key="feed.id"
             @click="selectFeed(feed.id)"
             class="w-full text-left px-3 py-2 rounded-md text-sm"

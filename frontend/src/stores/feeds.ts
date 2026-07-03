@@ -6,10 +6,16 @@ import * as api from "@/api/client";
 export const useFeedsStore = defineStore("feeds", () => {
   const feeds = ref<Feed[]>([]);
   const loading = ref(false);
+  const filterUnreadOnly = ref(false);
 
   const totalUnread = computed(() =>
     feeds.value.reduce((sum, f) => sum + (f.unread_count || 0), 0),
   );
+
+  const visibleFeeds = computed(() => {
+    if (!filterUnreadOnly.value) return feeds.value;
+    return feeds.value.filter((f) => (f.unread_count || 0) > 0);
+  });
 
   const feedNames = computed(() => {
     const map: Record<number, string> = {};
@@ -65,5 +71,5 @@ export const useFeedsStore = defineStore("feeds", () => {
     return { imported, skipped };
   }
 
-  return { feeds, loading, totalUnread, feedNames, loadFeeds, addFeed, removeFeed, refreshFeed, importFeeds };
+  return { feeds, loading, totalUnread, feedNames, visibleFeeds, filterUnreadOnly, loadFeeds, addFeed, removeFeed, refreshFeed, importFeeds };
 });
