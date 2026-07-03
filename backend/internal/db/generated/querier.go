@@ -46,6 +46,7 @@ type Querier interface {
 	SaveAuthState(ctx context.Context, arg SaveAuthStateParams) error
 	SetItemRead(ctx context.Context, arg SetItemReadParams) error
 	SetItemStarred(ctx context.Context, arg SetItemStarredParams) error
+	UpdateFeedEtag(ctx context.Context, arg UpdateFeedEtagParams) error
 	UpdateFeedLastFetched(ctx context.Context, id int32) error
 	UpdateFeedMetadata(ctx context.Context, arg UpdateFeedMetadataParams) error
 	UpdatePasskeySignCount(ctx context.Context, arg UpdatePasskeySignCountParams) error

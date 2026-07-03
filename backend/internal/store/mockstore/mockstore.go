@@ -94,7 +94,7 @@ func (m *MockStore) GetFeedByIDAny(_ context.Context, id int64) (domain.Feed, er
 	return domain.Feed{}, fmt.Errorf("feed %d not found", id)
 }
 
-func (m *MockStore) CreateFeed(_ context.Context, userID int64, url, title, description, siteLink, iconURL string) (domain.Feed, error) {
+func (m *MockStore) CreateFeed(_ context.Context, userID int64, url, title, description, siteLink, iconURL, etag string) (domain.Feed, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	now := time.Now()
@@ -106,6 +106,7 @@ func (m *MockStore) CreateFeed(_ context.Context, userID int64, url, title, desc
 		Description: strPtr(description),
 		SiteLink:    strPtr(siteLink),
 		IconURL:     strPtr(iconURL),
+		Etag:        strPtr(etag),
 		CreatedAt:   now,
 		UpdatedAt:   now,
 	}
@@ -133,6 +134,18 @@ func (m *MockStore) UpdateFeedLastFetched(_ context.Context, id int64) error {
 	for i, f := range m.Feeds {
 		if f.ID == id {
 			m.Feeds[i].LastFetchedAt = &now
+			return nil
+		}
+	}
+	return fmt.Errorf("feed %d not found", id)
+}
+
+func (m *MockStore) UpdateFeedEtag(_ context.Context, id int64, etag string) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	for i, f := range m.Feeds {
+		if f.ID == id {
+			m.Feeds[i].Etag = strPtr(etag)
 			return nil
 		}
 	}

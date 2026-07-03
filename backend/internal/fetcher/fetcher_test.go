@@ -39,28 +39,31 @@ const testRSS = `<?xml version="1.0" encoding="UTF-8"?>
 func TestHTTPFetcher_Fetch(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/rss+xml")
+		w.Header().Set("Etag", "\"abc123\"")
 		w.Write([]byte(testRSS))
 	}))
 	defer srv.Close()
 
 	f := fetcher.NewHTTPFetcher()
-	items, title, description, siteLink, err := f.Fetch(context.Background(), srv.URL)
+	result, err := f.Fetch(context.Background(), srv.URL, "")
 	require.NoError(t, err)
 
-	assert.Equal(t, "Test Blog", title)
-	assert.Equal(t, "A test blog", description)
-	assert.Equal(t, "https://example.com", siteLink)
-	assert.Len(t, items, 2)
-	assert.Equal(t, "First Post", items[0].Title)
-	assert.Equal(t, "post-1", items[0].GUID)
-	assert.Equal(t, "Author One", *items[0].Author)
-	assert.Equal(t, "Second Post", items[1].Title)
-	assert.Equal(t, "post-2", items[1].GUID)
+	assert.False(t, result.NotModified)
+	assert.Equal(t, "Test Blog", result.Title)
+	assert.Equal(t, "A test blog", result.Description)
+	assert.Equal(t, "https://example.com", result.SiteLink)
+	assert.Equal(t, "\"abc123\"", result.Etag)
+	assert.Len(t, result.Items, 2)
+	assert.Equal(t, "First Post", result.Items[0].Title)
+	assert.Equal(t, "post-1", result.Items[0].GUID)
+	assert.Equal(t, "Author One", *result.Items[0].Author)
+	assert.Equal(t, "Second Post", result.Items[1].Title)
+	assert.Equal(t, "post-2", result.Items[1].GUID)
 }
 
 func TestHTTPFetcher_Fetch_Error(t *testing.T) {
 	f := fetcher.NewHTTPFetcher()
-	_, _, _, _, err := f.Fetch(context.Background(), "http://invalid.local/feed.xml")
+	_, err := f.Fetch(context.Background(), "http://invalid.local/feed.xml", "")
 	assert.Error(t, err)
 }
 
@@ -72,10 +75,53 @@ func TestHTTPFetcher_Fetch_EmptyFeed(t *testing.T) {
 	defer srv.Close()
 
 	f := fetcher.NewHTTPFetcher()
-	items, title, _, _, err := f.Fetch(context.Background(), srv.URL)
+	result, err := f.Fetch(context.Background(), srv.URL, "")
 	require.NoError(t, err)
-	assert.Equal(t, "Empty", title)
-	assert.Empty(t, items)
+	assert.False(t, result.NotModified)
+	assert.Equal(t, "Empty", result.Title)
+	assert.Empty(t, result.Items)
+}
+
+func TestHTTPFetcher_Fetch_NotModified(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, "\"myetag\"", r.Header.Get("If-None-Match"))
+		w.WriteHeader(http.StatusNotModified)
+	}))
+	defer srv.Close()
+
+	f := fetcher.NewHTTPFetcher()
+	result, err := f.Fetch(context.Background(), srv.URL, "\"myetag\"")
+	require.NoError(t, err)
+	assert.True(t, result.NotModified)
+}
+
+func TestHTTPFetcher_Fetch_WithoutEtag(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Empty(t, r.Header.Get("If-None-Match"))
+		w.Header().Set("Content-Type", "application/rss+xml")
+		w.Write([]byte(testRSS))
+	}))
+	defer srv.Close()
+
+	f := fetcher.NewHTTPFetcher()
+	result, err := f.Fetch(context.Background(), srv.URL, "")
+	require.NoError(t, err)
+	assert.False(t, result.NotModified)
+	assert.Equal(t, "", result.Etag)
+}
+
+func TestHTTPFetcher_Fetch_NoEtagInResponse(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/rss+xml")
+		w.Write([]byte(testRSS))
+	}))
+	defer srv.Close()
+
+	f := fetcher.NewHTTPFetcher()
+	result, err := f.Fetch(context.Background(), srv.URL, "\"oldetag\"")
+	require.NoError(t, err)
+	assert.False(t, result.NotModified)
+	assert.Equal(t, "", result.Etag)
 }
 
 func TestHTTPFetcher_Discover_RSS(t *testing.T) {

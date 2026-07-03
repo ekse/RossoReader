@@ -19,6 +19,7 @@ type Feed struct {
 	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
 	IconUrl       *string            `json:"icon_url"`
 	UserID        *int64             `json:"user_id"`
+	Etag          *string            `json:"etag"`
 }
 
 type Item struct {

@@ -16,8 +16,8 @@ SELECT * FROM feeds
 WHERE id = $1;
 
 -- name: CreateFeed :one
-INSERT INTO feeds (user_id, url, title, description, site_link, icon_url)
-VALUES ($1, $2, $3, $4, $5, $6)
+INSERT INTO feeds (user_id, url, title, description, site_link, icon_url, etag)
+VALUES ($1, $2, $3, $4, $5, $6, $7)
 RETURNING *;
 
 -- name: DeleteFeed :exec
@@ -27,6 +27,11 @@ WHERE id = $1 AND user_id = $2;
 -- name: UpdateFeedLastFetched :exec
 UPDATE feeds
 SET last_fetched_at = NOW(), updated_at = NOW()
+WHERE id = $1;
+
+-- name: UpdateFeedEtag :exec
+UPDATE feeds
+SET etag = $2, updated_at = NOW()
 WHERE id = $1;
 
 -- name: UpdateFeedMetadata :exec

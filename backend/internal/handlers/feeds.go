@@ -64,7 +64,7 @@ func (h *Handler) AddFeed(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	feed, err := h.Store.CreateFeed(r.Context(), userID, req.URL, "", "", "", "")
+	feed, err := h.Store.CreateFeed(r.Context(), userID, req.URL, "", "", "", "", "")
 	if err != nil {
 		if errors.Is(err, domain.ErrFeedAlreadyExists) {
 			http.Error(w, err.Error(), http.StatusConflict)

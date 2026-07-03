@@ -13,7 +13,8 @@ type Store interface {
 	GetAllFeeds(ctx context.Context) ([]domain.Feed, error)
 	GetFeed(ctx context.Context, userID, id int64) (domain.Feed, error)
 	GetFeedByIDAny(ctx context.Context, id int64) (domain.Feed, error)
-	CreateFeed(ctx context.Context, userID int64, url, title, description, siteLink, iconURL string) (domain.Feed, error)
+	CreateFeed(ctx context.Context, userID int64, url, title, description, siteLink, iconURL, etag string) (domain.Feed, error)
+	UpdateFeedEtag(ctx context.Context, id int64, etag string) error
 	DeleteFeed(ctx context.Context, userID, id int64) error
 	UpdateFeedLastFetched(ctx context.Context, id int64) error
 	UpdateFeedMetadata(ctx context.Context, id int64, title, description, siteLink, iconURL string) error

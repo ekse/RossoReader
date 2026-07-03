@@ -64,7 +64,7 @@ func (s *PGStore) GetFeedByIDAny(ctx context.Context, id int64) (domain.Feed, er
 	return toDomainFeed(r), nil
 }
 
-func (s *PGStore) CreateFeed(ctx context.Context, userID int64, url, title, description, siteLink, iconURL string) (domain.Feed, error) {
+func (s *PGStore) CreateFeed(ctx context.Context, userID int64, url, title, description, siteLink, iconURL, etag string) (domain.Feed, error) {
 	r, err := s.q.CreateFeed(ctx, generated.CreateFeedParams{
 		UserID:      &userID,
 		Url:         url,
@@ -72,6 +72,7 @@ func (s *PGStore) CreateFeed(ctx context.Context, userID int64, url, title, desc
 		Description: nullableString(description),
 		SiteLink:    nullableString(siteLink),
 		IconUrl:     nullableString(iconURL),
+		Etag:        nullableString(etag),
 	})
 	if err != nil {
 		var pgErr *pgconn.PgError
@@ -95,6 +96,17 @@ func (s *PGStore) UpdateFeedLastFetched(ctx context.Context, id int64) error {
 	err := s.q.UpdateFeedLastFetched(ctx, int32(id))
 	if err != nil {
 		return fmt.Errorf("update feed last fetched %d: %w", id, err)
+	}
+	return nil
+}
+
+func (s *PGStore) UpdateFeedEtag(ctx context.Context, id int64, etag string) error {
+	err := s.q.UpdateFeedEtag(ctx, generated.UpdateFeedEtagParams{
+		ID:   int32(id),
+		Etag: nullableString(etag),
+	})
+	if err != nil {
+		return fmt.Errorf("update feed etag %d: %w", id, err)
 	}
 	return nil
 }
@@ -549,6 +561,7 @@ func toDomainFeed(r generated.Feed) domain.Feed {
 		Description:   r.Description,
 		SiteLink:      r.SiteLink,
 		IconURL:       r.IconUrl,
+		Etag:          r.Etag,
 		LastFetchedAt: fromTimestamptz(r.LastFetchedAt),
 		CreatedAt:     r.CreatedAt.Time,
 		UpdatedAt:     r.UpdatedAt.Time,

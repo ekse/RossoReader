@@ -16,8 +16,17 @@ import (
 	"github.com/ekse/rssreader/internal/domain"
 )
 
+type FetchResult struct {
+	Items       []domain.Item
+	Title       string
+	Description string
+	SiteLink    string
+	Etag        string
+	NotModified bool
+}
+
 type Fetcher interface {
-	Fetch(ctx context.Context, feedURL string) ([]domain.Item, string, string, string, error)
+	Fetch(ctx context.Context, feedURL, etag string) (*FetchResult, error)
 }
 
 type Discoverer interface {
@@ -25,22 +34,52 @@ type Discoverer interface {
 }
 
 type HTTPFetcher struct {
-	client *gofeed.Parser
+	parser *gofeed.Parser
 	http   *http.Client
 }
 
 func NewHTTPFetcher() *HTTPFetcher {
 	return &HTTPFetcher{
-		client: gofeed.NewParser(),
+		parser: gofeed.NewParser(),
 		http:   &http.Client{Timeout: 30 * time.Second},
 	}
 }
 
-func (f *HTTPFetcher) Fetch(ctx context.Context, feedURL string) ([]domain.Item, string, string, string, error) {
-	feed, err := f.client.ParseURLWithContext(feedURL, ctx)
+func (f *HTTPFetcher) Fetch(ctx context.Context, feedURL, etag string) (*FetchResult, error) {
+	req, err := http.NewRequestWithContext(ctx, "GET", feedURL, nil)
 	if err != nil {
-		return nil, "", "", "", fmt.Errorf("parse feed %q: %w", feedURL, err)
+		return nil, fmt.Errorf("create request: %w", err)
 	}
+	req.Header.Set("User-Agent", "RossoRSSReader/1.0")
+	if etag != "" {
+		req.Header.Set("If-None-Match", etag)
+	}
+
+	resp, err := f.http.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("fetch %q: %w", feedURL, err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusNotModified {
+		return &FetchResult{NotModified: true}, nil
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unexpected status %d fetching %q", resp.StatusCode, feedURL)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("read body: %w", err)
+	}
+
+	feed, err := f.parser.ParseString(string(body))
+	if err != nil {
+		return nil, fmt.Errorf("parse feed %q: %w", feedURL, err)
+	}
+
+	respEtag := resp.Header.Get("Etag")
 
 	title := html.UnescapeString(feed.Title)
 	description := ""
@@ -86,7 +125,13 @@ func (f *HTTPFetcher) Fetch(ctx context.Context, feedURL string) ([]domain.Item,
 		items = append(items, item)
 	}
 
-	return items, title, description, siteLink, nil
+	return &FetchResult{
+		Items:       items,
+		Title:       title,
+		Description: description,
+		SiteLink:    siteLink,
+		Etag:        respEtag,
+	}, nil
 }
 
 func (f *HTTPFetcher) Discover(ctx context.Context, rawURL string) ([]domain.DiscoveredFeed, error) {

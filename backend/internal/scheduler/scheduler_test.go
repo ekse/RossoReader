@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/ekse/rssreader/internal/domain"
+	"github.com/ekse/rssreader/internal/fetcher"
 	"github.com/ekse/rssreader/internal/scheduler"
 	"github.com/ekse/rssreader/internal/store/mockstore"
 )
@@ -18,11 +19,25 @@ type mockFetcher struct {
 	title       string
 	description string
 	siteLink    string
+	etag        string
+	notModified bool
 	err         error
 }
 
-func (m *mockFetcher) Fetch(_ context.Context, _ string) ([]domain.Item, string, string, string, error) {
-	return m.items, m.title, m.description, m.siteLink, m.err
+func (m *mockFetcher) Fetch(_ context.Context, _, _ string) (*fetcher.FetchResult, error) {
+	if m.err != nil {
+		return nil, m.err
+	}
+	if m.notModified {
+		return &fetcher.FetchResult{NotModified: true}, nil
+	}
+	return &fetcher.FetchResult{
+		Items:       m.items,
+		Title:       m.title,
+		Description: m.description,
+		SiteLink:    m.siteLink,
+		Etag:        m.etag,
+	}, nil
 }
 
 func TestScheduler_FetchAll(t *testing.T) {
@@ -70,6 +85,25 @@ func TestScheduler_FetchFeed_UpdatesMetadata(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Equal(t, "New Title", store.Feeds[0].Title)
+}
+
+func TestScheduler_FetchFeed_NotModified(t *testing.T) {
+	store := mockstore.New()
+	now := time.Now()
+	store.Feeds = append(store.Feeds, domain.Feed{
+		ID: 1, UserID: 1, URL: "https://example.com/rss", Title: "Example",
+		LastFetchedAt: &now,
+	})
+
+	mf := &mockFetcher{notModified: true}
+
+	s := scheduler.New(store, mf)
+	err := s.FetchFeed(context.Background(), store.Feeds[0])
+	require.NoError(t, err)
+
+	assert.Len(t, store.Items, 0)
+	assert.NotNil(t, store.Feeds[0].LastFetchedAt)
+	assert.True(t, store.Feeds[0].LastFetchedAt.After(now))
 }
 
 func TestScheduler_FetchFeed_FetcherError(t *testing.T) {

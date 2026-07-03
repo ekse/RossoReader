@@ -88,7 +88,7 @@ func TestPGStore_CreateAndGetFeed(t *testing.T) {
 	ctx := context.Background()
 	user := createTestUser(t, ctx, store, "alice")
 
-	feed, err := store.CreateFeed(ctx, user.ID, "https://example.com/rss", "Example Blog", "An example blog", "https://example.com", "")
+	feed, err := store.CreateFeed(ctx, user.ID, "https://example.com/rss", "Example Blog", "An example blog", "https://example.com", "", "")
 	require.NoError(t, err)
 	assert.Equal(t, "Example Blog", feed.Title)
 	assert.Equal(t, "https://example.com/rss", feed.URL)
@@ -109,11 +109,11 @@ func TestPGStore_GetFeeds(t *testing.T) {
 	alice := createTestUser(t, ctx, store, "alice")
 	bob := createTestUser(t, ctx, store, "bob")
 
-	_, err := store.CreateFeed(ctx, alice.ID, "https://a.com/rss", "A", "", "https://a.com", "")
+	_, err := store.CreateFeed(ctx, alice.ID, "https://a.com/rss", "A", "", "https://a.com", "", "")
 	require.NoError(t, err)
-	_, err = store.CreateFeed(ctx, alice.ID, "https://b.com/rss", "B", "", "https://b.com", "")
+	_, err = store.CreateFeed(ctx, alice.ID, "https://b.com/rss", "B", "", "https://b.com", "", "")
 	require.NoError(t, err)
-	_, err = store.CreateFeed(ctx, bob.ID, "https://c.com/rss", "C", "", "https://c.com", "")
+	_, err = store.CreateFeed(ctx, bob.ID, "https://c.com/rss", "C", "", "https://c.com", "", "")
 	require.NoError(t, err)
 
 	feeds, err := store.GetFeeds(ctx, alice.ID)
@@ -133,7 +133,7 @@ func TestPGStore_DeleteFeed(t *testing.T) {
 	alice := createTestUser(t, ctx, store, "alice")
 	bob := createTestUser(t, ctx, store, "bob")
 
-	feed, err := store.CreateFeed(ctx, alice.ID, "https://example.com/rss", "Example", "", "", "")
+	feed, err := store.CreateFeed(ctx, alice.ID, "https://example.com/rss", "Example", "", "", "", "")
 	require.NoError(t, err)
 
 	// bob's delete attempt does nothing (no rows match user_id filter)
@@ -158,7 +158,7 @@ func TestPGStore_UpsertItem(t *testing.T) {
 	ctx := context.Background()
 	user := createTestUser(t, ctx, store, "alice")
 
-	feed, err := store.CreateFeed(ctx, user.ID, "https://example.com/rss", "Example", "", "", "")
+	feed, err := store.CreateFeed(ctx, user.ID, "https://example.com/rss", "Example", "", "", "", "")
 	require.NoError(t, err)
 
 	now := time.Now()
@@ -192,7 +192,7 @@ func TestPGStore_GetItemsWithFilters(t *testing.T) {
 	ctx := context.Background()
 	user := createTestUser(t, ctx, store, "alice")
 
-	feed, err := store.CreateFeed(ctx, user.ID, "https://example.com/rss", "Example", "", "", "")
+	feed, err := store.CreateFeed(ctx, user.ID, "https://example.com/rss", "Example", "", "", "", "")
 	require.NoError(t, err)
 
 	now := time.Now()

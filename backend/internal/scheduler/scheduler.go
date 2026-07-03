@@ -86,24 +86,41 @@ func (s *Scheduler) FetchAll(ctx context.Context) error {
 }
 
 func (s *Scheduler) FetchFeed(ctx context.Context, feed domain.Feed) error {
-	items, title, description, siteLink, err := s.fetcher.Fetch(ctx, feed.URL)
+	etag := ""
+	if feed.Etag != nil {
+		etag = *feed.Etag
+	}
+	result, err := s.fetcher.Fetch(ctx, feed.URL, etag)
 	if err != nil {
 		return fmt.Errorf("fetch feed %q: %w", feed.URL, err)
 	}
 
-	iconURL := faviconURL(siteLink)
-	needsUpdate := title != "" && (title != feed.Title || !ptrEqual(siteLink, feed.SiteLink) ||
-		!ptrEqual(description, feed.Description) || !ptrEqual(iconURL, feed.IconURL))
+	if result.NotModified {
+		if err := s.store.UpdateFeedLastFetched(ctx, feed.ID); err != nil {
+			return fmt.Errorf("update feed last fetched: %w", err)
+		}
+		return nil
+	}
+
+	iconURL := faviconURL(result.SiteLink)
+	needsUpdate := result.Title != "" && (result.Title != feed.Title || !ptrEqual(result.SiteLink, feed.SiteLink) ||
+		!ptrEqual(result.Description, feed.Description) || !ptrEqual(iconURL, feed.IconURL))
 	if needsUpdate {
-		if err := s.store.UpdateFeedMetadata(ctx, feed.ID, title, description, siteLink, iconURL); err != nil {
+		if err := s.store.UpdateFeedMetadata(ctx, feed.ID, result.Title, result.Description, result.SiteLink, iconURL); err != nil {
 			return fmt.Errorf("update feed metadata: %w", err)
 		}
 	}
 
-	for _, item := range items {
+	for _, item := range result.Items {
 		item.FeedID = feed.ID
 		if _, err := s.store.UpsertItem(ctx, item); err != nil {
 			return fmt.Errorf("upsert item %q: %w", item.GUID, err)
+		}
+	}
+
+	if result.Etag != "" && (feed.Etag == nil || result.Etag != *feed.Etag) {
+		if err := s.store.UpdateFeedEtag(ctx, feed.ID, result.Etag); err != nil {
+			return fmt.Errorf("update feed etag: %w", err)
 		}
 	}
 
