@@ -18,6 +18,8 @@ type Store interface {
 	DeleteFeed(ctx context.Context, userID, id int64) error
 	UpdateFeedLastFetched(ctx context.Context, id int64) error
 	UpdateFeedMetadata(ctx context.Context, id int64, title, description, siteLink, iconURL string) error
+	SetFeedFetchError(ctx context.Context, id int64, fetchError string) error
+	ClearFeedFetchError(ctx context.Context, id int64) error
 
 	// Items
 	GetItems(ctx context.Context, q domain.ItemsQuery) ([]domain.Item, int64, error)

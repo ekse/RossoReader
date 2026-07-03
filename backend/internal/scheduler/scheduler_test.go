@@ -117,4 +117,44 @@ func TestScheduler_FetchFeed_FetcherError(t *testing.T) {
 	s := scheduler.New(store, mf)
 	err := s.FetchFeed(context.Background(), store.Feeds[0])
 	assert.Error(t, err)
+	assert.NotNil(t, store.Feeds[0].LastFetchError)
+	assert.Contains(t, *store.Feeds[0].LastFetchError, assert.AnError.Error())
+}
+
+func TestScheduler_FetchFeed_ClearsErrorOnSuccess(t *testing.T) {
+	store := mockstore.New()
+	now := time.Now()
+	errStr := "previous error"
+	store.Feeds = append(store.Feeds, domain.Feed{
+		ID: 1, UserID: 1, URL: "https://example.com/rss", Title: "Example",
+		LastFetchedAt: &now, LastFetchError: &errStr,
+	})
+
+	mf := &mockFetcher{
+		items: []domain.Item{
+			{GUID: "1", Title: "Post 1", URL: "https://example.com/1", PublishedAt: &now},
+		},
+	}
+
+	s := scheduler.New(store, mf)
+	err := s.FetchFeed(context.Background(), store.Feeds[0])
+	require.NoError(t, err)
+	assert.Nil(t, store.Feeds[0].LastFetchError)
+}
+
+func TestScheduler_FetchFeed_ClearsErrorOnNotModified(t *testing.T) {
+	store := mockstore.New()
+	now := time.Now()
+	errStr := "previous error"
+	store.Feeds = append(store.Feeds, domain.Feed{
+		ID: 1, UserID: 1, URL: "https://example.com/rss", Title: "Example",
+		LastFetchedAt: &now, LastFetchError: &errStr,
+	})
+
+	mf := &mockFetcher{notModified: true}
+
+	s := scheduler.New(store, mf)
+	err := s.FetchFeed(context.Background(), store.Feeds[0])
+	require.NoError(t, err)
+	assert.Nil(t, store.Feeds[0].LastFetchError)
 }

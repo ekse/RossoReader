@@ -11,6 +11,7 @@ import (
 )
 
 type Querier interface {
+	ClearFeedFetchError(ctx context.Context, id int32) error
 	CountItems(ctx context.Context, arg CountItemsParams) (int64, error)
 	CountUsers(ctx context.Context) (int64, error)
 	CreateFeed(ctx context.Context, arg CreateFeedParams) (Feed, error)
@@ -44,6 +45,7 @@ type Querier interface {
 	MarkAllItemsReadForUser(ctx context.Context, userID int64) error
 	MarkFeedItemsReadForUser(ctx context.Context, arg MarkFeedItemsReadForUserParams) error
 	SaveAuthState(ctx context.Context, arg SaveAuthStateParams) error
+	SetFeedFetchError(ctx context.Context, arg SetFeedFetchErrorParams) error
 	SetItemRead(ctx context.Context, arg SetItemReadParams) error
 	SetItemStarred(ctx context.Context, arg SetItemStarredParams) error
 	UpdateFeedEtag(ctx context.Context, arg UpdateFeedEtagParams) error

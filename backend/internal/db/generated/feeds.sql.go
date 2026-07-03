@@ -9,10 +9,21 @@ import (
 	"context"
 )
 
+const clearFeedFetchError = `-- name: ClearFeedFetchError :exec
+UPDATE feeds
+SET last_fetch_error = NULL, updated_at = NOW()
+WHERE id = $1
+`
+
+func (q *Queries) ClearFeedFetchError(ctx context.Context, id int32) error {
+	_, err := q.db.Exec(ctx, clearFeedFetchError, id)
+	return err
+}
+
 const createFeed = `-- name: CreateFeed :one
 INSERT INTO feeds (user_id, url, title, description, site_link, icon_url, etag)
 VALUES ($1, $2, $3, $4, $5, $6, $7)
-RETURNING id, url, title, description, site_link, last_fetched_at, created_at, updated_at, icon_url, user_id, etag
+RETURNING id, url, title, description, site_link, last_fetched_at, created_at, updated_at, icon_url, user_id, etag, last_fetch_error
 `
 
 type CreateFeedParams struct {
@@ -48,6 +59,7 @@ func (q *Queries) CreateFeed(ctx context.Context, arg CreateFeedParams) (Feed, e
 		&i.IconUrl,
 		&i.UserID,
 		&i.Etag,
+		&i.LastFetchError,
 	)
 	return i, err
 }
@@ -68,7 +80,7 @@ func (q *Queries) DeleteFeed(ctx context.Context, arg DeleteFeedParams) error {
 }
 
 const getAllFeeds = `-- name: GetAllFeeds :many
-SELECT id, url, title, description, site_link, last_fetched_at, created_at, updated_at, icon_url, user_id, etag FROM feeds
+SELECT id, url, title, description, site_link, last_fetched_at, created_at, updated_at, icon_url, user_id, etag, last_fetch_error FROM feeds
 ORDER BY title
 `
 
@@ -93,6 +105,7 @@ func (q *Queries) GetAllFeeds(ctx context.Context) ([]Feed, error) {
 			&i.IconUrl,
 			&i.UserID,
 			&i.Etag,
+			&i.LastFetchError,
 		); err != nil {
 			return nil, err
 		}
@@ -105,7 +118,7 @@ func (q *Queries) GetAllFeeds(ctx context.Context) ([]Feed, error) {
 }
 
 const getFeedByID = `-- name: GetFeedByID :one
-SELECT id, url, title, description, site_link, last_fetched_at, created_at, updated_at, icon_url, user_id, etag FROM feeds
+SELECT id, url, title, description, site_link, last_fetched_at, created_at, updated_at, icon_url, user_id, etag, last_fetch_error FROM feeds
 WHERE id = $1 AND user_id = $2
 `
 
@@ -129,12 +142,13 @@ func (q *Queries) GetFeedByID(ctx context.Context, arg GetFeedByIDParams) (Feed,
 		&i.IconUrl,
 		&i.UserID,
 		&i.Etag,
+		&i.LastFetchError,
 	)
 	return i, err
 }
 
 const getFeedByIDAny = `-- name: GetFeedByIDAny :one
-SELECT id, url, title, description, site_link, last_fetched_at, created_at, updated_at, icon_url, user_id, etag FROM feeds
+SELECT id, url, title, description, site_link, last_fetched_at, created_at, updated_at, icon_url, user_id, etag, last_fetch_error FROM feeds
 WHERE id = $1
 `
 
@@ -153,12 +167,13 @@ func (q *Queries) GetFeedByIDAny(ctx context.Context, id int32) (Feed, error) {
 		&i.IconUrl,
 		&i.UserID,
 		&i.Etag,
+		&i.LastFetchError,
 	)
 	return i, err
 }
 
 const getFeeds = `-- name: GetFeeds :many
-SELECT id, url, title, description, site_link, last_fetched_at, created_at, updated_at, icon_url, user_id, etag FROM feeds
+SELECT id, url, title, description, site_link, last_fetched_at, created_at, updated_at, icon_url, user_id, etag, last_fetch_error FROM feeds
 WHERE user_id = $1
 ORDER BY title
 `
@@ -184,6 +199,7 @@ func (q *Queries) GetFeeds(ctx context.Context, userID *int64) ([]Feed, error) {
 			&i.IconUrl,
 			&i.UserID,
 			&i.Etag,
+			&i.LastFetchError,
 		); err != nil {
 			return nil, err
 		}
@@ -193,6 +209,22 @@ func (q *Queries) GetFeeds(ctx context.Context, userID *int64) ([]Feed, error) {
 		return nil, err
 	}
 	return items, nil
+}
+
+const setFeedFetchError = `-- name: SetFeedFetchError :exec
+UPDATE feeds
+SET last_fetch_error = $2, updated_at = NOW()
+WHERE id = $1
+`
+
+type SetFeedFetchErrorParams struct {
+	ID             int32   `json:"id"`
+	LastFetchError *string `json:"last_fetch_error"`
+}
+
+func (q *Queries) SetFeedFetchError(ctx context.Context, arg SetFeedFetchErrorParams) error {
+	_, err := q.db.Exec(ctx, setFeedFetchError, arg.ID, arg.LastFetchError)
+	return err
 }
 
 const updateFeedEtag = `-- name: UpdateFeedEtag :exec

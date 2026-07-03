@@ -6,6 +6,7 @@ export interface Feed {
   site_link?: string;
   icon_url?: string;
   last_fetched_at?: string;
+  last_fetch_error?: string;
   created_at: string;
   updated_at: string;
   unread_count?: number;

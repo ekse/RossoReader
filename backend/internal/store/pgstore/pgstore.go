@@ -100,6 +100,25 @@ func (s *PGStore) UpdateFeedLastFetched(ctx context.Context, id int64) error {
 	return nil
 }
 
+func (s *PGStore) SetFeedFetchError(ctx context.Context, id int64, fetchError string) error {
+	err := s.q.SetFeedFetchError(ctx, generated.SetFeedFetchErrorParams{
+		ID:             int32(id),
+		LastFetchError: nullableString(fetchError),
+	})
+	if err != nil {
+		return fmt.Errorf("set feed fetch error %d: %w", id, err)
+	}
+	return nil
+}
+
+func (s *PGStore) ClearFeedFetchError(ctx context.Context, id int64) error {
+	err := s.q.ClearFeedFetchError(ctx, int32(id))
+	if err != nil {
+		return fmt.Errorf("clear feed fetch error %d: %w", id, err)
+	}
+	return nil
+}
+
 func (s *PGStore) UpdateFeedEtag(ctx context.Context, id int64, etag string) error {
 	err := s.q.UpdateFeedEtag(ctx, generated.UpdateFeedEtagParams{
 		ID:   int32(id),
@@ -561,8 +580,9 @@ func toDomainFeed(r generated.Feed) domain.Feed {
 		Description:   r.Description,
 		SiteLink:      r.SiteLink,
 		IconURL:       r.IconUrl,
-		Etag:          r.Etag,
-		LastFetchedAt: fromTimestamptz(r.LastFetchedAt),
+		Etag:           r.Etag,
+		LastFetchError: r.LastFetchError,
+		LastFetchedAt:  fromTimestamptz(r.LastFetchedAt),
 		CreatedAt:     r.CreatedAt.Time,
 		UpdatedAt:     r.UpdatedAt.Time,
 	}

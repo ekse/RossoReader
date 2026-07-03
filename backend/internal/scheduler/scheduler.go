@@ -92,12 +92,18 @@ func (s *Scheduler) FetchFeed(ctx context.Context, feed domain.Feed) error {
 	}
 	result, err := s.fetcher.Fetch(ctx, feed.URL, etag)
 	if err != nil {
+		if storeErr := s.store.SetFeedFetchError(ctx, feed.ID, err.Error()); storeErr != nil {
+			log.Printf("scheduler: failed to set fetch error for feed %d: %v", feed.ID, storeErr)
+		}
 		return fmt.Errorf("fetch feed %q: %w", feed.URL, err)
 	}
 
 	if result.NotModified {
 		if err := s.store.UpdateFeedLastFetched(ctx, feed.ID); err != nil {
 			return fmt.Errorf("update feed last fetched: %w", err)
+		}
+		if err := s.store.ClearFeedFetchError(ctx, feed.ID); err != nil {
+			log.Printf("scheduler: failed to clear fetch error for feed %d: %v", feed.ID, err)
 		}
 		return nil
 	}
@@ -126,6 +132,10 @@ func (s *Scheduler) FetchFeed(ctx context.Context, feed domain.Feed) error {
 
 	if err := s.store.UpdateFeedLastFetched(ctx, feed.ID); err != nil {
 		return fmt.Errorf("update feed last fetched: %w", err)
+	}
+
+	if err := s.store.ClearFeedFetchError(ctx, feed.ID); err != nil {
+		log.Printf("scheduler: failed to clear fetch error for feed %d: %v", feed.ID, err)
 	}
 
 	return nil

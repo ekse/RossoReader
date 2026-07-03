@@ -9,17 +9,18 @@ import (
 )
 
 type Feed struct {
-	ID            int32              `json:"id"`
-	Url           string             `json:"url"`
-	Title         string             `json:"title"`
-	Description   *string            `json:"description"`
-	SiteLink      *string            `json:"site_link"`
-	LastFetchedAt pgtype.Timestamptz `json:"last_fetched_at"`
-	CreatedAt     pgtype.Timestamptz `json:"created_at"`
-	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
-	IconUrl       *string            `json:"icon_url"`
-	UserID        *int64             `json:"user_id"`
-	Etag          *string            `json:"etag"`
+	ID             int32              `json:"id"`
+	Url            string             `json:"url"`
+	Title          string             `json:"title"`
+	Description    *string            `json:"description"`
+	SiteLink       *string            `json:"site_link"`
+	LastFetchedAt  pgtype.Timestamptz `json:"last_fetched_at"`
+	CreatedAt      pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt      pgtype.Timestamptz `json:"updated_at"`
+	IconUrl        *string            `json:"icon_url"`
+	UserID         *int64             `json:"user_id"`
+	Etag           *string            `json:"etag"`
+	LastFetchError *string            `json:"last_fetch_error"`
 }
 
 type Item struct {

@@ -140,6 +140,30 @@ func (m *MockStore) UpdateFeedLastFetched(_ context.Context, id int64) error {
 	return fmt.Errorf("feed %d not found", id)
 }
 
+func (m *MockStore) SetFeedFetchError(_ context.Context, id int64, fetchError string) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	for i, f := range m.Feeds {
+		if f.ID == id {
+			m.Feeds[i].LastFetchError = strPtr(fetchError)
+			return nil
+		}
+	}
+	return fmt.Errorf("feed %d not found", id)
+}
+
+func (m *MockStore) ClearFeedFetchError(_ context.Context, id int64) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	for i, f := range m.Feeds {
+		if f.ID == id {
+			m.Feeds[i].LastFetchError = nil
+			return nil
+		}
+	}
+	return fmt.Errorf("feed %d not found", id)
+}
+
 func (m *MockStore) UpdateFeedEtag(_ context.Context, id int64, etag string) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()

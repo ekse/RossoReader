@@ -38,3 +38,13 @@ WHERE id = $1;
 UPDATE feeds
 SET title = $2, description = $3, site_link = $4, icon_url = $5, updated_at = NOW()
 WHERE id = $1;
+
+-- name: SetFeedFetchError :exec
+UPDATE feeds
+SET last_fetch_error = $2, updated_at = NOW()
+WHERE id = $1;
+
+-- name: ClearFeedFetchError :exec
+UPDATE feeds
+SET last_fetch_error = NULL, updated_at = NOW()
+WHERE id = $1;

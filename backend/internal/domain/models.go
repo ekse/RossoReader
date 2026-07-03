@@ -17,8 +17,9 @@ type Feed struct {
 	SiteLink      *string    `json:"site_link,omitempty"`
 	IconURL       *string    `json:"icon_url,omitempty"`
 	Etag          *string    `json:"etag,omitempty"`
-	LastFetchedAt *time.Time `json:"last_fetched_at,omitempty"`
-	CreatedAt     time.Time  `json:"created_at"`
+	LastFetchError *string   `json:"last_fetch_error,omitempty"`
+	LastFetchedAt  *time.Time `json:"last_fetched_at,omitempty"`
+	CreatedAt      time.Time  `json:"created_at"`
 	UpdatedAt     time.Time  `json:"updated_at"`
 }
 
