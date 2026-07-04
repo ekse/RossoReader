@@ -36,5 +36,14 @@ export function useCurrentItem() {
     expandedItems.value = {};
   }
 
-  return { currentItemId, expandedItems, set, expandItem, collapseItem, toggleExpandItem, isExpanded, clearExpanded };
+  return {
+    currentItemId,
+    expandedItems,
+    set,
+    expandItem,
+    collapseItem,
+    toggleExpandItem,
+    isExpanded,
+    clearExpanded,
+  };
 }

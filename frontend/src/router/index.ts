@@ -3,6 +3,7 @@ import UnreadItems from "@/views/UnreadItems.vue";
 import FeedItems from "@/views/FeedItems.vue";
 import StarredItems from "@/views/StarredItems.vue";
 import Settings from "@/views/Settings.vue";
+import Administration from "@/views/Administration.vue";
 import Login from "@/views/Login.vue";
 import { useAuthStore } from "@/stores/auth";
 
@@ -15,6 +16,7 @@ const router = createRouter({
     { path: "/feed/:id", name: "feed", component: FeedItems },
     { path: "/starred", name: "starred", component: StarredItems },
     { path: "/settings", name: "settings", component: Settings },
+    { path: "/admin", name: "admin", component: Administration },
   ],
 });
 
@@ -24,6 +26,9 @@ router.beforeEach((to) => {
     return { name: "login" };
   }
   if (to.name === "login" && auth.isAuthenticated) {
+    return { name: "unread" };
+  }
+  if (to.name === "admin" && !auth.isAdmin) {
     return { name: "unread" };
   }
 });

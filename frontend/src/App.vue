@@ -65,25 +65,32 @@ watch(
     <SvgSprites />
     <!-- Backdrop overlay for mobile screen when sidebar is open -->
     <Transition name="fade">
-      <div v-if="isOpen && route.meta.public !== true" @click="close"
-        class="fixed inset-0 z-30 bg-gray-900/50 backdrop-blur-sm md:hidden"></div>
+      <div
+        v-if="isOpen && route.meta.public !== true"
+        @click="close"
+        class="fixed inset-0 z-30 bg-gray-900/50 backdrop-blur-sm md:hidden"
+      ></div>
     </Transition>
 
-    <aside v-if="route.meta.public !== true"
+    <aside
+      v-if="route.meta.public !== true"
       :style="isOpen && sidebarWidth !== DEFAULT_WIDTH ? { width: sidebarWidth + 'px' } : {}"
       class="fixed inset-y-0 left-0 z-40 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 overflow-y-auto overflow-x-hidden transform transition-transform duration-300 ease-in-out md:static md:translate-x-0"
       :class="[
         isOpen
           ? 'w-72 translate-x-0'
           : 'w-72 -translate-x-full md:!w-0 md:border-r-0 md:translate-x-0',
-      ]">
+      ]"
+    >
       <FeedList />
       <div
         v-if="isOpen"
         @mousedown="startResize"
         class="absolute right-0 top-0 bottom-0 w-1.5 cursor-col-resize z-50 group"
       >
-        <div class="absolute inset-y-0 right-0 w-0.5 group-hover:bg-gray-400 dark:group-hover:bg-gray-500 group-active:bg-blue-500/60 transition-colors"></div>
+        <div
+          class="absolute inset-y-0 right-0 w-0.5 group-hover:bg-gray-400 dark:group-hover:bg-gray-500 group-active:bg-blue-500/60 transition-colors"
+        ></div>
       </div>
     </aside>
     <main class="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900" @scroll="handleScroll">

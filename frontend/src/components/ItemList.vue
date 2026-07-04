@@ -23,7 +23,7 @@ watch(
   () => props.items,
   () => {
     clearExpanded();
-  }
+  },
 );
 
 function toggleExpand(item: Item) {
@@ -78,7 +78,8 @@ function stripHtml(s?: string): string {
         :class="{
           'bg-white dark:bg-gray-800': !item.read && !isExpanded(item.id),
           'bg-gray-50 dark:bg-gray-800/30': item.read || isExpanded(item.id),
-          'ring-2 ring-blue-400 dark:ring-blue-500 ring-inset': currentItemId === item.id && !isExpanded(item.id),
+          'ring-2 ring-blue-400 dark:ring-blue-500 ring-inset':
+            currentItemId === item.id && !isExpanded(item.id),
         }"
         @click="toggleExpand(item)"
       >

@@ -48,12 +48,7 @@ async function request<T>(
   const res = await fetch(url, {
     method,
     headers,
-    body:
-      body === undefined
-        ? undefined
-        : body instanceof FormData
-          ? body
-          : JSON.stringify(body),
+    body: body === undefined ? undefined : body instanceof FormData ? body : JSON.stringify(body),
     credentials: "include",
   });
 

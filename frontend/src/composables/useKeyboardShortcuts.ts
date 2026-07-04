@@ -16,7 +16,7 @@ export function useKeyboardShortcuts() {
 
   const currentItem = computed(() =>
     currentItemId.value !== null
-      ? itemsStore.items.find((i) => i.id === currentItemId.value) ?? null
+      ? (itemsStore.items.find((i) => i.id === currentItemId.value) ?? null)
       : null,
   );
 
@@ -76,11 +76,7 @@ export function useKeyboardShortcuts() {
     }
     scrollToItem(currentItemId.value);
 
-    if (
-      newIdx >= itemsStore.items.length - 3 &&
-      itemsStore.hasMore &&
-      !itemsStore.loading
-    ) {
+    if (newIdx >= itemsStore.items.length - 3 && itemsStore.hasMore && !itemsStore.loading) {
       itemsStore.loadMore();
     }
   }

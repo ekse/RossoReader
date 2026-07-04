@@ -33,11 +33,7 @@ export function useSidebar() {
     const startWidth = sidebarWidth.value;
 
     function onMouseMove(e: MouseEvent) {
-      sidebarWidth.value = clamp(
-        startWidth + e.clientX - startX,
-        MIN_WIDTH,
-        MAX_WIDTH,
-      );
+      sidebarWidth.value = clamp(startWidth + e.clientX - startX, MIN_WIDTH, MAX_WIDTH);
     }
 
     function onMouseUp() {

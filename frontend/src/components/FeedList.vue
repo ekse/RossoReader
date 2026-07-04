@@ -99,6 +99,19 @@ const { isDark } = useTheme();
         Settings
       </router-link>
 
+      <router-link
+        v-if="auth.isAdmin"
+        to="/admin"
+        class="block px-3 py-2 rounded-md text-sm font-medium mt-1"
+        :class="
+          route.path === '/admin'
+            ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300'
+            : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700/50'
+        "
+      >
+        Administration
+      </router-link>
+
       <div class="mt-6">
         <div class="px-3 flex items-center justify-between">
           <div class="flex items-center gap-1">
@@ -116,7 +129,9 @@ const { isDark } = useTheme();
           </div>
           <button
             @click="feedsStore.filterUnreadOnly = !feedsStore.filterUnreadOnly"
-            :title="feedsStore.filterUnreadOnly ? 'Show all feeds' : 'Show only feeds with unread items'"
+            :title="
+              feedsStore.filterUnreadOnly ? 'Show all feeds' : 'Show only feeds with unread items'
+            "
             class="w-5 h-5 flex items-center justify-center rounded transition-colors"
             :class="
               feedsStore.filterUnreadOnly

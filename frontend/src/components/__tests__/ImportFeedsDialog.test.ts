@@ -38,7 +38,10 @@ describe("ImportFeedsDialog", () => {
 
   it("emits close when cancel is clicked", async () => {
     const wrapper = mount(ImportFeedsDialog);
-    await wrapper.findAll("button").find((b: any) => b.text() === "Cancel")!.trigger("click");
+    await wrapper
+      .findAll("button")
+      .find((b: any) => b.text() === "Cancel")!
+      .trigger("click");
     expect(wrapper.emitted("close")).toBeTruthy();
   });
 
@@ -73,15 +76,11 @@ describe("ImportFeedsDialog", () => {
 
   it("import button disabled when none selected", async () => {
     const wrapper = mount(ImportFeedsDialog);
-    await selectFile(wrapper, [
-      { title: "Feed A", url: "https://a.com/rss" },
-    ]);
+    await selectFile(wrapper, [{ title: "Feed A", url: "https://a.com/rss" }]);
 
     await wrapper.find('input[type="checkbox"]').setValue(false);
 
-    const btn = wrapper.findAll("button").find((b: any) =>
-      b.text().startsWith("Import Selected")
-    );
+    const btn = wrapper.findAll("button").find((b: any) => b.text().startsWith("Import Selected"));
     expect(btn?.attributes("disabled")).toBeDefined();
   });
 
@@ -95,9 +94,9 @@ describe("ImportFeedsDialog", () => {
       { title: "Feed B", url: "https://b.com/rss" },
     ]);
 
-    const importBtn = wrapper.findAll("button").find((b: any) =>
-      b.text().startsWith("Import Selected")
-    );
+    const importBtn = wrapper
+      .findAll("button")
+      .find((b: any) => b.text().startsWith("Import Selected"));
     await importBtn!.trigger("click");
     await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -107,9 +106,7 @@ describe("ImportFeedsDialog", () => {
 
   it("back button resets to upload state", async () => {
     const wrapper = mount(ImportFeedsDialog);
-    await selectFile(wrapper, [
-      { title: "Feed A", url: "https://a.com/rss" },
-    ]);
+    await selectFile(wrapper, [{ title: "Feed A", url: "https://a.com/rss" }]);
 
     const backBtn = wrapper.findAll("button").find((b: any) => b.text() === "Back");
     await backBtn!.trigger("click");
@@ -122,13 +119,11 @@ describe("ImportFeedsDialog", () => {
     vi.spyOn(store, "importFeeds").mockResolvedValue({ imported: 1, skipped: 0 });
 
     const wrapper = mount(ImportFeedsDialog);
-    await selectFile(wrapper, [
-      { title: "Feed A", url: "https://a.com/rss" },
-    ]);
+    await selectFile(wrapper, [{ title: "Feed A", url: "https://a.com/rss" }]);
 
-    const importBtn = wrapper.findAll("button").find((b: any) =>
-      b.text().startsWith("Import Selected")
-    );
+    const importBtn = wrapper
+      .findAll("button")
+      .find((b: any) => b.text().startsWith("Import Selected"));
     await importBtn!.trigger("click");
     await new Promise((resolve) => setTimeout(resolve, 0));
 

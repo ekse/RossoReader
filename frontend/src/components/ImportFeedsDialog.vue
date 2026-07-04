@@ -18,7 +18,9 @@ const importing = ref(false);
 const importProgress = ref({ current: 0, total: 0 });
 const importResult = ref<{ imported: number; skipped: number } | null>(null);
 
-const allSelected = computed(() => previewFeeds.value.length > 0 && selected.value.size === previewFeeds.value.length);
+const allSelected = computed(
+  () => previewFeeds.value.length > 0 && selected.value.size === previewFeeds.value.length,
+);
 const anySelected = computed(() => selected.value.size > 0);
 const phase = computed(() => {
   if (importResult.value) return "done";
@@ -207,7 +209,9 @@ function handleClose() {
       <div v-if="phase === 'done'" class="mt-4">
         <p class="text-sm text-green-600 dark:text-green-400">
           {{ importResult?.imported }} feed(s) imported
-          <span v-if="importResult?.skipped">({{ importResult?.skipped }} skipped — already subscribed)</span>.
+          <span v-if="importResult?.skipped"
+            >({{ importResult?.skipped }} skipped — already subscribed)</span
+          >.
         </p>
         <p v-if="error" class="mt-2 text-sm text-red-600 dark:text-red-400">{{ error }}</p>
         <div class="mt-4 flex justify-end gap-3">

@@ -71,5 +71,17 @@ export const useFeedsStore = defineStore("feeds", () => {
     return { imported, skipped };
   }
 
-  return { feeds, loading, totalUnread, feedNames, visibleFeeds, filterUnreadOnly, loadFeeds, addFeed, removeFeed, refreshFeed, importFeeds };
+  return {
+    feeds,
+    loading,
+    totalUnread,
+    feedNames,
+    visibleFeeds,
+    filterUnreadOnly,
+    loadFeeds,
+    addFeed,
+    removeFeed,
+    refreshFeed,
+    importFeeds,
+  };
 });
