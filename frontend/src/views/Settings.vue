@@ -151,7 +151,7 @@ async function deletePasskey(pk: Passkey) {
 
     <!-- Feed Subscriptions -->
     <section class="mt-8">
-      <div class="flex items-center justify-between mb-4">
+      <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
         <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
           Feed Subscriptions ({{ feedsStore.feeds.length }}/{{ feedsStore.feedsLimit }})
         </h2>
