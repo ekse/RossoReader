@@ -13,12 +13,14 @@ import (
 type Querier interface {
 	ClearFeedFetchError(ctx context.Context, id int32) error
 	CountItems(ctx context.Context, arg CountItemsParams) (int64, error)
+	CountItemsByFeed(ctx context.Context, feedID int32) (int32, error)
 	CountUsers(ctx context.Context) (int64, error)
 	CreateFeed(ctx context.Context, arg CreateFeedParams) (Feed, error)
 	CreatePasskey(ctx context.Context, arg CreatePasskeyParams) (Passkey, error)
 	CreateSession(ctx context.Context, arg CreateSessionParams) (Session, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	DeleteAuthState(ctx context.Context, id pgtype.UUID) error
+	DeleteExcessItems(ctx context.Context, arg DeleteExcessItemsParams) ([]int32, error)
 	DeleteExpiredAuthStates(ctx context.Context) error
 	DeleteExpiredSessions(ctx context.Context) error
 	DeleteFeed(ctx context.Context, arg DeleteFeedParams) error
@@ -31,6 +33,7 @@ type Querier interface {
 	GetFeedByID(ctx context.Context, arg GetFeedByIDParams) (Feed, error)
 	GetFeedByIDAny(ctx context.Context, id int32) (Feed, error)
 	GetFeeds(ctx context.Context, userID *int64) ([]Feed, error)
+	GetGlobalSetting(ctx context.Context, key string) (string, error)
 	GetItemByID(ctx context.Context, arg GetItemByIDParams) (GetItemByIDRow, error)
 	GetItems(ctx context.Context, arg GetItemsParams) ([]GetItemsRow, error)
 	GetPasskeyByCredentialID(ctx context.Context, credentialID []byte) (Passkey, error)
@@ -53,6 +56,7 @@ type Querier interface {
 	UpdateFeedMetadata(ctx context.Context, arg UpdateFeedMetadataParams) error
 	UpdatePasskeySignCount(ctx context.Context, arg UpdatePasskeySignCountParams) error
 	UpdateUserPassword(ctx context.Context, arg UpdateUserPasswordParams) error
+	UpsertGlobalSetting(ctx context.Context, arg UpsertGlobalSettingParams) error
 	UpsertItem(ctx context.Context, arg UpsertItemParams) (UpsertItemRow, error)
 	UpsertSetting(ctx context.Context, arg UpsertSettingParams) error
 }

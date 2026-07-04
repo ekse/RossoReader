@@ -80,6 +80,9 @@ func (h *Handler) AdminRouter() chi.Router {
 	r.Post("/api/users", h.Auth.CreateUser)
 	r.Delete("/api/users/{id}", h.Auth.DeleteUser)
 
+	r.Get("/api/admin/settings", h.GetAdminSettings)
+	r.Patch("/api/admin/settings", h.UpdateAdminSettings)
+
 	return r
 }
 
@@ -132,6 +135,8 @@ func (h *Handler) MountRouter() chi.Router {
 			r.Get("/api/users", h.Auth.ListUsers)
 			r.Post("/api/users", h.Auth.CreateUser)
 			r.Delete("/api/users/{id}", h.Auth.DeleteUser)
+			r.Get("/api/admin/settings", h.GetAdminSettings)
+			r.Patch("/api/admin/settings", h.UpdateAdminSettings)
 		})
 	})
 

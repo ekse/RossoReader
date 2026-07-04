@@ -9,18 +9,18 @@ var ErrFeedAlreadyExists = errors.New("You are already subscribed to this feed."
 var ErrUserAlreadyExists = errors.New("This username is already taken.")
 
 type Feed struct {
-	ID            int64      `json:"id"`
-	UserID        int64      `json:"user_id"`
-	URL           string     `json:"url"`
-	Title         string     `json:"title"`
-	Description   *string    `json:"description,omitempty"`
-	SiteLink      *string    `json:"site_link,omitempty"`
-	IconURL       *string    `json:"icon_url,omitempty"`
-	Etag          *string    `json:"etag,omitempty"`
-	LastFetchError *string   `json:"last_fetch_error,omitempty"`
+	ID             int64      `json:"id"`
+	UserID         int64      `json:"user_id"`
+	URL            string     `json:"url"`
+	Title          string     `json:"title"`
+	Description    *string    `json:"description,omitempty"`
+	SiteLink       *string    `json:"site_link,omitempty"`
+	IconURL        *string    `json:"icon_url,omitempty"`
+	Etag           *string    `json:"etag,omitempty"`
+	LastFetchError *string    `json:"last_fetch_error,omitempty"`
 	LastFetchedAt  *time.Time `json:"last_fetched_at,omitempty"`
 	CreatedAt      time.Time  `json:"created_at"`
-	UpdatedAt     time.Time  `json:"updated_at"`
+	UpdatedAt      time.Time  `json:"updated_at"`
 }
 
 type Item struct {

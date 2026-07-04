@@ -2,6 +2,7 @@ package scheduler_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -157,4 +158,87 @@ func TestScheduler_FetchFeed_ClearsErrorOnNotModified(t *testing.T) {
 	err := s.FetchFeed(context.Background(), store.Feeds[0])
 	require.NoError(t, err)
 	assert.Nil(t, store.Feeds[0].LastFetchError)
+}
+
+func TestScheduler_PurgeAll_DeletesExcess(t *testing.T) {
+	store := mockstore.New()
+	store.Feeds = append(store.Feeds, domain.Feed{
+		ID: 1, UserID: 1, URL: "https://example.com/rss", Title: "Example",
+	})
+	store.SetItemsLimit(context.Background(), 3)
+
+	now := time.Now()
+	for i := 0; i < 5; i++ {
+		store.Items = append(store.Items, domain.Item{
+			ID: int64(i + 1), FeedID: 1, GUID: fmt.Sprintf("g%d", i),
+			Title: fmt.Sprintf("Item %d", i), URL: fmt.Sprintf("https://ex.com/%d", i),
+			PublishedAt: &now,
+		})
+	}
+
+	mf := &mockFetcher{}
+	s := scheduler.New(store, mf)
+	err := s.PurgeAll(context.Background())
+	require.NoError(t, err)
+
+	assert.Len(t, store.Items, 3)
+}
+
+func TestScheduler_PurgeAll_KeepsStarred(t *testing.T) {
+	store := mockstore.New()
+	store.Feeds = append(store.Feeds, domain.Feed{
+		ID: 1, UserID: 1, URL: "https://example.com/rss", Title: "Example",
+	})
+	store.SetItemsLimit(context.Background(), 2)
+
+	now := time.Now()
+	store.Items = append(store.Items, domain.Item{
+		ID: 1, FeedID: 1, GUID: "1", Title: "Newest",
+		URL: "https://ex.com/1", PublishedAt: &now,
+	})
+	past := now.Add(-time.Hour)
+	store.Items = append(store.Items, domain.Item{
+		ID: 2, FeedID: 1, GUID: "2", Title: "Old",
+		URL: "https://ex.com/2", PublishedAt: &past,
+	})
+	farPast := now.Add(-2 * time.Hour)
+	store.Items = append(store.Items, domain.Item{
+		ID: 3, FeedID: 1, GUID: "3", Title: "Oldest",
+		URL: "https://ex.com/3", PublishedAt: &farPast,
+	})
+
+	// User 1 stars the oldest item — it should be kept even though it's beyond the limit.
+	store.MarkItemStarred(context.Background(), 1, 3, true)
+
+	mf := &mockFetcher{}
+	s := scheduler.New(store, mf)
+	err := s.PurgeAll(context.Background())
+	require.NoError(t, err)
+
+	// 2 newest + 1 starred (oldest) = 3 items kept.
+	assert.Len(t, store.Items, 3)
+}
+
+func TestScheduler_PurgeAll_UnderLimit(t *testing.T) {
+	store := mockstore.New()
+	store.Feeds = append(store.Feeds, domain.Feed{
+		ID: 1, UserID: 1, URL: "https://example.com/rss", Title: "Example",
+	})
+	store.SetItemsLimit(context.Background(), 10)
+
+	now := time.Now()
+	for i := 0; i < 5; i++ {
+		store.Items = append(store.Items, domain.Item{
+			ID: int64(i + 1), FeedID: 1, GUID: fmt.Sprintf("g%d", i),
+			Title: fmt.Sprintf("Item %d", i), URL: fmt.Sprintf("https://ex.com/%d", i),
+			PublishedAt: &now,
+		})
+	}
+
+	mf := &mockFetcher{}
+	s := scheduler.New(store, mf)
+	err := s.PurgeAll(context.Background())
+	require.NoError(t, err)
+
+	assert.Len(t, store.Items, 5)
 }

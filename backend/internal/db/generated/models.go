@@ -23,6 +23,11 @@ type Feed struct {
 	LastFetchError *string            `json:"last_fetch_error"`
 }
 
+type GlobalSetting struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
+}
+
 type Item struct {
 	ID          int32              `json:"id"`
 	FeedID      int32              `json:"feed_id"`

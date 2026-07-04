@@ -5,10 +5,14 @@ import { setActivePinia, createPinia } from "pinia";
 const mockListUsers = vi.fn();
 const mockCreateUser = vi.fn();
 const mockDeleteUser = vi.fn();
+const mockFetchAdminSettings = vi.fn();
+const mockUpdateAdminSettings = vi.fn();
 vi.mock("@/api/client", () => ({
   listUsers: (...args: any[]) => mockListUsers(...args),
   createUser: (...args: any[]) => mockCreateUser(...args),
   deleteUser: (...args: any[]) => mockDeleteUser(...args),
+  fetchAdminSettings: (...args: any[]) => mockFetchAdminSettings(...args),
+  updateAdminSettings: (...args: any[]) => mockUpdateAdminSettings(...args),
 }));
 
 vi.mock("@/composables/useSidebar", () => ({
@@ -145,5 +149,68 @@ describe("Administration", () => {
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(mockCreateUser).toHaveBeenCalledWith("eve", "pw", true);
+  });
+
+  it("shows items limit section", async () => {
+    setAuthUser({ id: 1, username: "admin", is_admin: true });
+    mockListUsers.mockResolvedValue([]);
+    mockFetchAdminSettings.mockResolvedValue({ items_limit: 150 });
+
+    const wrapper = mount(Administration);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(wrapper.text()).toContain("Application Settings");
+    expect(wrapper.text()).toContain("Items per feed limit");
+    expect(wrapper.find('input[type="number"]').exists()).toBe(true);
+  });
+
+  it("loads items limit from API on mount", async () => {
+    setAuthUser({ id: 1, username: "admin", is_admin: true });
+    mockListUsers.mockResolvedValue([]);
+    mockFetchAdminSettings.mockResolvedValue({ items_limit: 200 });
+
+    const wrapper = mount(Administration);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    const input = wrapper.find('input[type="number"]') as any;
+    expect(parseInt(input.element.value, 10)).toBe(200);
+  });
+
+  it("saves items limit", async () => {
+    setAuthUser({ id: 1, username: "admin", is_admin: true });
+    mockListUsers.mockResolvedValue([]);
+    mockFetchAdminSettings.mockResolvedValue({ items_limit: 150 });
+    mockUpdateAdminSettings.mockResolvedValue({ items_limit: 100 });
+
+    const wrapper = mount(Administration);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    const input = wrapper.find('input[type="number"]');
+    await input.setValue(100);
+
+    const saveBtn = wrapper.findAll("button").find((b) => b.text().trim() === "Save");
+    await saveBtn!.trigger("click");
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(mockUpdateAdminSettings).toHaveBeenCalledWith({ items_limit: 100 });
+    expect(wrapper.text()).toContain("Saved.");
+  });
+
+  it("shows error when limit is invalid", async () => {
+    setAuthUser({ id: 1, username: "admin", is_admin: true });
+    mockListUsers.mockResolvedValue([]);
+    mockFetchAdminSettings.mockResolvedValue({ items_limit: 150 });
+
+    const wrapper = mount(Administration);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    const input = wrapper.find('input[type="number"]');
+    await input.setValue(0);
+
+    const saveBtn = wrapper.findAll("button").find((b) => b.text().trim() === "Save");
+    await saveBtn!.trigger("click");
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(wrapper.text()).toContain("Limit must be at least 1.");
   });
 });

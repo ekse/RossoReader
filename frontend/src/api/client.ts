@@ -201,6 +201,21 @@ export async function updateSettings(
   });
 }
 
+// Admin Settings
+
+export async function fetchAdminSettings(): Promise<{ items_limit: number }> {
+  return request<{ items_limit: number }>("/api/admin/settings");
+}
+
+export async function updateAdminSettings(data: {
+  items_limit: number;
+}): Promise<{ items_limit: number }> {
+  return request<{ items_limit: number }>("/api/admin/settings", {
+    method: "PATCH",
+    body: data,
+  });
+}
+
 // Passkeys
 
 export async function passkeyRegisterBegin(): Promise<{ state_id: string; options: any }> {

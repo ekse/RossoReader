@@ -74,6 +74,8 @@ func authedRouter(h *handlers.Handler, user domain.User) chi.Router {
 			r.Get("/api/users", h.Auth.ListUsers)
 			r.Post("/api/users", h.Auth.CreateUser)
 			r.Delete("/api/users/{id}", h.Auth.DeleteUser)
+			r.Get("/api/admin/settings", h.GetAdminSettings)
+			r.Patch("/api/admin/settings", h.UpdateAdminSettings)
 		})
 	})
 

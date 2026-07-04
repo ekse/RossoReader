@@ -16,6 +16,11 @@ const userError = ref("");
 const creatingUser = ref(false);
 const showNewUserPassword = ref(false);
 
+const itemsLimit = ref(150);
+const savingLimit = ref(false);
+const limitError = ref("");
+const limitSaved = ref(false);
+
 async function loadUsers() {
   try {
     users.value = await api.listUsers();
@@ -62,7 +67,35 @@ async function deleteUser(u: User) {
 
 onMounted(() => {
   loadUsers();
+  loadAdminSettings();
 });
+
+async function loadAdminSettings() {
+  try {
+    const settings = await api.fetchAdminSettings();
+    itemsLimit.value = settings.items_limit;
+  } catch {
+    // defaults to 150
+  }
+}
+
+async function saveLimit() {
+  limitError.value = "";
+  limitSaved.value = false;
+  if (itemsLimit.value < 1) {
+    limitError.value = "Limit must be at least 1.";
+    return;
+  }
+  savingLimit.value = true;
+  try {
+    await api.updateAdminSettings({ items_limit: itemsLimit.value });
+    limitSaved.value = true;
+  } catch (e: any) {
+    limitError.value = e.response?.data || "Failed to save setting.";
+  } finally {
+    savingLimit.value = false;
+  }
+}
 </script>
 
 <template>
@@ -159,6 +192,37 @@ onMounted(() => {
         >
           {{ creatingUser ? "Creating..." : "Create user" }}
         </button>
+      </div>
+    </section>
+
+    <section class="mt-8 max-w-md">
+      <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Application Settings</h2>
+      <div class="mt-4">
+        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300"
+          >Items per feed limit</label
+        >
+        <div class="mt-2 flex items-center gap-2">
+          <input
+            v-model.number="itemsLimit"
+            type="number"
+            min="1"
+            class="w-24 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-blue-500 focus:border-blue-500"
+          />
+          <button
+            @click="saveLimit"
+            :disabled="savingLimit"
+            class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
+          >
+            {{ savingLimit ? "Saving..." : "Save" }}
+          </button>
+        </div>
+        <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+          Items beyond this limit will be purged every 6 hours. Starred items are never deleted.
+        </p>
+        <p v-if="limitError" class="mt-1 text-sm text-red-600 dark:text-red-400">
+          {{ limitError }}
+        </p>
+        <p v-if="limitSaved" class="mt-1 text-sm text-green-600 dark:text-green-400">Saved.</p>
       </div>
     </section>
   </div>

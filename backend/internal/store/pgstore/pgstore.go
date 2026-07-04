@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgconn"
@@ -573,18 +574,18 @@ func toDomainPasskey(r generated.Passkey) domain.Passkey {
 
 func toDomainFeed(r generated.Feed) domain.Feed {
 	return domain.Feed{
-		ID:            int64(r.ID),
-		UserID:        ptrInt64OrZero(r.UserID),
-		URL:           r.Url,
-		Title:         r.Title,
-		Description:   r.Description,
-		SiteLink:      r.SiteLink,
-		IconURL:       r.IconUrl,
+		ID:             int64(r.ID),
+		UserID:         ptrInt64OrZero(r.UserID),
+		URL:            r.Url,
+		Title:          r.Title,
+		Description:    r.Description,
+		SiteLink:       r.SiteLink,
+		IconURL:        r.IconUrl,
 		Etag:           r.Etag,
 		LastFetchError: r.LastFetchError,
 		LastFetchedAt:  fromTimestamptz(r.LastFetchedAt),
-		CreatedAt:     r.CreatedAt.Time,
-		UpdatedAt:     r.UpdatedAt.Time,
+		CreatedAt:      r.CreatedAt.Time,
+		UpdatedAt:      r.UpdatedAt.Time,
 	}
 }
 
@@ -618,6 +619,45 @@ func toDomainUser(r generated.User, passwordHash string) domain.User {
 		CreatedAt: r.CreatedAt.Time,
 		UpdatedAt: r.UpdatedAt.Time,
 	}
+}
+
+// Global Settings
+
+func (s *PGStore) GetItemsLimit(ctx context.Context) (int, error) {
+	v, err := s.q.GetGlobalSetting(ctx, "items_limit")
+	if err != nil {
+		return 150, nil
+	}
+	n, err := strconv.Atoi(v)
+	if err != nil || n <= 0 {
+		return 150, nil
+	}
+	return n, nil
+}
+
+func (s *PGStore) SetItemsLimit(ctx context.Context, limit int) error {
+	return s.q.UpsertGlobalSetting(ctx, generated.UpsertGlobalSettingParams{
+		Key:   "items_limit",
+		Value: strconv.Itoa(limit),
+	})
+}
+
+// Purge
+
+func (s *PGStore) CountItemsByFeed(ctx context.Context, feedID int64) (int64, error) {
+	n, err := s.q.CountItemsByFeed(ctx, int32(feedID))
+	return int64(n), err
+}
+
+func (s *PGStore) DeleteExcessItems(ctx context.Context, feedID int64, maxItems int) (int64, error) {
+	ids, err := s.q.DeleteExcessItems(ctx, generated.DeleteExcessItemsParams{
+		FeedID:   int32(feedID),
+		MaxItems: int32(maxItems),
+	})
+	if err != nil {
+		return 0, fmt.Errorf("delete excess items: %w", err)
+	}
+	return int64(len(ids)), nil
 }
 
 func nullableString(s string) *string {

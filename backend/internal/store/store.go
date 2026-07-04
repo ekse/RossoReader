@@ -64,4 +64,12 @@ type Store interface {
 	GetAuthState(ctx context.Context, id [16]byte) (string, []byte, error)
 	DeleteAuthState(ctx context.Context, id [16]byte) error
 	DeleteExpiredAuthStates(ctx context.Context) error
+
+	// Global Settings
+	GetItemsLimit(ctx context.Context) (int, error)
+	SetItemsLimit(ctx context.Context, limit int) error
+
+	// Purge
+	CountItemsByFeed(ctx context.Context, feedID int64) (int64, error)
+	DeleteExcessItems(ctx context.Context, feedID int64, maxItems int) (int64, error)
 }

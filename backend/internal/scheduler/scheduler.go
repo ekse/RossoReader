@@ -58,8 +58,48 @@ func (s *Scheduler) Start() {
 			log.Printf("scheduler: auth state cleanup error: %v", err)
 		}
 	})
+	s.cron.AddFunc("@every 6h", func() {
+		ctx := context.Background()
+		log.Printf("scheduler: starting item purge cycle")
+		if err := s.PurgeAll(ctx); err != nil {
+			log.Printf("scheduler: purge cycle error: %v", err)
+		}
+		log.Printf("scheduler: item purge cycle complete")
+	})
 	s.cron.Start()
 	log.Printf("scheduler: started, fetching every %d minutes", minutes)
+}
+
+func (s *Scheduler) PurgeAll(ctx context.Context) error {
+	limit, err := s.store.GetItemsLimit(ctx)
+	if err != nil {
+		return fmt.Errorf("get items limit: %w", err)
+	}
+
+	feeds, err := s.store.GetAllFeeds(ctx)
+	if err != nil {
+		return fmt.Errorf("get feeds: %w", err)
+	}
+
+	for _, feed := range feeds {
+		count, err := s.store.CountItemsByFeed(ctx, feed.ID)
+		if err != nil {
+			log.Printf("scheduler: error counting items for feed %d: %v", feed.ID, err)
+			continue
+		}
+		if count > int64(limit) {
+			deleted, err := s.store.DeleteExcessItems(ctx, feed.ID, limit)
+			if err != nil {
+				log.Printf("scheduler: error purging feed %d: %v", feed.ID, err)
+				continue
+			}
+			if deleted > 0 {
+				log.Printf("scheduler: purged %d items from feed %d (%s)", deleted, feed.ID, feed.URL)
+			}
+		}
+	}
+
+	return nil
 }
 
 func (s *Scheduler) Stop() {
