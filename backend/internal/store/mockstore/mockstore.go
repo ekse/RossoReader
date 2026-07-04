@@ -2,8 +2,8 @@ package mockstore
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"sort"
 	"sync"
 	"time"
 
@@ -682,64 +682,8 @@ func (m *MockStore) CountItemsByFeed(_ context.Context, feedID int64) (int64, er
 	return count, nil
 }
 
-func (m *MockStore) DeleteExcessItems(_ context.Context, feedID int64, maxItems int) (int64, error) {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-
-	var feedItems []domain.Item
-	for _, item := range m.Items {
-		if item.FeedID == feedID {
-			feedItems = append(feedItems, item)
-		}
-	}
-
-	if len(feedItems) <= maxItems {
-		return 0, nil
-	}
-
-	sort.Slice(feedItems, func(i, j int) bool {
-		pi := feedItems[i].PublishedAt
-		pj := feedItems[j].PublishedAt
-		if pi == nil && pj == nil {
-			return false
-		}
-		if pi == nil {
-			return false
-		}
-		if pj == nil {
-			return true
-		}
-		return pi.After(*pj)
-	})
-
-	keep := make(map[int64]bool)
-	for i := 0; i < maxItems && i < len(feedItems); i++ {
-		keep[feedItems[i].ID] = true
-	}
-
-	for _, item := range feedItems {
-		if keep[item.ID] {
-			continue
-		}
-		for k, state := range itemStates {
-			if k.ItemID == item.ID && state.Starred {
-				keep[item.ID] = true
-				break
-			}
-		}
-	}
-
-	var deleted int64
-	remaining := make([]domain.Item, 0, len(m.Items))
-	for _, item := range m.Items {
-		if item.FeedID == feedID && !keep[item.ID] {
-			deleted++
-		} else {
-			remaining = append(remaining, item)
-		}
-	}
-	m.Items = remaining
-	return deleted, nil
+func (m *MockStore) DeleteExcessItems(_ context.Context, _ int64, _ int) (int64, error) {
+	return 0, errors.New("Not implemented")
 }
 
 // Helpers

@@ -13,6 +13,7 @@ import (
 	"github.com/ekse/rssreader/internal/fetcher"
 	"github.com/ekse/rssreader/internal/scheduler"
 	"github.com/ekse/rssreader/internal/store/mockstore"
+	"github.com/ekse/rssreader/internal/store/pgstore/pgstoretest"
 )
 
 type mockFetcher struct {
@@ -161,84 +162,124 @@ func TestScheduler_FetchFeed_ClearsErrorOnNotModified(t *testing.T) {
 }
 
 func TestScheduler_PurgeAll_DeletesExcess(t *testing.T) {
-	store := mockstore.New()
-	store.Feeds = append(store.Feeds, domain.Feed{
-		ID: 1, UserID: 1, URL: "https://example.com/rss", Title: "Example",
-	})
-	store.SetItemsLimit(context.Background(), 3)
+	if testing.Short() {
+		t.Skip("skipping integration test")
+	}
+
+	store, _, cleanup := pgstoretest.SetupTestStore(t)
+	defer cleanup()
+
+	ctx := context.Background()
+	user := pgstoretest.CreateTestUser(t, ctx, store, "testuser")
+
+	feed, err := store.CreateFeed(ctx, user.ID, "https://example.com/rss", "Example", "", "", "", "")
+	require.NoError(t, err)
+
+	require.NoError(t, store.SetItemsLimit(ctx, 3))
 
 	now := time.Now()
 	for i := 0; i < 5; i++ {
-		store.Items = append(store.Items, domain.Item{
-			ID: int64(i + 1), FeedID: 1, GUID: fmt.Sprintf("g%d", i),
+		_, err := store.UpsertItem(ctx, domain.Item{
+			FeedID: feed.ID, GUID: fmt.Sprintf("g%d", i),
 			Title: fmt.Sprintf("Item %d", i), URL: fmt.Sprintf("https://ex.com/%d", i),
 			PublishedAt: &now,
 		})
+		require.NoError(t, err)
 	}
 
 	mf := &mockFetcher{}
 	s := scheduler.New(store, mf)
-	err := s.PurgeAll(context.Background())
+	err = s.PurgeAll(ctx)
 	require.NoError(t, err)
 
-	assert.Len(t, store.Items, 3)
+	count, err := store.CountItemsByFeed(ctx, feed.ID)
+	require.NoError(t, err)
+	assert.Equal(t, int64(3), count)
 }
 
 func TestScheduler_PurgeAll_KeepsStarred(t *testing.T) {
-	store := mockstore.New()
-	store.Feeds = append(store.Feeds, domain.Feed{
-		ID: 1, UserID: 1, URL: "https://example.com/rss", Title: "Example",
-	})
-	store.SetItemsLimit(context.Background(), 2)
+	if testing.Short() {
+		t.Skip("skipping integration test")
+	}
+
+	store, _, cleanup := pgstoretest.SetupTestStore(t)
+	defer cleanup()
+
+	ctx := context.Background()
+	user := pgstoretest.CreateTestUser(t, ctx, store, "testuser")
+
+	feed, err := store.CreateFeed(ctx, user.ID, "https://example.com/rss", "Example", "", "", "", "")
+	require.NoError(t, err)
+
+	require.NoError(t, store.SetItemsLimit(ctx, 2))
 
 	now := time.Now()
-	store.Items = append(store.Items, domain.Item{
-		ID: 1, FeedID: 1, GUID: "1", Title: "Newest",
+	_, err = store.UpsertItem(ctx, domain.Item{
+		FeedID: feed.ID, GUID: "1", Title: "Newest",
 		URL: "https://ex.com/1", PublishedAt: &now,
 	})
+	require.NoError(t, err)
+
 	past := now.Add(-time.Hour)
-	store.Items = append(store.Items, domain.Item{
-		ID: 2, FeedID: 1, GUID: "2", Title: "Old",
+	_, err = store.UpsertItem(ctx, domain.Item{
+		FeedID: feed.ID, GUID: "2", Title: "Old",
 		URL: "https://ex.com/2", PublishedAt: &past,
 	})
+	require.NoError(t, err)
+
 	farPast := now.Add(-2 * time.Hour)
-	store.Items = append(store.Items, domain.Item{
-		ID: 3, FeedID: 1, GUID: "3", Title: "Oldest",
+	oldest, err := store.UpsertItem(ctx, domain.Item{
+		FeedID: feed.ID, GUID: "3", Title: "Oldest",
 		URL: "https://ex.com/3", PublishedAt: &farPast,
 	})
+	require.NoError(t, err)
 
-	// User 1 stars the oldest item — it should be kept even though it's beyond the limit.
-	store.MarkItemStarred(context.Background(), 1, 3, true)
+	// User stars the oldest item — it should be kept even though it's beyond the limit.
+	require.NoError(t, store.MarkItemStarred(ctx, user.ID, oldest.ID, true))
 
 	mf := &mockFetcher{}
 	s := scheduler.New(store, mf)
-	err := s.PurgeAll(context.Background())
+	err = s.PurgeAll(ctx)
 	require.NoError(t, err)
 
 	// 2 newest + 1 starred (oldest) = 3 items kept.
-	assert.Len(t, store.Items, 3)
+	count, err := store.CountItemsByFeed(ctx, feed.ID)
+	require.NoError(t, err)
+	assert.Equal(t, int64(3), count)
 }
 
 func TestScheduler_PurgeAll_UnderLimit(t *testing.T) {
-	store := mockstore.New()
-	store.Feeds = append(store.Feeds, domain.Feed{
-		ID: 1, UserID: 1, URL: "https://example.com/rss", Title: "Example",
-	})
-	store.SetItemsLimit(context.Background(), 10)
+	if testing.Short() {
+		t.Skip("skipping integration test")
+	}
+
+	store, _, cleanup := pgstoretest.SetupTestStore(t)
+	defer cleanup()
+
+	ctx := context.Background()
+	user := pgstoretest.CreateTestUser(t, ctx, store, "testuser")
+
+	feed, err := store.CreateFeed(ctx, user.ID, "https://example.com/rss", "Example", "", "", "", "")
+	require.NoError(t, err)
+
+	require.NoError(t, store.SetItemsLimit(ctx, 10))
 
 	now := time.Now()
 	for i := 0; i < 5; i++ {
-		store.Items = append(store.Items, domain.Item{
-			ID: int64(i + 1), FeedID: 1, GUID: fmt.Sprintf("g%d", i),
+		_, err := store.UpsertItem(ctx, domain.Item{
+			FeedID: feed.ID, GUID: fmt.Sprintf("g%d", i),
 			Title: fmt.Sprintf("Item %d", i), URL: fmt.Sprintf("https://ex.com/%d", i),
 			PublishedAt: &now,
 		})
+		require.NoError(t, err)
 	}
 
 	mf := &mockFetcher{}
 	s := scheduler.New(store, mf)
-	err := s.PurgeAll(context.Background())
+	err = s.PurgeAll(ctx)
 	require.NoError(t, err)
 
-	assert.Len(t, store.Items, 5)
+	count, err := store.CountItemsByFeed(ctx, feed.ID)
+	require.NoError(t, err)
+	assert.Equal(t, int64(5), count)
 }

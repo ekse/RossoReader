@@ -5,88 +5,19 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/testcontainers/testcontainers-go/modules/postgres"
 
-	"github.com/ekse/rssreader/internal/bootstrap"
-	"github.com/ekse/rssreader/internal/db"
 	"github.com/ekse/rssreader/internal/domain"
-	"github.com/ekse/rssreader/internal/store/pgstore"
+	"github.com/ekse/rssreader/internal/store/pgstore/pgstoretest"
 )
 
-// runMigrationsRetry applies migrations with retries to accommodate the
-// postgres container briefly rejecting connections right after start.
-func runMigrationsRetry(t *testing.T, connStr string) {
-	t.Helper()
-	var lastErr error
-	for i := 0; i < 10; i++ {
-		if err := db.RunMigrations(connStr); err == nil {
-			return
-		} else {
-			lastErr = err
-			time.Sleep(500 * time.Millisecond)
-		}
-	}
-	require.NoError(t, lastErr)
-}
-
-func setupTestStore(t *testing.T) (*pgstore.PGStore, *pgxpool.Pool, func()) {
-	t.Helper()
-
-	ctx := context.Background()
-
-	pgContainer, err := postgres.Run(ctx,
-		"postgres:16-alpine",
-		postgres.WithDatabase("rssreader"),
-		postgres.WithUsername("postgres"),
-		postgres.WithPassword("postgres"),
-	)
-	require.NoError(t, err)
-
-	connStr, err := pgContainer.ConnectionString(ctx, "sslmode=disable")
-	require.NoError(t, err)
-
-	runMigrationsRetry(t, connStr)
-	if t.Failed() {
-		pgContainer.Terminate(ctx)
-		t.FailNow()
-	}
-
-	pool, err := pgxpool.New(ctx, connStr)
-	require.NoError(t, err)
-
-	store := pgstore.New(pool)
-
-	// Run bootstrap to finalize schema (drop legacy constraints/columns).
-	if err := bootstrap.Run(ctx, pool, store); err != nil {
-		pool.Close()
-		pgContainer.Terminate(ctx)
-		t.Fatalf("bootstrap failed: %v", err)
-	}
-
-	cleanup := func() {
-		pool.Close()
-		pgContainer.Terminate(ctx)
-	}
-
-	return store, pool, cleanup
-}
-
-func createTestUser(t *testing.T, ctx context.Context, store *pgstore.PGStore, username string) domain.User {
-	t.Helper()
-	u, err := store.CreateUser(ctx, username, "test-hash-not-secret", false)
-	require.NoError(t, err)
-	return u
-}
-
 func TestPGStore_CreateAndGetFeed(t *testing.T) {
-	store, _, cleanup := setupTestStore(t)
+	store, _, cleanup := pgstoretest.SetupTestStore(t)
 	defer cleanup()
 
 	ctx := context.Background()
-	user := createTestUser(t, ctx, store, "alice")
+	user := pgstoretest.CreateTestUser(t, ctx, store, "alice")
 
 	feed, err := store.CreateFeed(ctx, user.ID, "https://example.com/rss", "Example Blog", "An example blog", "https://example.com", "", "")
 	require.NoError(t, err)
@@ -102,12 +33,12 @@ func TestPGStore_CreateAndGetFeed(t *testing.T) {
 }
 
 func TestPGStore_GetFeeds(t *testing.T) {
-	store, _, cleanup := setupTestStore(t)
+	store, _, cleanup := pgstoretest.SetupTestStore(t)
 	defer cleanup()
 
 	ctx := context.Background()
-	alice := createTestUser(t, ctx, store, "alice")
-	bob := createTestUser(t, ctx, store, "bob")
+	alice := pgstoretest.CreateTestUser(t, ctx, store, "alice")
+	bob := pgstoretest.CreateTestUser(t, ctx, store, "bob")
 
 	_, err := store.CreateFeed(ctx, alice.ID, "https://a.com/rss", "A", "", "https://a.com", "", "")
 	require.NoError(t, err)
@@ -126,12 +57,12 @@ func TestPGStore_GetFeeds(t *testing.T) {
 }
 
 func TestPGStore_DeleteFeed(t *testing.T) {
-	store, _, cleanup := setupTestStore(t)
+	store, _, cleanup := pgstoretest.SetupTestStore(t)
 	defer cleanup()
 
 	ctx := context.Background()
-	alice := createTestUser(t, ctx, store, "alice")
-	bob := createTestUser(t, ctx, store, "bob")
+	alice := pgstoretest.CreateTestUser(t, ctx, store, "alice")
+	bob := pgstoretest.CreateTestUser(t, ctx, store, "bob")
 
 	feed, err := store.CreateFeed(ctx, alice.ID, "https://example.com/rss", "Example", "", "", "", "")
 	require.NoError(t, err)
@@ -152,11 +83,11 @@ func TestPGStore_DeleteFeed(t *testing.T) {
 }
 
 func TestPGStore_UpsertItem(t *testing.T) {
-	store, _, cleanup := setupTestStore(t)
+	store, _, cleanup := pgstoretest.SetupTestStore(t)
 	defer cleanup()
 
 	ctx := context.Background()
-	user := createTestUser(t, ctx, store, "alice")
+	user := pgstoretest.CreateTestUser(t, ctx, store, "alice")
 
 	feed, err := store.CreateFeed(ctx, user.ID, "https://example.com/rss", "Example", "", "", "", "")
 	require.NoError(t, err)
@@ -186,11 +117,11 @@ func TestPGStore_UpsertItem(t *testing.T) {
 }
 
 func TestPGStore_GetItemsWithFilters(t *testing.T) {
-	store, _, cleanup := setupTestStore(t)
+	store, _, cleanup := pgstoretest.SetupTestStore(t)
 	defer cleanup()
 
 	ctx := context.Background()
-	user := createTestUser(t, ctx, store, "alice")
+	user := pgstoretest.CreateTestUser(t, ctx, store, "alice")
 
 	feed, err := store.CreateFeed(ctx, user.ID, "https://example.com/rss", "Example", "", "", "", "")
 	require.NoError(t, err)
@@ -218,19 +149,19 @@ func TestPGStore_GetItemsWithFilters(t *testing.T) {
 	assert.False(t, items[0].Starred)
 
 	// Other user sees no items.
-	bob := createTestUser(t, ctx, store, "bob")
+	bob := pgstoretest.CreateTestUser(t, ctx, store, "bob")
 	bobItems, _, err := store.GetItems(ctx, domain.ItemsQuery{UserID: bob.ID, PerPage: 10, Page: 1})
 	require.NoError(t, err)
 	assert.Empty(t, bobItems)
 }
 
 func TestPGStore_Settings(t *testing.T) {
-	store, _, cleanup := setupTestStore(t)
+	store, _, cleanup := pgstoretest.SetupTestStore(t)
 	defer cleanup()
 
 	ctx := context.Background()
-	user := createTestUser(t, ctx, store, "alice")
-	other := createTestUser(t, ctx, store, "bob")
+	user := pgstoretest.CreateTestUser(t, ctx, store, "alice")
+	other := pgstoretest.CreateTestUser(t, ctx, store, "bob")
 
 	err := store.UpsertSetting(ctx, user.ID, "fetch_interval", "60")
 	require.NoError(t, err)
