@@ -1,0 +1,2 @@
+DROP TABLE IF EXISTS feed_labels;
+DROP TABLE IF EXISTS labels;

@@ -15,6 +15,23 @@ export interface Feed {
   unread_count?: number;
 }
 
+export interface Label {
+  id: number;
+  user_id: number;
+  name: string;
+  created_at: string;
+}
+
+export interface LabelGroup {
+  label: Label;
+  feeds: Feed[];
+}
+
+export interface GroupedFeedsResponse {
+  label_groups: LabelGroup[];
+  unlabeled_feeds: Feed[];
+}
+
 export interface Item {
   id: number;
   feed_id: number;

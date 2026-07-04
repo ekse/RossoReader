@@ -27,9 +27,13 @@ type MockStore struct {
 	NextItemID    int64
 	NextUserID    int64
 	NextPasskeyID int64
+	NextLabelID   int64
 
 	Passkeys   map[int64][]domain.Passkey
 	AuthStates map[[16]byte]authStateRow
+
+	Labels     []domain.Label
+	FeedLabels map[int64][]int64 // feedID -> labelID list
 }
 
 type authStateRow struct {
@@ -51,6 +55,8 @@ func New() *MockStore {
 		NextPasskeyID: 1,
 		Passkeys:      make(map[int64][]domain.Passkey),
 		AuthStates:    make(map[[16]byte]authStateRow),
+		Labels:        []domain.Label{},
+		FeedLabels:    make(map[int64][]int64),
 	}
 }
 
@@ -732,6 +738,161 @@ func (m *MockStore) getUserByIDLocked(id int64) (domain.User, string, error) {
 		}
 	}
 	return domain.User{}, "", fmt.Errorf("user %d not found", id)
+}
+
+// Labels
+
+func (m *MockStore) GetLabels(_ context.Context, userID int64) ([]domain.Label, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	result := make([]domain.Label, 0, len(m.Labels))
+	for _, l := range m.Labels {
+		if l.UserID == userID {
+			result = append(result, l)
+		}
+	}
+	return result, nil
+}
+
+func (m *MockStore) GetLabel(_ context.Context, userID, labelID int64) (domain.Label, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	for _, l := range m.Labels {
+		if l.ID == labelID && l.UserID == userID {
+			return l, nil
+		}
+	}
+	return domain.Label{}, fmt.Errorf("label %d not found", labelID)
+}
+
+func (m *MockStore) CreateLabel(_ context.Context, userID int64, name string) (domain.Label, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	for _, l := range m.Labels {
+		if l.UserID == userID && l.Name == name {
+			return domain.Label{}, domain.ErrLabelAlreadyExists
+		}
+	}
+	l := domain.Label{
+		ID:        m.NextLabelID,
+		UserID:    userID,
+		Name:      name,
+		CreatedAt: time.Now(),
+	}
+	m.NextLabelID++
+	m.Labels = append(m.Labels, l)
+	return l, nil
+}
+
+func (m *MockStore) UpdateLabel(_ context.Context, userID, labelID int64, name string) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	for i, l := range m.Labels {
+		if l.ID == labelID && l.UserID == userID {
+			m.Labels[i].Name = name
+			return nil
+		}
+	}
+	return fmt.Errorf("label %d not found", labelID)
+}
+
+func (m *MockStore) DeleteLabel(_ context.Context, userID, labelID int64) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	for i, l := range m.Labels {
+		if l.ID == labelID && l.UserID == userID {
+			m.Labels = append(m.Labels[:i], m.Labels[i+1:]...)
+			// Clean up feed label assignments.
+			for feedID, labels := range m.FeedLabels {
+				filtered := make([]int64, 0, len(labels))
+				for _, lid := range labels {
+					if lid != labelID {
+						filtered = append(filtered, lid)
+					}
+				}
+				m.FeedLabels[feedID] = filtered
+			}
+			return nil
+		}
+	}
+	return nil
+}
+
+func (m *MockStore) AddFeedLabel(_ context.Context, userID, feedID, labelID int64) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	// Verify feed ownership.
+	foundFeed := false
+	for _, f := range m.Feeds {
+		if f.ID == feedID && f.UserID == userID {
+			foundFeed = true
+			break
+		}
+	}
+	if !foundFeed {
+		return fmt.Errorf("feed %d not found", feedID)
+	}
+	// Verify label ownership.
+	foundLabel := false
+	for _, l := range m.Labels {
+		if l.ID == labelID && l.UserID == userID {
+			foundLabel = true
+			break
+		}
+	}
+	if !foundLabel {
+		return fmt.Errorf("label %d not found", labelID)
+	}
+	// Check duplicate.
+	for _, lid := range m.FeedLabels[feedID] {
+		if lid == labelID {
+			return nil
+		}
+	}
+	m.FeedLabels[feedID] = append(m.FeedLabels[feedID], labelID)
+	return nil
+}
+
+func (m *MockStore) RemoveFeedLabel(_ context.Context, userID, feedID, labelID int64) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	labels := m.FeedLabels[feedID]
+	filtered := make([]int64, 0, len(labels))
+	for _, lid := range labels {
+		if lid != labelID {
+			filtered = append(filtered, lid)
+		}
+	}
+	m.FeedLabels[feedID] = filtered
+	return nil
+}
+
+func (m *MockStore) GetFeedLabels(_ context.Context, userID, feedID int64) ([]domain.Label, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	labelIDs := m.FeedLabels[feedID]
+	result := make([]domain.Label, 0, len(labelIDs))
+	for _, lid := range labelIDs {
+		for _, l := range m.Labels {
+			if l.ID == lid && l.UserID == userID {
+				result = append(result, l)
+				break
+			}
+		}
+	}
+	return result, nil
+}
+
+func (m *MockStore) GetFeedIDsByLabel(_ context.Context, userID int64) (map[int64][]int64, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	result := make(map[int64][]int64)
+	for feedID, labelIDs := range m.FeedLabels {
+		for _, lid := range labelIDs {
+			result[lid] = append(result[lid], feedID)
+		}
+	}
+	return result, nil
 }
 
 func strPtr(s string) *string {

@@ -23,6 +23,11 @@ type Feed struct {
 	LastFetchError *string            `json:"last_fetch_error"`
 }
 
+type FeedLabel struct {
+	FeedID  int32 `json:"feed_id"`
+	LabelID int32 `json:"label_id"`
+}
+
 type GlobalSetting struct {
 	Key   string `json:"key"`
 	Value string `json:"value"`
@@ -41,6 +46,13 @@ type Item struct {
 	FetchedAt   pgtype.Timestamptz `json:"fetched_at"`
 	Read        bool               `json:"read"`
 	Starred     bool               `json:"starred"`
+}
+
+type Label struct {
+	ID        int32              `json:"id"`
+	UserID    int64              `json:"user_id"`
+	Name      string             `json:"name"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
 }
 
 type Passkey struct {

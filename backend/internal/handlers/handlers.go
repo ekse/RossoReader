@@ -129,6 +129,16 @@ func (h *Handler) MountRouter() chi.Router {
 		r.Get("/api/settings", h.GetSettings)
 		r.Patch("/api/settings", h.UpdateSettings)
 
+		r.Get("/api/labels", h.ListLabels)
+		r.Post("/api/labels", h.CreateLabel)
+		r.Put("/api/labels/{id}", h.UpdateLabel)
+		r.Delete("/api/labels/{id}", h.DeleteLabel)
+
+		r.Get("/api/feeds/grouped", h.GroupedFeeds)
+		r.Get("/api/feeds/{id}/labels", h.GetFeedLabels)
+		r.Post("/api/feeds/{id}/labels", h.AddFeedLabel)
+		r.Delete("/api/feeds/{id}/labels/{lid}", h.RemoveFeedLabel)
+
 		// Admin-only routes.
 		r.Group(func(r chi.Router) {
 			r.Use(middleware.RequireAdmin)

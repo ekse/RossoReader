@@ -36,11 +36,6 @@ func (h *Handler) ListFeeds(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	type feedWithCount struct {
-		domain.Feed
-		UnreadCount int `json:"unread_count"`
-	}
-
 	result := make([]feedWithCount, 0, len(feeds))
 	for _, f := range feeds {
 		result = append(result, feedWithCount{

@@ -79,4 +79,15 @@ type Store interface {
 	// Purge
 	CountItemsByFeed(ctx context.Context, feedID int64) (int64, error)
 	DeleteExcessItems(ctx context.Context, feedID int64, maxItems int) (int64, error)
+
+	// Labels
+	GetLabels(ctx context.Context, userID int64) ([]domain.Label, error)
+	GetLabel(ctx context.Context, userID, labelID int64) (domain.Label, error)
+	CreateLabel(ctx context.Context, userID int64, name string) (domain.Label, error)
+	UpdateLabel(ctx context.Context, userID, labelID int64, name string) error
+	DeleteLabel(ctx context.Context, userID, labelID int64) error
+	AddFeedLabel(ctx context.Context, userID, feedID, labelID int64) error
+	RemoveFeedLabel(ctx context.Context, userID, feedID, labelID int64) error
+	GetFeedLabels(ctx context.Context, userID, feedID int64) ([]domain.Label, error)
+	GetFeedIDsByLabel(ctx context.Context, userID int64) (map[int64][]int64, error)
 }

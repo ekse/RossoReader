@@ -6,6 +6,8 @@ import type {
   User,
   Passkey,
   AdminSettings,
+  Label,
+  GroupedFeedsResponse,
 } from "@/types";
 
 const BASE_URL = import.meta.env.VITE_API_URL || "";
@@ -166,6 +168,43 @@ export async function previewOpmlImport(file: File): Promise<DiscoveredFeed[]> {
     method: "POST",
     body: form,
   });
+}
+
+// Labels
+
+export async function fetchLabels(): Promise<Label[]> {
+  return request<Label[]>("/api/labels");
+}
+
+export async function createLabel(name: string): Promise<Label> {
+  return request<Label>("/api/labels", { method: "POST", body: { name } });
+}
+
+export async function updateLabel(id: number, name: string): Promise<void> {
+  await request<void>(`/api/labels/${id}`, { method: "PUT", body: { name } });
+}
+
+export async function deleteLabel(id: number): Promise<void> {
+  await request<void>(`/api/labels/${id}`, { method: "DELETE" });
+}
+
+export async function fetchFeedLabels(feedId: number): Promise<Label[]> {
+  return request<Label[]>(`/api/feeds/${feedId}/labels`);
+}
+
+export async function addFeedLabel(feedId: number, labelId: number): Promise<void> {
+  await request<void>(`/api/feeds/${feedId}/labels`, {
+    method: "POST",
+    body: { label_id: labelId },
+  });
+}
+
+export async function removeFeedLabel(feedId: number, labelId: number): Promise<void> {
+  await request<void>(`/api/feeds/${feedId}/labels/${labelId}`, { method: "DELETE" });
+}
+
+export async function fetchGroupedFeeds(): Promise<GroupedFeedsResponse> {
+  return request<GroupedFeedsResponse>("/api/feeds/grouped");
 }
 
 // Items

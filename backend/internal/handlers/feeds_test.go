@@ -69,6 +69,16 @@ func authedRouter(h *handlers.Handler, user domain.User) chi.Router {
 		r.Get("/api/settings", h.GetSettings)
 		r.Patch("/api/settings", h.UpdateSettings)
 
+		r.Get("/api/labels", h.ListLabels)
+		r.Post("/api/labels", h.CreateLabel)
+		r.Put("/api/labels/{id}", h.UpdateLabel)
+		r.Delete("/api/labels/{id}", h.DeleteLabel)
+
+		r.Get("/api/feeds/grouped", h.GroupedFeeds)
+		r.Get("/api/feeds/{id}/labels", h.GetFeedLabels)
+		r.Post("/api/feeds/{id}/labels", h.AddFeedLabel)
+		r.Delete("/api/feeds/{id}/labels/{lid}", h.RemoveFeedLabel)
+
 		r.Group(func(r chi.Router) {
 			r.Use(middleware.RequireAdmin)
 			r.Get("/api/users", h.Auth.ListUsers)
@@ -162,7 +172,7 @@ func TestAddFeed_EmptyURL(t *testing.T) {
 
 func TestAddFeed_AtLimit(t *testing.T) {
 	store := mockstore.New()
-	store.SetFeedsLimit(nil, 1)
+	store.SetFeedsLimit(context.TODO(), 1)
 	user := makeUser(t, store, "alice", true)
 	store.Feeds = []domain.Feed{{ID: 1, UserID: user.ID, URL: "https://a.com/rss", Title: "A"}}
 	h := handlers.New(store, nil, nil, newTestPasskeyHandler(store))

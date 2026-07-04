@@ -6,6 +6,7 @@ import (
 )
 
 var ErrFeedAlreadyExists = errors.New("You are already subscribed to this feed.")
+var ErrLabelAlreadyExists = errors.New("A label with this name already exists.")
 var ErrUserAlreadyExists = errors.New("This username is already taken.")
 
 type Feed struct {
@@ -50,6 +51,13 @@ type ItemsQuery struct {
 type Settings struct {
 	Key   string `json:"key"`
 	Value string `json:"value"`
+}
+
+type Label struct {
+	ID        int64     `json:"id"`
+	UserID    int64     `json:"user_id"`
+	Name      string    `json:"name"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 type DiscoveredFeed struct {

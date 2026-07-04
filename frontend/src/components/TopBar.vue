@@ -39,16 +39,21 @@ const showAddFeed = ref(false);
         @click="showAddFeed = true"
         class="px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
       >
-        Add Feed
+        <span class="hidden md:inline">Add Feed</span>
+        <span class="inline md:hidden font-bold text-base">+</span>
+      </button>
+      <slot name="left-actions" />
+    </div>
+    <div class="flex items-center gap-2">
+      <slot name="actions" />
+      <button
+        v-if="showMarkAllRead"
+        @click="$emit('markAllRead')"
+        class="px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600"
+      >
+        Mark all as read
       </button>
     </div>
-    <button
-      v-if="showMarkAllRead"
-      @click="$emit('markAllRead')"
-      class="px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600"
-    >
-      Mark all as read
-    </button>
   </div>
   <AddFeedDialog v-if="showAddFeed" @close="showAddFeed = false" />
 </template>

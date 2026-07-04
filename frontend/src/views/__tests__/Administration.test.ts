@@ -155,7 +155,10 @@ describe("Administration", () => {
   it("shows application settings table", async () => {
     setAuthUser({ id: 1, username: "admin", is_admin: true });
     mockListUsers.mockResolvedValue([]);
-    mockFetchAdminSettings.mockResolvedValue({ items_limit: DEFAULT_ITEMS_LIMIT, feeds_limit: DEFAULT_FEEDS_LIMIT });
+    mockFetchAdminSettings.mockResolvedValue({
+      items_limit: DEFAULT_ITEMS_LIMIT,
+      feeds_limit: DEFAULT_FEEDS_LIMIT,
+    });
 
     const wrapper = mount(Administration);
     await new Promise((resolve) => setTimeout(resolve, 0));
@@ -182,7 +185,10 @@ describe("Administration", () => {
   it("saves both limits with single button", async () => {
     setAuthUser({ id: 1, username: "admin", is_admin: true });
     mockListUsers.mockResolvedValue([]);
-    mockFetchAdminSettings.mockResolvedValue({ items_limit: DEFAULT_ITEMS_LIMIT, feeds_limit: DEFAULT_FEEDS_LIMIT });
+    mockFetchAdminSettings.mockResolvedValue({
+      items_limit: DEFAULT_ITEMS_LIMIT,
+      feeds_limit: DEFAULT_FEEDS_LIMIT,
+    });
     mockUpdateAdminSettings.mockResolvedValue({ items_limit: 100, feeds_limit: 50 });
 
     const wrapper = mount(Administration);
@@ -203,7 +209,10 @@ describe("Administration", () => {
   it("shows error when a limit is invalid", async () => {
     setAuthUser({ id: 1, username: "admin", is_admin: true });
     mockListUsers.mockResolvedValue([]);
-    mockFetchAdminSettings.mockResolvedValue({ items_limit: DEFAULT_ITEMS_LIMIT, feeds_limit: DEFAULT_FEEDS_LIMIT });
+    mockFetchAdminSettings.mockResolvedValue({
+      items_limit: DEFAULT_ITEMS_LIMIT,
+      feeds_limit: DEFAULT_FEEDS_LIMIT,
+    });
 
     const wrapper = mount(Administration);
     await new Promise((resolve) => setTimeout(resolve, 0));

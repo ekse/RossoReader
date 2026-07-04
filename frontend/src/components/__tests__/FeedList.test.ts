@@ -3,6 +3,7 @@ import { mount } from "@vue/test-utils";
 import { setActivePinia, createPinia } from "pinia";
 
 const mockLoadFeeds = vi.fn();
+const mockLoadGroupedFeeds = vi.fn();
 vi.mock("@/stores/feeds", () => ({
   useFeedsStore: () => ({
     feeds: [],
@@ -10,6 +11,15 @@ vi.mock("@/stores/feeds", () => ({
     visibleFeeds: [],
     filterUnreadOnly: false,
     loadFeeds: mockLoadFeeds,
+    loadGroupedFeeds: mockLoadGroupedFeeds,
+    loadFeedsLimit: vi.fn(),
+    labelGroups: [],
+    unlabeledFeeds: [],
+    collapsedLabelIds: new Set(),
+    visibleLabelGroups: [],
+    visibleUnlabeledFeeds: [],
+    toggleCollapseLabel: vi.fn(),
+    feedNames: {},
   }),
 }));
 

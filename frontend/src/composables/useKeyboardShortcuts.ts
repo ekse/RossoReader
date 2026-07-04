@@ -82,7 +82,7 @@ export function useKeyboardShortcuts() {
   }
 
   function navigateFeed(delta: number) {
-    const feeds = feedsStore.visibleFeeds;
+    const feeds = feedsStore.orderedVisibleFeeds;
     if (feeds.length === 0) return;
 
     const currentId = route.params.id ? Number(route.params.id) : null;

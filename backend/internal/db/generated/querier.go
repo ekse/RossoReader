@@ -11,11 +11,13 @@ import (
 )
 
 type Querier interface {
+	AddFeedLabel(ctx context.Context, arg AddFeedLabelParams) error
 	ClearFeedFetchError(ctx context.Context, id int32) error
 	CountItems(ctx context.Context, arg CountItemsParams) (int64, error)
 	CountItemsByFeed(ctx context.Context, feedID int32) (int32, error)
 	CountUsers(ctx context.Context) (int64, error)
 	CreateFeed(ctx context.Context, arg CreateFeedParams) (Feed, error)
+	CreateLabel(ctx context.Context, arg CreateLabelParams) (Label, error)
 	CreatePasskey(ctx context.Context, arg CreatePasskeyParams) (Passkey, error)
 	CreateSession(ctx context.Context, arg CreateSessionParams) (Session, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
@@ -24,6 +26,7 @@ type Querier interface {
 	DeleteExpiredAuthStates(ctx context.Context) error
 	DeleteExpiredSessions(ctx context.Context) error
 	DeleteFeed(ctx context.Context, arg DeleteFeedParams) error
+	DeleteLabel(ctx context.Context, arg DeleteLabelParams) error
 	DeletePasskey(ctx context.Context, arg DeletePasskeyParams) error
 	DeleteSession(ctx context.Context, id pgtype.UUID) error
 	DeleteSetting(ctx context.Context, arg DeleteSettingParams) error
@@ -32,10 +35,14 @@ type Querier interface {
 	GetAuthState(ctx context.Context, id pgtype.UUID) (GetAuthStateRow, error)
 	GetFeedByID(ctx context.Context, arg GetFeedByIDParams) (Feed, error)
 	GetFeedByIDAny(ctx context.Context, id int32) (Feed, error)
+	GetFeedLabels(ctx context.Context, arg GetFeedLabelsParams) ([]Label, error)
 	GetFeeds(ctx context.Context, userID *int64) ([]Feed, error)
+	GetFeedsByLabel(ctx context.Context, arg GetFeedsByLabelParams) ([]Feed, error)
 	GetGlobalSetting(ctx context.Context, key string) (string, error)
 	GetItemByID(ctx context.Context, arg GetItemByIDParams) (GetItemByIDRow, error)
 	GetItems(ctx context.Context, arg GetItemsParams) ([]GetItemsRow, error)
+	GetLabelByID(ctx context.Context, arg GetLabelByIDParams) (Label, error)
+	GetLabels(ctx context.Context, userID int64) ([]Label, error)
 	GetPasskeyByCredentialID(ctx context.Context, credentialID []byte) (Passkey, error)
 	GetPasskeysByUserID(ctx context.Context, userID int64) ([]Passkey, error)
 	GetSessionWithUser(ctx context.Context, id pgtype.UUID) (GetSessionWithUserRow, error)
@@ -44,9 +51,11 @@ type Querier interface {
 	GetUnreadCountByFeedForUser(ctx context.Context, userID *int64) ([]GetUnreadCountByFeedForUserRow, error)
 	GetUserByID(ctx context.Context, id int64) (User, error)
 	GetUserByUsername(ctx context.Context, username string) (User, error)
+	GetUserLabelAssignments(ctx context.Context) ([]GetUserLabelAssignmentsRow, error)
 	ListUsers(ctx context.Context) ([]ListUsersRow, error)
 	MarkAllItemsReadForUser(ctx context.Context, userID int64) error
 	MarkFeedItemsReadForUser(ctx context.Context, arg MarkFeedItemsReadForUserParams) error
+	RemoveFeedLabel(ctx context.Context, arg RemoveFeedLabelParams) error
 	SaveAuthState(ctx context.Context, arg SaveAuthStateParams) error
 	SetFeedFetchError(ctx context.Context, arg SetFeedFetchErrorParams) error
 	SetItemRead(ctx context.Context, arg SetItemReadParams) error
@@ -54,6 +63,7 @@ type Querier interface {
 	UpdateFeedEtag(ctx context.Context, arg UpdateFeedEtagParams) error
 	UpdateFeedLastFetched(ctx context.Context, id int32) error
 	UpdateFeedMetadata(ctx context.Context, arg UpdateFeedMetadataParams) error
+	UpdateLabel(ctx context.Context, arg UpdateLabelParams) error
 	UpdatePasskeySignCount(ctx context.Context, arg UpdatePasskeySignCountParams) error
 	UpdateUserPassword(ctx context.Context, arg UpdateUserPasswordParams) error
 	UpsertGlobalSetting(ctx context.Context, arg UpsertGlobalSettingParams) error

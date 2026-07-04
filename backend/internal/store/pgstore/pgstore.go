@@ -711,3 +711,134 @@ func fromTimestamptz(t pgtype.Timestamptz) *time.Time {
 func pgUUIDFromBytes(b [16]byte) pgtype.UUID {
 	return pgtype.UUID{Bytes: b, Valid: true}
 }
+
+// Labels
+
+func (s *PGStore) GetLabels(ctx context.Context, userID int64) ([]domain.Label, error) {
+	rows, err := s.q.GetLabels(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("get labels: %w", err)
+	}
+	labels := make([]domain.Label, 0, len(rows))
+	for _, r := range rows {
+		labels = append(labels, toDomainLabel(r))
+	}
+	return labels, nil
+}
+
+func (s *PGStore) GetLabel(ctx context.Context, userID, labelID int64) (domain.Label, error) {
+	r, err := s.q.GetLabelByID(ctx, generated.GetLabelByIDParams{
+		ID:     int32(labelID),
+		UserID: userID,
+	})
+	if err != nil {
+		return domain.Label{}, fmt.Errorf("get label %d: %w", labelID, err)
+	}
+	return toDomainLabel(r), nil
+}
+
+func (s *PGStore) CreateLabel(ctx context.Context, userID int64, name string) (domain.Label, error) {
+	r, err := s.q.CreateLabel(ctx, generated.CreateLabelParams{
+		UserID: userID,
+		Name:   name,
+	})
+	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+			return domain.Label{}, domain.ErrLabelAlreadyExists
+		}
+		return domain.Label{}, fmt.Errorf("create label: %w", err)
+	}
+	return toDomainLabel(r), nil
+}
+
+func (s *PGStore) UpdateLabel(ctx context.Context, userID, labelID int64, name string) error {
+	err := s.q.UpdateLabel(ctx, generated.UpdateLabelParams{
+		ID:     int32(labelID),
+		Name:   name,
+		UserID: userID,
+	})
+	if err != nil {
+		return fmt.Errorf("update label %d: %w", labelID, err)
+	}
+	return nil
+}
+
+func (s *PGStore) DeleteLabel(ctx context.Context, userID, labelID int64) error {
+	err := s.q.DeleteLabel(ctx, generated.DeleteLabelParams{
+		ID:     int32(labelID),
+		UserID: userID,
+	})
+	if err != nil {
+		return fmt.Errorf("delete label %d: %w", labelID, err)
+	}
+	return nil
+}
+
+func (s *PGStore) AddFeedLabel(ctx context.Context, userID, feedID, labelID int64) error {
+	// Verify feed ownership before adding label.
+	_, err := s.GetFeed(ctx, userID, feedID)
+	if err != nil {
+		return err
+	}
+	// Verify label ownership.
+	_, err = s.GetLabel(ctx, userID, labelID)
+	if err != nil {
+		return err
+	}
+	err = s.q.AddFeedLabel(ctx, generated.AddFeedLabelParams{
+		FeedID:  int32(feedID),
+		LabelID: int32(labelID),
+	})
+	if err != nil {
+		return fmt.Errorf("add feed label: %w", err)
+	}
+	return nil
+}
+
+func (s *PGStore) RemoveFeedLabel(ctx context.Context, userID, feedID, labelID int64) error {
+	err := s.q.RemoveFeedLabel(ctx, generated.RemoveFeedLabelParams{
+		FeedID:  int32(feedID),
+		LabelID: int32(labelID),
+	})
+	if err != nil {
+		return fmt.Errorf("remove feed label: %w", err)
+	}
+	return nil
+}
+
+func (s *PGStore) GetFeedLabels(ctx context.Context, userID, feedID int64) ([]domain.Label, error) {
+	rows, err := s.q.GetFeedLabels(ctx, generated.GetFeedLabelsParams{
+		FeedID: int32(feedID),
+		UserID: userID,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("get feed labels: %w", err)
+	}
+	labels := make([]domain.Label, 0, len(rows))
+	for _, r := range rows {
+		labels = append(labels, toDomainLabel(r))
+	}
+	return labels, nil
+}
+
+func (s *PGStore) GetFeedIDsByLabel(ctx context.Context, userID int64) (map[int64][]int64, error) {
+	assignments, err := s.q.GetUserLabelAssignments(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("get user label assignments: %w", err)
+	}
+	result := make(map[int64][]int64)
+	for _, a := range assignments {
+		result[int64(a.LabelID)] = append(result[int64(a.LabelID)], int64(a.FeedID))
+	}
+	return result, nil
+}
+
+func toDomainLabel(r generated.Label) domain.Label {
+	return domain.Label{
+		ID:        int64(r.ID),
+		UserID:    r.UserID,
+		Name:      r.Name,
+		CreatedAt: r.CreatedAt.Time,
+	}
+}
