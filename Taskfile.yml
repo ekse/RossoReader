@@ -1,0 +1,86 @@
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+
+version: "3"
+
+tasks:
+  list:
+    cmds:
+      - task -l
+    silent: true
+
+  build:
+    desc: build
+    cmds:
+      - task: build-api
+      - task: build-web
+
+  build-api:
+    desc: build (go build)
+    dir: backend
+    cmds:
+      - go build ./...
+
+  build-web:
+    desc: build (vite build)
+    dir: frontend
+    cmds:
+      - pnpm run build
+
+  test:
+    desc: run the tests
+    cmds:
+      - task: test-api
+      - task: test-web
+
+  test-api:
+    desc: test the backend (go test)
+    dir: backend
+    cmds:
+      - go test ./...
+
+  test-web:
+    desc: test the web frontend (vitest)
+    dir: frontend
+    cmds:
+      - pnpm run test
+
+  fmt:
+    desc: reformat
+    cmds:
+      - task: fmt-api
+      - task: fmt-web
+
+  fmt-api:
+    desc: reformat the backend (go fmt)
+    dir: backend
+    cmds:
+      - go fmt ./...
+
+  fmt-web:
+    desc: test the web frontend (oxfmt)
+    dir: frontend
+    cmds:
+      - pnpm run fmt
+
+  lint:
+    desc: apply linting
+    cmds:
+      - task: lint-api
+      - task: lint-web
+
+  lint-api:
+    desc: apply linting to backend (go vet)
+    dir: backend
+    cmds:
+      - go vet ./...
+
+  lint-web:
+    desc: apply linting to web (oxlint)
+    dir: frontend
+    cmds:
+      - pnpm run lint
+
+  up:
+    desc: start the app (docker compose up)
+    cmds:
+      - docker compose up
