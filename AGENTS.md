@@ -8,6 +8,8 @@ RSS feed reader (Rosso Reader). Go backend (`backend/`), Vue 3 frontend (`fronte
 
 Changes must include unit tests.
 
+Use constants for default or constant values. Do not duplicate constants, centraize them to avoid the values becoming desynchronized.
+
 ## Build & Run
 
 ```bash

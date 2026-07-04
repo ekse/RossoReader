@@ -19,6 +19,7 @@ vi.mock("@/composables/useSidebar", () => ({
   useSidebar: () => ({ toggle: vi.fn() }),
 }));
 
+import { DEFAULT_ITEMS_LIMIT, DEFAULT_FEEDS_LIMIT } from "@/types";
 import Administration from "@/views/Administration.vue";
 import { useAuthStore } from "@/stores/auth";
 
@@ -151,66 +152,69 @@ describe("Administration", () => {
     expect(mockCreateUser).toHaveBeenCalledWith("eve", "pw", true);
   });
 
-  it("shows items limit section", async () => {
+  it("shows application settings table", async () => {
     setAuthUser({ id: 1, username: "admin", is_admin: true });
     mockListUsers.mockResolvedValue([]);
-    mockFetchAdminSettings.mockResolvedValue({ items_limit: 150 });
+    mockFetchAdminSettings.mockResolvedValue({ items_limit: DEFAULT_ITEMS_LIMIT, feeds_limit: DEFAULT_FEEDS_LIMIT });
 
     const wrapper = mount(Administration);
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(wrapper.text()).toContain("Application Settings");
     expect(wrapper.text()).toContain("Items per feed limit");
-    expect(wrapper.find('input[type="number"]').exists()).toBe(true);
+    expect(wrapper.text()).toContain("Feed subscription limit");
+    expect(wrapper.findAll('input[type="number"]').length).toBe(2);
   });
 
-  it("loads items limit from API on mount", async () => {
+  it("loads settings from API on mount", async () => {
     setAuthUser({ id: 1, username: "admin", is_admin: true });
     mockListUsers.mockResolvedValue([]);
-    mockFetchAdminSettings.mockResolvedValue({ items_limit: 200 });
+    mockFetchAdminSettings.mockResolvedValue({ items_limit: 250, feeds_limit: 350 });
 
     const wrapper = mount(Administration);
     await new Promise((resolve) => setTimeout(resolve, 0));
 
-    const input = wrapper.find('input[type="number"]') as any;
-    expect(parseInt(input.element.value, 10)).toBe(200);
+    const inputs = wrapper.findAll('input[type="number"]');
+    expect(parseInt((inputs[0].element as HTMLInputElement).value, 10)).toBe(350);
+    expect(parseInt((inputs[1].element as HTMLInputElement).value, 10)).toBe(250);
   });
 
-  it("saves items limit", async () => {
+  it("saves both limits with single button", async () => {
     setAuthUser({ id: 1, username: "admin", is_admin: true });
     mockListUsers.mockResolvedValue([]);
-    mockFetchAdminSettings.mockResolvedValue({ items_limit: 150 });
-    mockUpdateAdminSettings.mockResolvedValue({ items_limit: 100 });
+    mockFetchAdminSettings.mockResolvedValue({ items_limit: DEFAULT_ITEMS_LIMIT, feeds_limit: DEFAULT_FEEDS_LIMIT });
+    mockUpdateAdminSettings.mockResolvedValue({ items_limit: 100, feeds_limit: 50 });
 
     const wrapper = mount(Administration);
     await new Promise((resolve) => setTimeout(resolve, 0));
 
-    const input = wrapper.find('input[type="number"]');
-    await input.setValue(100);
+    const inputs = wrapper.findAll('input[type="number"]');
+    await inputs[0].setValue(100);
+    await inputs[1].setValue(50);
 
-    const saveBtn = wrapper.findAll("button").find((b) => b.text().trim() === "Save");
+    const saveBtn = wrapper.findAll("button").find((b) => b.text().trim() === "Save settings");
     await saveBtn!.trigger("click");
     await new Promise((resolve) => setTimeout(resolve, 0));
 
-    expect(mockUpdateAdminSettings).toHaveBeenCalledWith({ items_limit: 100 });
+    expect(mockUpdateAdminSettings).toHaveBeenCalledWith({ feeds_limit: 100, items_limit: 50 });
     expect(wrapper.text()).toContain("Saved.");
   });
 
-  it("shows error when limit is invalid", async () => {
+  it("shows error when a limit is invalid", async () => {
     setAuthUser({ id: 1, username: "admin", is_admin: true });
     mockListUsers.mockResolvedValue([]);
-    mockFetchAdminSettings.mockResolvedValue({ items_limit: 150 });
+    mockFetchAdminSettings.mockResolvedValue({ items_limit: DEFAULT_ITEMS_LIMIT, feeds_limit: DEFAULT_FEEDS_LIMIT });
 
     const wrapper = mount(Administration);
     await new Promise((resolve) => setTimeout(resolve, 0));
 
-    const input = wrapper.find('input[type="number"]');
-    await input.setValue(0);
+    const inputs = wrapper.findAll('input[type="number"]');
+    await inputs[0].setValue(0);
 
-    const saveBtn = wrapper.findAll("button").find((b) => b.text().trim() === "Save");
+    const saveBtn = wrapper.findAll("button").find((b) => b.text().trim() === "Save settings");
     await saveBtn!.trigger("click");
     await new Promise((resolve) => setTimeout(resolve, 0));
 
-    expect(wrapper.text()).toContain("Limit must be at least 1.");
+    expect(wrapper.text()).toContain("Limits must be at least 1.");
   });
 });

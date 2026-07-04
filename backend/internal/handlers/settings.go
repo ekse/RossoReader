@@ -44,29 +44,55 @@ func (h *Handler) Health(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) GetAdminSettings(w http.ResponseWriter, r *http.Request) {
-	limit, err := h.Store.GetItemsLimit(r.Context())
+	itemsLimit, err := h.Store.GetItemsLimit(r.Context())
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	writeJSON(w, http.StatusOK, map[string]int{"items_limit": limit})
+	feedsLimit, err := h.Store.GetFeedsLimit(r.Context())
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]int{
+		"items_limit": itemsLimit,
+		"feeds_limit": feedsLimit,
+	})
 }
 
 func (h *Handler) UpdateAdminSettings(w http.ResponseWriter, r *http.Request) {
 	var req struct {
-		ItemsLimit int `json:"items_limit"`
+		ItemsLimit *int `json:"items_limit,omitempty"`
+		FeedsLimit *int `json:"feeds_limit,omitempty"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "invalid request body", http.StatusBadRequest)
 		return
 	}
-	if req.ItemsLimit < 1 {
-		http.Error(w, "items_limit must be at least 1", http.StatusBadRequest)
-		return
+	if req.ItemsLimit != nil {
+		if *req.ItemsLimit < 1 {
+			http.Error(w, "items_limit must be at least 1", http.StatusBadRequest)
+			return
+		}
+		if err := h.Store.SetItemsLimit(r.Context(), *req.ItemsLimit); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 	}
-	if err := h.Store.SetItemsLimit(r.Context(), req.ItemsLimit); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+	if req.FeedsLimit != nil {
+		if *req.FeedsLimit < 1 {
+			http.Error(w, "feeds_limit must be at least 1", http.StatusBadRequest)
+			return
+		}
+		if err := h.Store.SetFeedsLimit(r.Context(), *req.FeedsLimit); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 	}
-	writeJSON(w, http.StatusOK, map[string]int{"items_limit": req.ItemsLimit})
+	itemsLimit, _ := h.Store.GetItemsLimit(r.Context())
+	feedsLimit, _ := h.Store.GetFeedsLimit(r.Context())
+	writeJSON(w, http.StatusOK, map[string]int{
+		"items_limit": itemsLimit,
+		"feeds_limit": feedsLimit,
+	})
 }

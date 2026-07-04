@@ -67,6 +67,7 @@ func TestGetAdminSettings(t *testing.T) {
 	err := json.Unmarshal(w.Body.Bytes(), &resp)
 	require.NoError(t, err)
 	assert.Equal(t, 150, resp["items_limit"])
+	assert.Equal(t, 200, resp["feeds_limit"])
 }
 
 func TestUpdateAdminSettings(t *testing.T) {
@@ -75,7 +76,7 @@ func TestUpdateAdminSettings(t *testing.T) {
 	h := handlers.New(store, nil, nil, newTestPasskeyHandler(store))
 	r := authedRouter(h, admin)
 
-	req := authReq("PATCH", "/api/admin/settings", `{"items_limit":200}`, admin)
+	req := authReq("PATCH", "/api/admin/settings", `{"items_limit":200,"feeds_limit":300}`, admin)
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
@@ -86,6 +87,7 @@ func TestUpdateAdminSettings(t *testing.T) {
 	err := json.Unmarshal(w.Body.Bytes(), &resp)
 	require.NoError(t, err)
 	assert.Equal(t, 200, resp["items_limit"])
+	assert.Equal(t, 300, resp["feeds_limit"])
 }
 
 func TestUpdateAdminSettings_NonAdmin(t *testing.T) {
@@ -102,13 +104,27 @@ func TestUpdateAdminSettings_NonAdmin(t *testing.T) {
 	assert.Equal(t, http.StatusForbidden, w.Code)
 }
 
-func TestUpdateAdminSettings_InvalidLimit(t *testing.T) {
+func TestUpdateAdminSettings_InvalidItemsLimit(t *testing.T) {
 	store := mockstore.New()
 	admin := makeUser(t, store, "admin", true)
 	h := handlers.New(store, nil, nil, newTestPasskeyHandler(store))
 	r := authedRouter(h, admin)
 
 	req := authReq("PATCH", "/api/admin/settings", `{"items_limit":0}`, admin)
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+}
+
+func TestUpdateAdminSettings_InvalidFeedsLimit(t *testing.T) {
+	store := mockstore.New()
+	admin := makeUser(t, store, "admin", true)
+	h := handlers.New(store, nil, nil, newTestPasskeyHandler(store))
+	r := authedRouter(h, admin)
+
+	req := authReq("PATCH", "/api/admin/settings", `{"feeds_limit":0}`, admin)
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)

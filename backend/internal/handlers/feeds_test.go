@@ -160,6 +160,23 @@ func TestAddFeed_EmptyURL(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
+func TestAddFeed_AtLimit(t *testing.T) {
+	store := mockstore.New()
+	store.SetFeedsLimit(nil, 1)
+	user := makeUser(t, store, "alice", true)
+	store.Feeds = []domain.Feed{{ID: 1, UserID: user.ID, URL: "https://a.com/rss", Title: "A"}}
+	h := handlers.New(store, nil, nil, newTestPasskeyHandler(store))
+	r := authedRouter(h, user)
+
+	req := authReq("POST", "/api/feeds", `{"url":"https://example.com/rss"}`, user)
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusConflict, w.Code)
+	assert.Contains(t, w.Body.String(), "limit")
+}
+
 func TestRemoveFeed(t *testing.T) {
 	store := mockstore.New()
 	user := makeUser(t, store, "alice", true)

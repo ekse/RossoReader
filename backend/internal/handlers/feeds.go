@@ -64,6 +64,21 @@ func (h *Handler) AddFeed(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	limit, err := h.Store.GetFeedsLimit(r.Context())
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	feeds, err := h.Store.GetFeeds(r.Context(), userID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if len(feeds) >= limit {
+		http.Error(w, "You have reached the limit of feed subscriptions.", http.StatusConflict)
+		return
+	}
+
 	feed, err := h.Store.CreateFeed(r.Context(), userID, req.URL, "", "", "", "", "")
 	if err != nil {
 		if errors.Is(err, domain.ErrFeedAlreadyExists) {

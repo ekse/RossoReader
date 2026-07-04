@@ -1,12 +1,13 @@
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
-import type { Feed } from "@/types";
+import { DEFAULT_FEEDS_LIMIT, type Feed } from "@/types";
 import * as api from "@/api/client";
 
 export const useFeedsStore = defineStore("feeds", () => {
   const feeds = ref<Feed[]>([]);
   const loading = ref(false);
   const filterUnreadOnly = ref(false);
+  const feedsLimit = ref(DEFAULT_FEEDS_LIMIT);
 
   const totalUnread = computed(() =>
     feeds.value.reduce((sum, f) => sum + (f.unread_count || 0), 0),
@@ -25,12 +26,23 @@ export const useFeedsStore = defineStore("feeds", () => {
     return map;
   });
 
+  const hasReachedLimit = computed(() => feeds.value.length >= feedsLimit.value);
+
   async function loadFeeds() {
     loading.value = true;
     try {
       feeds.value = await api.fetchFeeds();
     } finally {
       loading.value = false;
+    }
+  }
+
+  async function loadFeedsLimit() {
+    try {
+      const settings = await api.fetchAdminSettings();
+      feedsLimit.value = settings.feeds_limit;
+    } catch {
+      // defaults to DEFAULT_FEEDS_LIMIT
     }
   }
 
@@ -78,7 +90,10 @@ export const useFeedsStore = defineStore("feeds", () => {
     feedNames,
     visibleFeeds,
     filterUnreadOnly,
+    feedsLimit,
+    hasReachedLimit,
     loadFeeds,
+    loadFeedsLimit,
     addFeed,
     removeFeed,
     refreshFeed,

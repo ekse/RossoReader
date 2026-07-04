@@ -1,3 +1,6 @@
+export const DEFAULT_ITEMS_LIMIT = 150;
+export const DEFAULT_FEEDS_LIMIT = 200;
+
 export interface Feed {
   id: number;
   url: string;
@@ -50,4 +53,9 @@ export interface Passkey {
   transports: string[];
   backup_eligible: boolean;
   created_at: string;
+}
+
+export interface AdminSettings {
+  items_limit: number;
+  feeds_limit: number;
 }

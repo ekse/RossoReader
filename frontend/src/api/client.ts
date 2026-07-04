@@ -1,4 +1,12 @@
-import type { Feed, Item, ItemsResponse, DiscoveredFeed, User, Passkey } from "@/types";
+import type {
+  Feed,
+  Item,
+  ItemsResponse,
+  DiscoveredFeed,
+  User,
+  Passkey,
+  AdminSettings,
+} from "@/types";
 
 const BASE_URL = import.meta.env.VITE_API_URL || "";
 
@@ -203,14 +211,12 @@ export async function updateSettings(
 
 // Admin Settings
 
-export async function fetchAdminSettings(): Promise<{ items_limit: number }> {
-  return request<{ items_limit: number }>("/api/admin/settings");
+export async function fetchAdminSettings(): Promise<AdminSettings> {
+  return request<AdminSettings>("/api/admin/settings");
 }
 
-export async function updateAdminSettings(data: {
-  items_limit: number;
-}): Promise<{ items_limit: number }> {
-  return request<{ items_limit: number }>("/api/admin/settings", {
+export async function updateAdminSettings(data: Partial<AdminSettings>): Promise<AdminSettings> {
+  return request<AdminSettings>("/api/admin/settings", {
     method: "PATCH",
     body: data,
   });

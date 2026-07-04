@@ -13,6 +13,7 @@ import (
 
 	"github.com/ekse/rssreader/internal/db/generated"
 	"github.com/ekse/rssreader/internal/domain"
+	"github.com/ekse/rssreader/internal/store"
 )
 
 type PGStore struct {
@@ -626,11 +627,11 @@ func toDomainUser(r generated.User, passwordHash string) domain.User {
 func (s *PGStore) GetItemsLimit(ctx context.Context) (int, error) {
 	v, err := s.q.GetGlobalSetting(ctx, "items_limit")
 	if err != nil {
-		return 150, nil
+		return store.DefaultItemsLimit, nil
 	}
 	n, err := strconv.Atoi(v)
 	if err != nil || n <= 0 {
-		return 150, nil
+		return store.DefaultItemsLimit, nil
 	}
 	return n, nil
 }
@@ -638,6 +639,25 @@ func (s *PGStore) GetItemsLimit(ctx context.Context) (int, error) {
 func (s *PGStore) SetItemsLimit(ctx context.Context, limit int) error {
 	return s.q.UpsertGlobalSetting(ctx, generated.UpsertGlobalSettingParams{
 		Key:   "items_limit",
+		Value: strconv.Itoa(limit),
+	})
+}
+
+func (s *PGStore) GetFeedsLimit(ctx context.Context) (int, error) {
+	v, err := s.q.GetGlobalSetting(ctx, "feeds_limit")
+	if err != nil {
+		return store.DefaultFeedsLimit, nil
+	}
+	n, err := strconv.Atoi(v)
+	if err != nil || n <= 0 {
+		return store.DefaultFeedsLimit, nil
+	}
+	return n, nil
+}
+
+func (s *PGStore) SetFeedsLimit(ctx context.Context, limit int) error {
+	return s.q.UpsertGlobalSetting(ctx, generated.UpsertGlobalSettingParams{
+		Key:   "feeds_limit",
 		Value: strconv.Itoa(limit),
 	})
 }

@@ -40,6 +40,7 @@ async function handleExport() {
 
 onMounted(() => {
   feedsStore.loadFeeds();
+  feedsStore.loadFeedsLimit();
   loadPasskeys();
 });
 
@@ -151,7 +152,9 @@ async function deletePasskey(pk: Passkey) {
     <!-- Feed Subscriptions -->
     <section class="mt-8">
       <div class="flex items-center justify-between mb-4">
-        <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Feed Subscriptions</h2>
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+          Feed Subscriptions ({{ feedsStore.feeds.length }}/{{ feedsStore.feedsLimit }})
+        </h2>
         <div class="flex items-center gap-2">
           <button
             @click="handleExport"

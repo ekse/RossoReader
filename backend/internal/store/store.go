@@ -7,6 +7,11 @@ import (
 	"github.com/ekse/rssreader/internal/domain"
 )
 
+const (
+	DefaultItemsLimit = 150
+	DefaultFeedsLimit = 200
+)
+
 type Store interface {
 	// Feeds
 	GetFeeds(ctx context.Context, userID int64) ([]domain.Feed, error)
@@ -68,6 +73,8 @@ type Store interface {
 	// Global Settings
 	GetItemsLimit(ctx context.Context) (int, error)
 	SetItemsLimit(ctx context.Context, limit int) error
+	GetFeedsLimit(ctx context.Context) (int, error)
+	SetFeedsLimit(ctx context.Context, limit int) error
 
 	// Purge
 	CountItemsByFeed(ctx context.Context, feedID int64) (int64, error)

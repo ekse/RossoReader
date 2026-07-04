@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/ekse/rssreader/internal/domain"
+	"github.com/ekse/rssreader/internal/store"
 )
 
 type MockStore struct {
@@ -621,17 +622,15 @@ func (m *MockStore) DeleteExpiredAuthStates(_ context.Context) error {
 
 // Global Settings
 
-var defaultItemsLimit = 150
-
 func (m *MockStore) GetItemsLimit(_ context.Context) (int, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	if m.GlobalSettings == nil {
-		return defaultItemsLimit, nil
+		return store.DefaultItemsLimit, nil
 	}
 	v, ok := m.GlobalSettings["items_limit"]
 	if !ok {
-		return defaultItemsLimit, nil
+		return store.DefaultItemsLimit, nil
 	}
 	return v, nil
 }
@@ -643,6 +642,29 @@ func (m *MockStore) SetItemsLimit(_ context.Context, limit int) error {
 		m.GlobalSettings = make(map[string]int)
 	}
 	m.GlobalSettings["items_limit"] = limit
+	return nil
+}
+
+func (m *MockStore) GetFeedsLimit(_ context.Context) (int, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	if m.GlobalSettings == nil {
+		return store.DefaultFeedsLimit, nil
+	}
+	v, ok := m.GlobalSettings["feeds_limit"]
+	if !ok {
+		return store.DefaultFeedsLimit, nil
+	}
+	return v, nil
+}
+
+func (m *MockStore) SetFeedsLimit(_ context.Context, limit int) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	if m.GlobalSettings == nil {
+		m.GlobalSettings = make(map[string]int)
+	}
+	m.GlobalSettings["feeds_limit"] = limit
 	return nil
 }
 

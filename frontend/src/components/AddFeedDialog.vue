@@ -56,7 +56,24 @@ async function addSelected(feed: DiscoveredFeed, index: number) {
     <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-3xl mx-4">
       <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Add Feed</h2>
 
-      <form v-if="discovered.length === 0" @submit.prevent="submit" class="mt-4">
+      <div v-if="feedsStore.hasReachedLimit" class="mt-4">
+        <p class="text-sm text-amber-600 dark:text-amber-400">
+          You have reached the limit of feed subscriptions ({{ feedsStore.feeds.length }}/{{
+            feedsStore.feedsLimit
+          }}). Remove other feeds first.
+        </p>
+        <div class="mt-4 flex justify-end gap-3">
+          <button
+            type="button"
+            @click="emits('close')"
+            class="px-4 py-2 text-sm text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+
+      <form v-else-if="discovered.length === 0" @submit.prevent="submit" class="mt-4">
         <input
           v-model="url"
           type="url"
