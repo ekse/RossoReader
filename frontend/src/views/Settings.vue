@@ -206,7 +206,7 @@ async function deletePasskey(pk: Passkey) {
             @click="feedsStore.removeFeed(feed.id)"
             class="ml-4 text-sm text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
           >
-            Remove
+            Unsubscribe
           </button>
         </div>
       </div>
