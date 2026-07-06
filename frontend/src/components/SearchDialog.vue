@@ -158,7 +158,9 @@ function navigateToItem(item: Item) {
   pendingFocusItemId.value = item.id;
   closeSearch();
   emits("close");
-  router.push(`/feed/${item.feed_id}`);
+  const q = query.value.trim();
+  const hash = q ? `#highlight=${encodeURIComponent(q)}` : "";
+  router.push(`/feed/${item.feed_id}${hash}`);
 }
 
 const feedList = computed(() => {

@@ -1,9 +1,26 @@
 <script setup lang="ts">
+import { ref, watch, nextTick } from "vue";
 import type { Item } from "@/types";
+import { useSearchHighlight, highlightTextNodes } from "@/composables/useSearchHighlight";
 
-defineProps<{
+const props = defineProps<{
   item: Item | null;
 }>();
+
+const { highlightQuery } = useSearchHighlight();
+
+const articleRef = ref<HTMLElement | null>(null);
+
+watch(
+  () => [props.item, highlightQuery.value] as const,
+  async () => {
+    await nextTick();
+    const q = highlightQuery.value;
+    if (!q || !articleRef.value) return;
+    highlightTextNodes(articleRef.value, q);
+  },
+  { immediate: true },
+);
 
 function formatDate(dateStr?: string): string {
   if (!dateStr) return "";
@@ -18,7 +35,7 @@ function formatDate(dateStr?: string): string {
   >
     Select an item to read
   </div>
-  <article v-else class="max-w-3xl mx-auto px-6 py-2">
+  <article v-else ref="articleRef" class="max-w-3xl mx-auto px-6 py-2">
     <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ item.title }}</h1>
     <div class="mt-2 flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
       <span v-if="item.author">By {{ item.author }}</span>

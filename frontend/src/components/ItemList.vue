@@ -3,6 +3,7 @@ import { watch } from "vue";
 import type { Item } from "@/types";
 import ItemDetail from "./ItemDetail.vue";
 import { useCurrentItem } from "@/composables/useCurrentItem";
+import { useSearchHighlight } from "@/composables/useSearchHighlight";
 
 const props = defineProps<{
   items: Item[];
@@ -19,6 +20,8 @@ const emit = defineEmits<{
 
 const { currentItemId, expandedItems, clearExpanded, isExpanded, pendingFocusItemId, expandItem } =
   useCurrentItem();
+
+const { highlightText } = useSearchHighlight();
 
 watch(
   () => props.items,
@@ -106,15 +109,14 @@ function stripHtml(s?: string): string {
               <span class="hidden md:inline">{{ formatDate(item.published_at) }}</span>
               <h3 class="text-sm font-medium">
                 <span
+                  v-html="highlightText(item.title)"
                   :class="[
                     item.read
                       ? 'text-gray-500 dark:text-gray-400'
                       : 'text-gray-900 dark:text-gray-100 hover:text-blue-600 dark:hover:text-blue-400',
                     'hover:underline',
                   ]"
-                >
-                  {{ item.title }}
-                </span>
+                />
               </h3>
             </div>
             <span
@@ -125,9 +127,8 @@ function stripHtml(s?: string): string {
             <span
               v-if="item.description && !isExpanded(item.id)"
               class="text-sm text-gray-500 dark:text-gray-400 line-clamp-3 md:line-clamp-1"
-            >
-              {{ stripHtml(item.description) }}
-            </span>
+              v-html="highlightText(stripHtml(item.description))"
+            />
           </div>
           <div class="flex items-center gap-2 shrink-0">
             <button
