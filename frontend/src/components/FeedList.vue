@@ -5,6 +5,7 @@ import { useFeedsStore } from "@/stores/feeds";
 import { useAuthStore } from "@/stores/auth";
 import ThemeToggle from "./ThemeToggle.vue";
 import { useAddFeed } from "@/composables/useAddFeed";
+import { useSearch } from "@/composables/useSearch";
 import { useTheme } from "@/composables/useTheme";
 import whiteLogo from "@/assets/rosso_reader_white_112px.png";
 import transparentLogo from "@/assets/rosso_reader_transparent_112px.png";
@@ -47,6 +48,7 @@ const lastUpdate = computed(() => {
 const totalUnread = computed(() => feedsStore.totalUnread);
 
 const { open: openAddFeed } = useAddFeed();
+const { openSearch } = useSearch();
 const { isDark } = useTheme();
 </script>
 
@@ -61,57 +63,77 @@ const { isDark } = useTheme();
       </div>
       <router-link
         to="/unread"
-        class="block px-3 py-1.5 rounded-md text-sm font-medium"
+        class="flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium"
         :class="
           route.path === '/unread'
             ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300'
             : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700/50'
         "
       >
-        <span class="flex items-center justify-between">
-          New
-          <span
-            v-if="totalUnread > 0"
-            class="inline-flex items-center justify-center px-2 py-0.5 text-xs font-medium rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
-          >
-            {{ totalUnread }}
-          </span>
+        <svg class="w-4 h-4 shrink-0">
+          <use href="#icon-inbox" />
+        </svg>
+        <span class="flex-1">New</span>
+        <span
+          v-if="totalUnread > 0"
+          class="inline-flex items-center justify-center px-2 py-0.5 text-xs font-medium rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+        >
+          {{ totalUnread }}
         </span>
       </router-link>
       <router-link
         to="/starred"
-        class="block px-3 py-1.5 rounded-md text-sm font-medium mt-1"
+        class="flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium mt-1"
         :class="
           route.path === '/starred'
             ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300'
             : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700/50'
         "
       >
+        <svg class="w-4 h-4 shrink-0">
+          <use href="#icon-star" />
+        </svg>
         Starred
       </router-link>
 
+      <button
+        @click="openSearch"
+        class="w-full text-left px-3 py-1.5 rounded-md text-sm font-medium mt-1 text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700/50 flex items-center gap-2"
+      >
+        <svg class="w-4 h-4">
+          <use href="#icon-search" />
+        </svg>
+        Search
+      </button>
+
       <router-link
         to="/settings"
-        class="block px-3 py-1.5 rounded-md text-sm font-medium mt-1"
+        class="flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium mt-1"
         :class="
           route.path === '/settings'
             ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300'
             : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700/50'
         "
       >
+        <svg class="w-4 h-4 shrink-0">
+          <use href="#icon-gear" />
+        </svg>
         Settings
       </router-link>
 
       <router-link
         v-if="auth.isAdmin"
         to="/admin"
-        class="block px-3 py-1.5 rounded-md text-sm font-medium mt-1"
+        class="flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium mt-1"
         :class="
           route.path === '/admin'
             ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300'
             : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700/50'
         "
       >
+        <svg class="w-4 h-4 shrink-0">
+          <use href="#icon-shield" />
+        </svg>
         Administration
       </router-link>
 

@@ -197,6 +197,59 @@ func (s *PGStore) GetItems(ctx context.Context, q domain.ItemsQuery) ([]domain.I
 	return items, total, nil
 }
 
+func (s *PGStore) SearchItems(ctx context.Context, q domain.SearchQuery) ([]domain.Item, int64, error) {
+	limit := int32(q.PerPage)
+	if limit <= 0 {
+		limit = 20
+	}
+	offset := int32((q.Page - 1) * q.PerPage)
+	if offset < 0 {
+		offset = 0
+	}
+
+	feedIDs := make([]int32, 0, len(q.FeedIDs))
+	for _, id := range q.FeedIDs {
+		feedIDs = append(feedIDs, int32(id))
+	}
+	labelIDs := make([]int32, 0, len(q.LabelIDs))
+	for _, id := range q.LabelIDs {
+		labelIDs = append(labelIDs, int32(id))
+	}
+
+	params := generated.SearchItemsParams{
+		UserID:   q.UserID,
+		Query:    &q.Query,
+		FeedIds:  feedIDs,
+		LabelIds: labelIDs,
+		Offset:   offset,
+		Limit:    limit,
+	}
+
+	rows, err := s.q.SearchItems(ctx, params)
+	if err != nil {
+		return nil, 0, fmt.Errorf("search items: %w", err)
+	}
+
+	countParams := generated.CountSearchItemsParams{
+		UserID:   q.UserID,
+		Query:    &q.Query,
+		FeedIds:  feedIDs,
+		LabelIds: labelIDs,
+	}
+	total, err := s.q.CountSearchItems(ctx, countParams)
+	if err != nil {
+		return nil, 0, fmt.Errorf("count search items: %w", err)
+	}
+
+	items := make([]domain.Item, 0, len(rows))
+	for _, r := range rows {
+		items = append(items, toDomainItem(r.ID, r.FeedID, r.Guid, r.Title, r.Url,
+			r.Content, r.Description, r.Author, r.PublishedAt, r.FetchedAt,
+			r.IsRead, r.IsStarred))
+	}
+	return items, total, nil
+}
+
 func (s *PGStore) GetItem(ctx context.Context, userID, id int64) (domain.Item, error) {
 	r, err := s.q.GetItemByID(ctx, generated.GetItemByIDParams{ID: int32(id), UserID: userID})
 	if err != nil {

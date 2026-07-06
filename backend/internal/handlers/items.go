@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 
@@ -121,4 +122,46 @@ func (h *Handler) MarkAllRead(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(http.StatusNoContent)
+}
+
+func (h *Handler) SearchItems(w http.ResponseWriter, r *http.Request) {
+	userID := currentUserID(r)
+	q := r.URL.Query()
+
+	page, _ := strconv.Atoi(q.Get("page"))
+	if page < 1 {
+		page = 1
+	}
+	perPage, _ := strconv.Atoi(q.Get("per_page"))
+	if perPage < 1 || perPage > 100 {
+		perPage = 20
+	}
+
+	queryText := strings.TrimSpace(q.Get("q"))
+	if queryText == "" {
+		http.Error(w, "query parameter 'q' is required", http.StatusBadRequest)
+		return
+	}
+
+	feedIDs := parseIntList(q.Get("feed_ids"))
+	labelIDs := parseIntList(q.Get("label_ids"))
+
+	items, total, err := h.Store.SearchItems(r.Context(), domain.SearchQuery{
+		Page:     page,
+		PerPage:  perPage,
+		UserID:   userID,
+		Query:    queryText,
+		FeedIDs:  feedIDs,
+		LabelIDs: labelIDs,
+	})
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	writeJSON(w, http.StatusOK, listItemsResponse{
+		Items: items,
+		Total: total,
+		Page:  page,
+	})
 }

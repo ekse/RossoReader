@@ -64,6 +64,7 @@ func authedRouter(h *handlers.Handler, user domain.User) chi.Router {
 		r.Get("/api/feeds/opml/export", h.ExportOPML)
 		r.Post("/api/feeds/opml/preview", h.PreviewOPMLImport)
 		r.Get("/api/items", h.ListItems)
+		r.Get("/api/items/search", h.SearchItems)
 		r.Post("/api/items/read-all", h.MarkAllRead)
 		r.Patch("/api/items/{id}", h.UpdateItem)
 		r.Get("/api/settings", h.GetSettings)

@@ -3,6 +3,7 @@ import { useRouter, useRoute } from "vue-router";
 import { useItemsStore } from "@/stores/items";
 import { useFeedsStore } from "@/stores/feeds";
 import { useCurrentItem } from "./useCurrentItem";
+import { useSearch } from "./useSearch";
 import * as api from "@/api/client";
 
 const showHelp = ref(false);
@@ -107,6 +108,20 @@ export function useKeyboardShortcuts() {
     if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
 
     switch (e.key) {
+      case "F": {
+        if (!showHelp.value && e.shiftKey) {
+          useSearch().openSearch();
+          e.preventDefault();
+        }
+        break;
+      }
+      case "/": {
+        if (!showHelp.value) {
+          useSearch().openSearch();
+          e.preventDefault();
+        }
+        break;
+      }
       case "Escape": {
         showHelp.value = false;
         e.preventDefault();

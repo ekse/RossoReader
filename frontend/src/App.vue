@@ -3,11 +3,13 @@ import { onMounted, onUnmounted, watch } from "vue";
 import { useRoute } from "vue-router";
 import FeedList from "./components/FeedList.vue";
 import AddFeedDialog from "./components/AddFeedDialog.vue";
+import SearchDialog from "./components/SearchDialog.vue";
 import KeyboardShortcutsDialog from "./components/KeyboardShortcutsDialog.vue";
 import SvgSprites from "./components/SvgSprites.vue";
 import { useSidebar, DEFAULT_WIDTH } from "./composables/useSidebar";
 import { useHeader } from "./composables/useHeader";
 import { useAddFeed } from "./composables/useAddFeed";
+import { useSearch } from "./composables/useSearch";
 import { useKeyboardShortcuts } from "./composables/useKeyboardShortcuts";
 import { useFeedsStore } from "./stores/feeds";
 
@@ -15,6 +17,7 @@ const route = useRoute();
 const { isOpen, close, sidebarWidth, startResize } = useSidebar();
 const { isHeaderVisible, handleScroll } = useHeader();
 const { showAddFeed, close: closeAddFeed } = useAddFeed();
+const { isSearchOpen, closeSearch } = useSearch();
 const { showHelp, closeHelp } = useKeyboardShortcuts();
 const feedsStore = useFeedsStore();
 
@@ -98,6 +101,7 @@ watch(
     </main>
 
     <AddFeedDialog v-if="showAddFeed" @close="closeAddFeed" />
+    <SearchDialog v-if="isSearchOpen" @close="closeSearch" />
     <KeyboardShortcutsDialog v-if="showHelp" @close="closeHelp" />
   </div>
 </template>

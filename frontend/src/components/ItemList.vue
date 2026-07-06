@@ -17,12 +17,24 @@ const emit = defineEmits<{
   loadMore: [];
 }>();
 
-const { currentItemId, expandedItems, clearExpanded, isExpanded } = useCurrentItem();
+const { currentItemId, expandedItems, clearExpanded, isExpanded, pendingFocusItemId, expandItem } =
+  useCurrentItem();
 
 watch(
   () => props.items,
   () => {
     clearExpanded();
+    const focusId = pendingFocusItemId.value;
+    if (focusId !== null) {
+      pendingFocusItemId.value = null;
+      const item = props.items.find((i) => i.id === focusId);
+      if (item) {
+        expandItem(item.id);
+        if (!item.read) {
+          emit("toggleRead", item);
+        }
+      }
+    }
   },
 );
 

@@ -40,6 +40,36 @@ func (q *Queries) CountItems(ctx context.Context, arg CountItemsParams) (int64, 
 	return count, err
 }
 
+const countSearchItems = `-- name: CountSearchItems :one
+SELECT COUNT(*)
+FROM items i
+JOIN feeds f ON f.id = i.feed_id AND f.user_id = $1::bigint
+WHERE (i.title ILIKE '%' || $2 || '%' OR i.description ILIKE '%' || $2 || '%' OR i.content ILIKE '%' || $2 || '%')
+  AND (cardinality($3::int[]) = 0 OR i.feed_id = ANY($3::int[]))
+  AND (cardinality($4::int[]) = 0 OR EXISTS (
+    SELECT 1 FROM feed_labels fl WHERE fl.feed_id = i.feed_id AND fl.label_id = ANY($4::int[])
+  ))
+`
+
+type CountSearchItemsParams struct {
+	UserID   int64   `json:"user_id"`
+	Query    *string `json:"query"`
+	FeedIds  []int32 `json:"feed_ids"`
+	LabelIds []int32 `json:"label_ids"`
+}
+
+func (q *Queries) CountSearchItems(ctx context.Context, arg CountSearchItemsParams) (int64, error) {
+	row := q.db.QueryRow(ctx, countSearchItems,
+		arg.UserID,
+		arg.Query,
+		arg.FeedIds,
+		arg.LabelIds,
+	)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const getItemByID = `-- name: GetItemByID :one
 SELECT i.id, i.feed_id, i.guid, i.title, i.url, i.content, i.description, i.author, i.published_at, i.fetched_at,
        COALESCE(uis.read, false) AS is_read, COALESCE(uis.starred, false) AS is_starred
@@ -226,6 +256,85 @@ type MarkFeedItemsReadForUserParams struct {
 func (q *Queries) MarkFeedItemsReadForUser(ctx context.Context, arg MarkFeedItemsReadForUserParams) error {
 	_, err := q.db.Exec(ctx, markFeedItemsReadForUser, arg.UserID, arg.FeedID)
 	return err
+}
+
+const searchItems = `-- name: SearchItems :many
+SELECT i.id, i.feed_id, i.guid, i.title, i.url, i.content, i.description, i.author, i.published_at, i.fetched_at,
+       COALESCE(uis.read, false) AS is_read, COALESCE(uis.starred, false) AS is_starred
+FROM items i
+JOIN feeds f ON f.id = i.feed_id AND f.user_id = $1::bigint
+LEFT JOIN user_item_states uis ON uis.item_id = i.id AND uis.user_id = $1::bigint
+WHERE (i.title ILIKE '%' || $2 || '%' OR i.description ILIKE '%' || $2 || '%' OR i.content ILIKE '%' || $2 || '%')
+  AND (cardinality($3::int[]) = 0 OR i.feed_id = ANY($3::int[]))
+  AND (cardinality($4::int[]) = 0 OR EXISTS (
+    SELECT 1 FROM feed_labels fl WHERE fl.feed_id = i.feed_id AND fl.label_id = ANY($4::int[])
+  ))
+ORDER BY i.published_at DESC NULLS LAST
+LIMIT $6 OFFSET $5
+`
+
+type SearchItemsParams struct {
+	UserID   int64   `json:"user_id"`
+	Query    *string `json:"query"`
+	FeedIds  []int32 `json:"feed_ids"`
+	LabelIds []int32 `json:"label_ids"`
+	Offset   int32   `json:"offset"`
+	Limit    int32   `json:"limit"`
+}
+
+type SearchItemsRow struct {
+	ID          int32              `json:"id"`
+	FeedID      int32              `json:"feed_id"`
+	Guid        string             `json:"guid"`
+	Title       string             `json:"title"`
+	Url         string             `json:"url"`
+	Content     *string            `json:"content"`
+	Description *string            `json:"description"`
+	Author      *string            `json:"author"`
+	PublishedAt pgtype.Timestamptz `json:"published_at"`
+	FetchedAt   pgtype.Timestamptz `json:"fetched_at"`
+	IsRead      bool               `json:"is_read"`
+	IsStarred   bool               `json:"is_starred"`
+}
+
+func (q *Queries) SearchItems(ctx context.Context, arg SearchItemsParams) ([]SearchItemsRow, error) {
+	rows, err := q.db.Query(ctx, searchItems,
+		arg.UserID,
+		arg.Query,
+		arg.FeedIds,
+		arg.LabelIds,
+		arg.Offset,
+		arg.Limit,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []SearchItemsRow
+	for rows.Next() {
+		var i SearchItemsRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.FeedID,
+			&i.Guid,
+			&i.Title,
+			&i.Url,
+			&i.Content,
+			&i.Description,
+			&i.Author,
+			&i.PublishedAt,
+			&i.FetchedAt,
+			&i.IsRead,
+			&i.IsStarred,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const setItemRead = `-- name: SetItemRead :exec

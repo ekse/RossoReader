@@ -349,6 +349,10 @@ func (m *MockStore) GetUnreadCountByFeed(_ context.Context, userID int64) (map[i
 	return result, nil
 }
 
+func (m *MockStore) SearchItems(_ context.Context, _ domain.SearchQuery) ([]domain.Item, int64, error) {
+	return nil, 0, errors.New("not implemented")
+}
+
 // Settings
 
 func (m *MockStore) GetSettings(_ context.Context, userID int64) (map[string]string, error) {

@@ -207,6 +207,18 @@ export async function fetchGroupedFeeds(): Promise<GroupedFeedsResponse> {
   return request<GroupedFeedsResponse>("/api/feeds/grouped");
 }
 
+// Search
+
+export async function searchItems(params: {
+  q: string;
+  page?: number;
+  per_page?: number;
+  feed_ids?: string;
+  label_ids?: string;
+}): Promise<ItemsResponse> {
+  return request<ItemsResponse>("/api/items/search", { params });
+}
+
 // Items
 
 export async function fetchItems(params?: {

@@ -123,6 +123,7 @@ func (h *Handler) MountRouter() chi.Router {
 		r.Post("/api/feeds/opml/preview", h.PreviewOPMLImport)
 
 		r.Get("/api/items", h.ListItems)
+		r.Get("/api/items/search", h.SearchItems)
 		r.Post("/api/items/read-all", h.MarkAllRead)
 		r.Patch("/api/items/{id}", h.UpdateItem)
 

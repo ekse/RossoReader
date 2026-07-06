@@ -2,6 +2,7 @@ import { ref } from "vue";
 
 const currentItemId = ref<number | null>(null);
 const expandedItems = ref<Record<number, boolean>>({});
+const pendingFocusItemId = ref<number | null>(null);
 
 export function useCurrentItem() {
   function set(id: number | null) {
@@ -39,6 +40,7 @@ export function useCurrentItem() {
   return {
     currentItemId,
     expandedItems,
+    pendingFocusItemId,
     set,
     expandItem,
     collapseItem,

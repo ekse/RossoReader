@@ -48,6 +48,15 @@ type ItemsQuery struct {
 	Starred *bool
 }
 
+type SearchQuery struct {
+	Page     int
+	PerPage  int
+	UserID   int64
+	Query    string
+	FeedIDs  []int64
+	LabelIDs []int64
+}
+
 type Settings struct {
 	Key   string `json:"key"`
 	Value string `json:"value"`

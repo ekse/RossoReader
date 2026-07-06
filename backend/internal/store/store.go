@@ -76,6 +76,9 @@ type Store interface {
 	GetFeedsLimit(ctx context.Context) (int, error)
 	SetFeedsLimit(ctx context.Context, limit int) error
 
+	// Search
+	SearchItems(ctx context.Context, q domain.SearchQuery) ([]domain.Item, int64, error)
+
 	// Purge
 	CountItemsByFeed(ctx context.Context, feedID int64) (int64, error)
 	DeleteExcessItems(ctx context.Context, feedID int64, maxItems int) (int64, error)

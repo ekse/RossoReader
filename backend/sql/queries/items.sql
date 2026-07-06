@@ -73,3 +73,27 @@ JOIN feeds f ON f.id = i.feed_id AND f.user_id = $1
 LEFT JOIN user_item_states uis ON uis.user_id = $1 AND uis.item_id = i.id
 WHERE uis.item_id IS NULL OR uis.read = false
 GROUP BY i.feed_id;
+
+-- name: SearchItems :many
+SELECT i.id, i.feed_id, i.guid, i.title, i.url, i.content, i.description, i.author, i.published_at, i.fetched_at,
+       COALESCE(uis.read, false) AS is_read, COALESCE(uis.starred, false) AS is_starred
+FROM items i
+JOIN feeds f ON f.id = i.feed_id AND f.user_id = sqlc.arg('user_id')::bigint
+LEFT JOIN user_item_states uis ON uis.item_id = i.id AND uis.user_id = sqlc.arg('user_id')::bigint
+WHERE (i.title ILIKE '%' || sqlc.arg('query') || '%' OR i.description ILIKE '%' || sqlc.arg('query') || '%' OR i.content ILIKE '%' || sqlc.arg('query') || '%')
+  AND (cardinality(sqlc.arg('feed_ids')::int[]) = 0 OR i.feed_id = ANY(sqlc.arg('feed_ids')::int[]))
+  AND (cardinality(sqlc.arg('label_ids')::int[]) = 0 OR EXISTS (
+    SELECT 1 FROM feed_labels fl WHERE fl.feed_id = i.feed_id AND fl.label_id = ANY(sqlc.arg('label_ids')::int[])
+  ))
+ORDER BY i.published_at DESC NULLS LAST
+LIMIT sqlc.arg('limit') OFFSET sqlc.arg('offset');
+
+-- name: CountSearchItems :one
+SELECT COUNT(*)
+FROM items i
+JOIN feeds f ON f.id = i.feed_id AND f.user_id = sqlc.arg('user_id')::bigint
+WHERE (i.title ILIKE '%' || sqlc.arg('query') || '%' OR i.description ILIKE '%' || sqlc.arg('query') || '%' OR i.content ILIKE '%' || sqlc.arg('query') || '%')
+  AND (cardinality(sqlc.arg('feed_ids')::int[]) = 0 OR i.feed_id = ANY(sqlc.arg('feed_ids')::int[]))
+  AND (cardinality(sqlc.arg('label_ids')::int[]) = 0 OR EXISTS (
+    SELECT 1 FROM feed_labels fl WHERE fl.feed_id = i.feed_id AND fl.label_id = ANY(sqlc.arg('label_ids')::int[])
+  ));
