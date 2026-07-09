@@ -55,6 +55,7 @@ const router = createRouter({
   routes: [
     { path: "/", redirect: "/unread" },
     { path: "/unread", name: "unread", component: { template: "<div>unread</div>" } },
+    { path: "/starred", name: "starred", component: { template: "<div>starred</div>" } },
     { path: "/admin", name: "admin", component: { template: "<div>admin</div>" } },
     { path: "/settings", name: "settings", component: { template: "<div>settings</div>" } },
   ],
