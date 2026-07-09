@@ -1,6 +1,12 @@
 import { describe, it, expect } from "vitest";
 import { mount } from "@vue/test-utils";
+import { createRouter, createWebHistory } from "vue-router";
 import ItemList from "../ItemList.vue";
+
+const router = createRouter({
+  history: createWebHistory(),
+  routes: [{ path: "/", component: { template: "<div />" } }],
+});
 
 describe("ItemList", () => {
   it("renders a list of items", () => {
@@ -18,6 +24,7 @@ describe("ItemList", () => {
     ];
     const wrapper = mount(ItemList, {
       props: { items },
+      global: { plugins: [router] },
     });
     expect(wrapper.text()).toContain("Test Post");
   });
@@ -25,6 +32,7 @@ describe("ItemList", () => {
   it("shows empty state when no items", () => {
     const wrapper = mount(ItemList, {
       props: { items: [] },
+      global: { plugins: [router] },
     });
     expect(wrapper.text()).toContain("No items to show.");
   });
@@ -42,6 +50,7 @@ describe("ItemList", () => {
     };
     const wrapper = mount(ItemList, {
       props: { items: [item] },
+      global: { plugins: [router] },
     });
     await wrapper.find(".cursor-pointer").trigger("click");
     expect(wrapper.emitted("toggleRead")).toBeTruthy();
@@ -61,6 +70,7 @@ describe("ItemList", () => {
     };
     const wrapper = mount(ItemList, {
       props: { items: [item] },
+      global: { plugins: [router] },
     });
     await wrapper.find(".cursor-pointer").trigger("click");
     expect(wrapper.emitted("toggleRead")).toBeFalsy();
@@ -79,6 +89,7 @@ describe("ItemList", () => {
     };
     const wrapper = mount(ItemList, {
       props: { items: [item1] },
+      global: { plugins: [router] },
     });
     await wrapper.find(".cursor-pointer").trigger("click");
     expect(wrapper.find(".cursor-default").exists()).toBe(true);
