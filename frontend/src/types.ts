@@ -1,5 +1,6 @@
 export const DEFAULT_ITEMS_LIMIT = 150;
 export const DEFAULT_FEEDS_LIMIT = 200;
+export const UNREAD_POLL_INTERVAL_MS = 10 * 60 * 1000; // 10 minutes
 
 export interface Feed {
   id: number;
