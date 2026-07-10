@@ -1,6 +1,12 @@
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
-import { DEFAULT_FEEDS_LIMIT, type Feed, type Label, type LabelGroup } from "@/types";
+import {
+  DEFAULT_FEEDS_LIMIT,
+  UNREAD_POLL_INTERVAL_MS,
+  type Feed,
+  type Label,
+  type LabelGroup,
+} from "@/types";
 import * as api from "@/api/client";
 
 export const useFeedsStore = defineStore("feeds", () => {
@@ -130,6 +136,29 @@ export const useFeedsStore = defineStore("feeds", () => {
     collapsedLabelIds.value = s;
   }
 
+  const unreadPollTimer = ref<ReturnType<typeof setInterval> | undefined>();
+
+  function startUnreadPolling() {
+    stopUnreadPolling();
+    unreadPollTimer.value = setInterval(async () => {
+      try {
+        const counts = await api.fetchUnreadCounts();
+        for (const feed of feeds.value) {
+          feed.unread_count = counts[feed.id] ?? 0;
+        }
+      } catch {
+        // silent — network errors shouldn't disrupt the user
+      }
+    }, UNREAD_POLL_INTERVAL_MS);
+  }
+
+  function stopUnreadPolling() {
+    if (unreadPollTimer.value !== undefined) {
+      clearInterval(unreadPollTimer.value);
+      unreadPollTimer.value = undefined;
+    }
+  }
+
   return {
     feeds,
     loading,
@@ -155,5 +184,7 @@ export const useFeedsStore = defineStore("feeds", () => {
     refreshFeed,
     importFeeds,
     toggleCollapseLabel,
+    startUnreadPolling,
+    stopUnreadPolling,
   };
 });

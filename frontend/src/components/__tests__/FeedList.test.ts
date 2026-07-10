@@ -19,6 +19,8 @@ vi.mock("@/stores/feeds", () => ({
     visibleLabelGroups: [],
     visibleUnlabeledFeeds: [],
     toggleCollapseLabel: vi.fn(),
+    startUnreadPolling: vi.fn(),
+    stopUnreadPolling: vi.fn(),
     feedNames: {},
   }),
 }));

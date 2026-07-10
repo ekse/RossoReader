@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted } from "vue";
+import { computed, onMounted, onBeforeUnmount } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { useFeedsStore } from "@/stores/feeds";
 import { useAuthStore } from "@/stores/auth";
@@ -18,6 +18,11 @@ const route = useRoute();
 onMounted(async () => {
   await feedsStore.loadGroupedFeeds();
   feedsStore.loadFeedsLimit();
+  feedsStore.startUnreadPolling();
+});
+
+onBeforeUnmount(() => {
+  feedsStore.stopUnreadPolling();
 });
 
 function selectFeed(id: number) {

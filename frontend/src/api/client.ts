@@ -207,6 +207,11 @@ export async function fetchGroupedFeeds(): Promise<GroupedFeedsResponse> {
   return request<GroupedFeedsResponse>("/api/feeds/grouped");
 }
 
+export async function fetchUnreadCounts(): Promise<Record<number, number>> {
+  const data = await request<{ counts: Record<number, number> }>("/api/feeds/unread-counts");
+  return data.counts;
+}
+
 // Search
 
 export async function searchItems(params: {
