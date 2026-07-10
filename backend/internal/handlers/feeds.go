@@ -224,3 +224,13 @@ func (h *Handler) PreviewOPMLImport(w http.ResponseWriter, r *http.Request) {
 
 	writeJSON(w, http.StatusOK, feeds)
 }
+
+func (h *Handler) UnreadCounts(w http.ResponseWriter, r *http.Request) {
+	userID := currentUserID(r)
+	counts, err := h.Store.GetUnreadCountByFeed(r.Context(), userID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]any{"counts": counts})
+}

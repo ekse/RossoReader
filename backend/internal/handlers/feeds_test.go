@@ -76,6 +76,7 @@ func authedRouter(h *handlers.Handler, user domain.User) chi.Router {
 		r.Delete("/api/labels/{id}", h.DeleteLabel)
 
 		r.Get("/api/feeds/grouped", h.GroupedFeeds)
+		r.Get("/api/feeds/unread-counts", h.UnreadCounts)
 		r.Get("/api/feeds/{id}/labels", h.GetFeedLabels)
 		r.Post("/api/feeds/{id}/labels", h.AddFeedLabel)
 		r.Delete("/api/feeds/{id}/labels/{lid}", h.RemoveFeedLabel)
@@ -392,4 +393,84 @@ func TestPreviewOPMLImport_Unauthenticated(t *testing.T) {
 	h.MountRouter().ServeHTTP(resp, req)
 
 	assert.Equal(t, http.StatusUnauthorized, resp.Code)
+}
+
+func TestUnreadCounts(t *testing.T) {
+	store := mockstore.New()
+	user := makeUser(t, store, "alice", true)
+	store.Feeds = []domain.Feed{
+		{ID: 1, UserID: user.ID, URL: "https://a.com/rss", Title: "A"},
+		{ID: 2, UserID: user.ID, URL: "https://b.com/rss", Title: "B"},
+	}
+	store.Items = []domain.Item{
+		{ID: 1, FeedID: 1, GUID: "a1", Title: "unread"},
+		{ID: 2, FeedID: 1, GUID: "a2", Title: "read"},
+		{ID: 3, FeedID: 2, GUID: "b1", Title: "unread"},
+	}
+	// mark item 2 as read for the user
+	store.MarkItemRead(context.Background(), user.ID, 2, true)
+
+	h := handlers.New(store, nil, nil, newTestPasskeyHandler(store))
+	r := authedRouter(h, user)
+
+	req := authReq("GET", "/api/feeds/unread-counts", "", user)
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	var resp map[string]map[int64]int
+	err := json.Unmarshal(w.Body.Bytes(), &resp)
+	require.NoError(t, err)
+	assert.Equal(t, 1, resp["counts"][1]) // feed 1: 1 unread
+	assert.Equal(t, 1, resp["counts"][2]) // feed 2: 1 unread
+}
+
+func TestUnreadCounts_AllRead(t *testing.T) {
+	store := mockstore.New()
+	user := makeUser(t, store, "alice", true)
+	store.Feeds = []domain.Feed{
+		{ID: 1, UserID: user.ID, URL: "https://a.com/rss", Title: "A"},
+	}
+	store.Items = []domain.Item{
+		{ID: 1, FeedID: 1, GUID: "a1", Title: "read"},
+	}
+	store.MarkItemRead(context.Background(), user.ID, 1, true)
+
+	h := handlers.New(store, nil, nil, newTestPasskeyHandler(store))
+	r := authedRouter(h, user)
+
+	req := authReq("GET", "/api/feeds/unread-counts", "", user)
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	var resp map[string]map[int64]int
+	json.Unmarshal(w.Body.Bytes(), &resp)
+	assert.Equal(t, 0, resp["counts"][1])
+}
+
+func TestUnreadCounts_OtherUser(t *testing.T) {
+	store := mockstore.New()
+	alice := makeUser(t, store, "alice", true)
+	bob := makeUser(t, store, "bob", false)
+	// bob owns feed 1 with an unread item
+	store.Feeds = []domain.Feed{
+		{ID: 1, UserID: bob.ID, URL: "https://bob.com/rss", Title: "Bob"},
+	}
+	store.Items = []domain.Item{
+		{ID: 1, FeedID: 1, GUID: "b1", Title: "unread"},
+	}
+
+	h := handlers.New(store, nil, nil, newTestPasskeyHandler(store))
+	r := authedRouter(h, alice)
+
+	req := authReq("GET", "/api/feeds/unread-counts", "", alice)
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	var resp map[string]map[int64]int
+	json.Unmarshal(w.Body.Bytes(), &resp)
+	_, exists := resp["counts"][1]
+	assert.False(t, exists, "alice should not see bob's unread counts")
 }
