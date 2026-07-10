@@ -23,7 +23,11 @@ async function submit() {
     await auth.login(username.value, password.value);
     router.push("/unread");
   } catch (e: any) {
-    error.value = e.response?.data || (e.response ? "Invalid credentials" : "Unable to reach the server. Please check your connection.");
+    error.value =
+      e.response?.data ||
+      (e.response
+        ? "Invalid credentials"
+        : "Unable to reach the server. Please check your connection.");
   } finally {
     loading.value = false;
   }
