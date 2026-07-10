@@ -136,6 +136,7 @@ func (h *Handler) MountRouter() chi.Router {
 		r.Delete("/api/labels/{id}", h.DeleteLabel)
 
 		r.Get("/api/feeds/grouped", h.GroupedFeeds)
+		r.Get("/api/feeds/unread-counts", h.UnreadCounts)
 		r.Get("/api/feeds/{id}/labels", h.GetFeedLabels)
 		r.Post("/api/feeds/{id}/labels", h.AddFeedLabel)
 		r.Delete("/api/feeds/{id}/labels/{lid}", h.RemoveFeedLabel)

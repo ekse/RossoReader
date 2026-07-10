@@ -42,6 +42,7 @@ type authStateRow struct {
 }
 
 func New() *MockStore {
+	itemStates = make(map[itemStateKey]itemState)
 	return &MockStore{
 		Feeds:         []domain.Feed{},
 		Items:         []domain.Item{},
