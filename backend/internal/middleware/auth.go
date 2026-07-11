@@ -6,8 +6,8 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/ekse/rssreader/internal/domain"
-	"github.com/ekse/rssreader/internal/store"
+	"github.com/ekse/rossoreader/internal/domain"
+	"github.com/ekse/rossoreader/internal/store"
 )
 
 type contextKey string

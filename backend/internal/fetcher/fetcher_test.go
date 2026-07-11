@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/ekse/rssreader/internal/fetcher"
+	"github.com/ekse/rossoreader/internal/fetcher"
 )
 
 const testRSS = `<?xml version="1.0" encoding="UTF-8"?>

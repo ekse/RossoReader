@@ -11,10 +11,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/ekse/rssreader/internal/auth"
-	"github.com/ekse/rssreader/internal/domain"
-	"github.com/ekse/rssreader/internal/handlers"
-	"github.com/ekse/rssreader/internal/store/mockstore"
+	"github.com/ekse/rossoreader/internal/auth"
+	"github.com/ekse/rossoreader/internal/domain"
+	"github.com/ekse/rossoreader/internal/handlers"
+	"github.com/ekse/rossoreader/internal/store/mockstore"
 )
 
 func makeUserWithPassword(t *testing.T, store *mockstore.MockStore, username, password string, isAdmin bool) (domain.User, string) {

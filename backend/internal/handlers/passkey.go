@@ -16,9 +16,9 @@ import (
 	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/google/uuid"
 
-	"github.com/ekse/rssreader/internal/domain"
-	"github.com/ekse/rssreader/internal/middleware"
-	"github.com/ekse/rssreader/internal/store"
+	"github.com/ekse/rossoreader/internal/domain"
+	"github.com/ekse/rossoreader/internal/middleware"
+	"github.com/ekse/rossoreader/internal/store"
 )
 
 type PasskeyHandler struct {

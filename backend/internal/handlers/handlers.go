@@ -5,10 +5,10 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"github.com/ekse/rssreader/internal/fetcher"
-	"github.com/ekse/rssreader/internal/middleware"
-	"github.com/ekse/rssreader/internal/scheduler"
-	"github.com/ekse/rssreader/internal/store"
+	"github.com/ekse/rossoreader/internal/fetcher"
+	"github.com/ekse/rossoreader/internal/middleware"
+	"github.com/ekse/rossoreader/internal/scheduler"
+	"github.com/ekse/rossoreader/internal/store"
 )
 
 type Handler struct {

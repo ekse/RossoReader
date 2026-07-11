@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/ekse/rssreader/internal/domain"
+	"github.com/ekse/rossoreader/internal/domain"
 )
 
 const (

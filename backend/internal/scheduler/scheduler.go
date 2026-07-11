@@ -10,9 +10,9 @@ import (
 
 	"github.com/robfig/cron/v3"
 
-	"github.com/ekse/rssreader/internal/domain"
-	"github.com/ekse/rssreader/internal/fetcher"
-	"github.com/ekse/rssreader/internal/store"
+	"github.com/ekse/rossoreader/internal/domain"
+	"github.com/ekse/rossoreader/internal/fetcher"
+	"github.com/ekse/rossoreader/internal/store"
 )
 
 type Scheduler struct {

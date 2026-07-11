@@ -9,10 +9,10 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 
-	"github.com/ekse/rssreader/internal/bootstrap"
-	"github.com/ekse/rssreader/internal/db"
-	"github.com/ekse/rssreader/internal/domain"
-	"github.com/ekse/rssreader/internal/store/pgstore"
+	"github.com/ekse/rossoreader/internal/bootstrap"
+	"github.com/ekse/rossoreader/internal/db"
+	"github.com/ekse/rossoreader/internal/domain"
+	"github.com/ekse/rossoreader/internal/store/pgstore"
 )
 
 func runMigrationsRetry(t *testing.T, connStr string) {

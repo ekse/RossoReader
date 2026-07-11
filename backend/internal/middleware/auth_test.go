@@ -10,9 +10,9 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/ekse/rssreader/internal/domain"
-	"github.com/ekse/rssreader/internal/middleware"
-	"github.com/ekse/rssreader/internal/store/mockstore"
+	"github.com/ekse/rossoreader/internal/domain"
+	"github.com/ekse/rossoreader/internal/middleware"
+	"github.com/ekse/rossoreader/internal/store/mockstore"
 )
 
 func TestAuthenticate_NoCookie_Unauthorized(t *testing.T) {

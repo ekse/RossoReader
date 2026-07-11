@@ -9,8 +9,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/ekse/rssreader/internal/handlers"
-	"github.com/ekse/rssreader/internal/store/mockstore"
+	"github.com/ekse/rossoreader/internal/handlers"
+	"github.com/ekse/rossoreader/internal/store/mockstore"
 )
 
 func TestGetSettings(t *testing.T) {

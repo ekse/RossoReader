@@ -11,8 +11,8 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"github.com/ekse/rssreader/internal/domain"
-	"github.com/ekse/rssreader/internal/opml"
+	"github.com/ekse/rossoreader/internal/domain"
+	"github.com/ekse/rossoreader/internal/opml"
 )
 
 // maxOPMLSize is the maximum allowed OPML file size for import (10 MB).

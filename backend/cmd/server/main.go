@@ -13,13 +13,13 @@ import (
 	"github.com/go-webauthn/webauthn/protocol"
 	"github.com/go-webauthn/webauthn/webauthn"
 
-	"github.com/ekse/rssreader/internal/bootstrap"
-	"github.com/ekse/rssreader/internal/db"
-	"github.com/ekse/rssreader/internal/fetcher"
-	"github.com/ekse/rssreader/internal/handlers"
-	"github.com/ekse/rssreader/internal/middleware"
-	"github.com/ekse/rssreader/internal/scheduler"
-	"github.com/ekse/rssreader/internal/store/pgstore"
+	"github.com/ekse/rossoreader/internal/bootstrap"
+	"github.com/ekse/rossoreader/internal/db"
+	"github.com/ekse/rossoreader/internal/fetcher"
+	"github.com/ekse/rossoreader/internal/handlers"
+	"github.com/ekse/rossoreader/internal/middleware"
+	"github.com/ekse/rossoreader/internal/scheduler"
+	"github.com/ekse/rossoreader/internal/store/pgstore"
 )
 
 func main() {

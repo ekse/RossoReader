@@ -1,4 +1,4 @@
-module github.com/ekse/rssreader
+module github.com/ekse/rossoreader
 
 go 1.26.0
 

@@ -11,10 +11,10 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 
-	"github.com/ekse/rssreader/internal/auth"
-	"github.com/ekse/rssreader/internal/domain"
-	"github.com/ekse/rssreader/internal/middleware"
-	"github.com/ekse/rssreader/internal/store"
+	"github.com/ekse/rossoreader/internal/auth"
+	"github.com/ekse/rossoreader/internal/domain"
+	"github.com/ekse/rossoreader/internal/middleware"
+	"github.com/ekse/rossoreader/internal/store"
 )
 
 const (
