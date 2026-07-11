@@ -23,7 +23,6 @@ Use `docker-compose.prod.yml` to deploy and installation of Rosso Reader.
 export POSTGRES_USER=rssreader
 export POSTGRES_PASSWORD=your-secure-password
 export DOMAIN=yourdomain.com
-export RP_ORIGIN=https://youdomain.com:443
 export LETSENCRYPT_EMAIL=you@email.com
 
 # Start all services
@@ -70,7 +69,7 @@ Access Rosso Reader on https://yourdomain.com/.
 | `POSTGRES_PASSWORD`  | `postgres` | **Yes**  | PostgreSQL password                   |
 | `POSTGRES_DB`        | `rssreader`| No       | PostgreSQL database name              |
 | `DOMAIN`             | –          | **Yes**  | Domain for Traefik routing & TLS      |
-| `RP_ORIGIN`          | –          | **Yes**  | WebAuthn RP origin (e.g. `https://yourdomain.com:443`) |
+| `RP_ORIGIN`          | `https://${DOMAIN}:443` | No   | WebAuthn RP origin |
 | `LETSENCRYPT_EMAIL`  | –          | **Yes**  | Email for Let's Encrypt ACME          |
 | `FETCH_INTERVAL_MINUTES` | `30`   | No       | RSS feed fetch interval               |
 | `CORS_ORIGIN`         | –          | No       | Allowed CORS origin                   |

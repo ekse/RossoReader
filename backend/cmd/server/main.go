@@ -64,7 +64,11 @@ func main() {
 	}
 	rpOrigin := os.Getenv("RP_ORIGIN")
 	if rpOrigin == "" {
-		rpOrigin = "http://localhost:5173"
+		if domain := os.Getenv("DOMAIN"); domain != "" {
+			rpOrigin = "https://" + domain + ":443"
+		} else {
+			rpOrigin = "http://localhost:5173"
+		}
 	}
 
 	wa, err := webauthn.New(&webauthn.Config{
