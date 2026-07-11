@@ -80,6 +80,18 @@ tasks:
     cmds:
       - pnpm run lint
 
+  docker-build-web:
+    desc: build the docker image (web)
+    dir: frontend
+    cmds:
+      - docker build -t ekse/rossoreader-web:latest .
+
+  docker-build-api:
+    desc: build the docker image (api)
+    dir: api
+    cmds:
+      - docker build -t ekse/rossoreader-api:latest .
+
   up:
     desc: start the app (docker compose up)
     cmds:
