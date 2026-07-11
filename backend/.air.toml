@@ -2,7 +2,7 @@ root = "."
 tmp_dir = "tmp"
 
 [build]
-  bin = "tmp/server"
+  entrypoint = "tmp/server"
   cmd = "go build -o ./tmp/server ./cmd/server"
   delay = 1000
   exclude_dir = ["tmp", "vendor"]
