@@ -3,8 +3,8 @@ package handlers_test
 import (
 	"github.com/go-webauthn/webauthn/webauthn"
 
-	"github.com/ekse/rssreader/internal/handlers"
-	"github.com/ekse/rssreader/internal/store"
+	"github.com/ekse/rossoreader/internal/handlers"
+	"github.com/ekse/rossoreader/internal/store"
 )
 
 func newTestPasskeyHandler(s store.Store) *handlers.PasskeyHandler {

@@ -9,8 +9,8 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/ekse/rssreader/internal/auth"
-	"github.com/ekse/rssreader/internal/store"
+	"github.com/ekse/rossoreader/internal/auth"
+	"github.com/ekse/rossoreader/internal/store"
 )
 
 // Run performs one-time setup of multi-user ownership on the database.

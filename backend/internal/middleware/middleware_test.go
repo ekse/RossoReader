@@ -8,7 +8,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/ekse/rssreader/internal/middleware"
+	"github.com/ekse/rossoreader/internal/middleware"
 )
 
 func TestCORS_SetsHeaders(t *testing.T) {

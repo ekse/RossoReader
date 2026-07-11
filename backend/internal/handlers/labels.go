@@ -8,7 +8,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"github.com/ekse/rssreader/internal/domain"
+	"github.com/ekse/rossoreader/internal/domain"
 )
 
 type createLabelRequest struct {

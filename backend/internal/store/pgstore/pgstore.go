@@ -11,9 +11,9 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/ekse/rssreader/internal/db/generated"
-	"github.com/ekse/rssreader/internal/domain"
-	"github.com/ekse/rssreader/internal/store"
+	"github.com/ekse/rossoreader/internal/db/generated"
+	"github.com/ekse/rossoreader/internal/domain"
+	"github.com/ekse/rossoreader/internal/store"
 )
 
 type PGStore struct {

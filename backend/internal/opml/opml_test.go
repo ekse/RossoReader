@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ekse/rssreader/internal/domain"
+	"github.com/ekse/rossoreader/internal/domain"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

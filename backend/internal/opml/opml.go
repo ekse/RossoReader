@@ -6,7 +6,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/ekse/rssreader/internal/domain"
+	"github.com/ekse/rossoreader/internal/domain"
 )
 
 type OpmlFeed struct {

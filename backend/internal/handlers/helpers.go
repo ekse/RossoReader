@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/ekse/rssreader/internal/domain"
+	"github.com/ekse/rossoreader/internal/domain"
 )
 
 type feedWithCount struct {

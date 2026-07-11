@@ -13,7 +13,7 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/mmcdole/gofeed"
 
-	"github.com/ekse/rssreader/internal/domain"
+	"github.com/ekse/rossoreader/internal/domain"
 )
 
 type FetchResult struct {
