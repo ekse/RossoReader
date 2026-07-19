@@ -1,12 +1,14 @@
 <script setup lang="ts">
-import { computed, onMounted, onBeforeUnmount } from "vue";
+import { computed, onMounted, onBeforeUnmount, ref } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { useFeedsStore } from "@/stores/feeds";
 import { useAuthStore } from "@/stores/auth";
 import ThemeToggle from "./ThemeToggle.vue";
+import FeedContextMenu from "./FeedContextMenu.vue";
 import { useAddFeed } from "@/composables/useAddFeed";
 import { useSearch } from "@/composables/useSearch";
 import { useTheme } from "@/composables/useTheme";
+import type { Feed } from "@/types";
 import whiteLogo from "@/assets/rosso_reader_white_112px.png";
 import transparentLogo from "@/assets/rosso_reader_transparent_112px.png";
 
@@ -55,6 +57,22 @@ const totalUnread = computed(() => feedsStore.totalUnread);
 const { open: openAddFeed } = useAddFeed();
 const { openSearch } = useSearch();
 const { isDark } = useTheme();
+
+const contextMenuVisible = ref(false);
+const contextMenuFeedId = ref(0);
+const contextMenuX = ref(0);
+const contextMenuY = ref(0);
+
+function openContextMenu(event: MouseEvent, feed: Feed) {
+  contextMenuFeedId.value = feed.id;
+  contextMenuX.value = event.clientX;
+  contextMenuY.value = event.clientY;
+  contextMenuVisible.value = true;
+}
+
+function closeContextMenu() {
+  contextMenuVisible.value = false;
+}
 </script>
 
 <template>
@@ -201,7 +219,9 @@ const { isDark } = useTheme();
               <button
                 v-for="feed in group.feeds"
                 :key="feed.id"
+                :data-feed-id="feed.id"
                 @click="selectFeed(feed.id)"
+                @contextmenu.prevent="openContextMenu($event, feed)"
                 class="w-full text-left px-3 py-2 rounded-md text-sm"
                 :class="
                   route.params.id === String(feed.id)
@@ -235,7 +255,9 @@ const { isDark } = useTheme();
           <button
             v-for="feed in feedsStore.visibleUnlabeledFeeds"
             :key="'ul-' + feed.id"
+            :data-feed-id="feed.id"
             @click="selectFeed(feed.id)"
+            @contextmenu.prevent="openContextMenu($event, feed)"
             class="w-full text-left px-3 py-2 rounded-md text-sm"
             :class="
               route.params.id === String(feed.id)
@@ -311,5 +333,13 @@ const { isDark } = useTheme();
         </svg>
       </button>
     </div>
+
+    <FeedContextMenu
+      v-if="contextMenuVisible"
+      :feed-id="contextMenuFeedId"
+      :x="contextMenuX"
+      :y="contextMenuY"
+      @close="closeContextMenu"
+    />
   </div>
 </template>

@@ -98,6 +98,13 @@ export const useFeedsStore = defineStore("feeds", () => {
   async function removeFeed(id: number) {
     await api.deleteFeed(id);
     feeds.value = feeds.value.filter((f) => f.id !== id);
+    unlabeledFeeds.value = unlabeledFeeds.value.filter((f) => f.id !== id);
+    labelGroups.value = labelGroups.value
+      .map((g) => ({
+        ...g,
+        feeds: g.feeds.filter((f) => f.id !== id),
+      }))
+      .filter((g) => g.feeds.length > 0);
   }
 
   async function refreshFeed(id: number) {

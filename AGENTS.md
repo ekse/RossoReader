@@ -10,6 +10,10 @@ Changes must include unit tests.
 
 Use constants for default or constant values. Do not duplicate constants, centraize them to avoid the values becoming desynchronized.
 
+### Frontend
+
+Do not add svg images inline in templates, store them in frontend/src/components/SvgSprites.vue.
+
 ## Build & Run
 
 ```bash
