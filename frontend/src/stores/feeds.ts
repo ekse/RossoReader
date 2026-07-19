@@ -107,6 +107,24 @@ export const useFeedsStore = defineStore("feeds", () => {
       .filter((g) => g.feeds.length > 0);
   }
 
+  async function renameFeed(id: number, title: string) {
+    const updated = await api.renameFeed(id, title);
+    const idx = feeds.value.findIndex((f) => f.id === id);
+    if (idx !== -1) {
+      feeds.value[idx] = updated;
+    }
+    const ulIdx = unlabeledFeeds.value.findIndex((f) => f.id === id);
+    if (ulIdx !== -1) {
+      unlabeledFeeds.value[ulIdx] = updated;
+    }
+    for (const g of labelGroups.value) {
+      const gi = g.feeds.findIndex((f) => f.id === id);
+      if (gi !== -1) {
+        g.feeds[gi] = updated;
+      }
+    }
+  }
+
   async function refreshFeed(id: number) {
     await api.refreshFeed(id);
     await loadFeeds();
@@ -188,6 +206,7 @@ export const useFeedsStore = defineStore("feeds", () => {
     loadLabels,
     addFeed,
     removeFeed,
+    renameFeed,
     refreshFeed,
     importFeeds,
     toggleCollapseLabel,

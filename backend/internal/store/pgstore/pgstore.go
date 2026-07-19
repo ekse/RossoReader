@@ -132,6 +132,18 @@ func (s *PGStore) UpdateFeedEtag(ctx context.Context, id int64, etag string) err
 	return nil
 }
 
+func (s *PGStore) RenameFeed(ctx context.Context, userID, feedID int64, title string) error {
+	err := s.q.RenameFeed(ctx, generated.RenameFeedParams{
+		ID:     int32(feedID),
+		Title:  title,
+		UserID: &userID,
+	})
+	if err != nil {
+		return fmt.Errorf("rename feed %d: %w", feedID, err)
+	}
+	return nil
+}
+
 func (s *PGStore) UpdateFeedMetadata(ctx context.Context, id int64, title, description, siteLink, iconURL string) error {
 	err := s.q.UpdateFeedMetadata(ctx, generated.UpdateFeedMetadataParams{
 		ID:          int32(id),

@@ -59,6 +59,7 @@ func authedRouter(h *handlers.Handler, user domain.User) chi.Router {
 		r.Post("/api/feeds", h.AddFeed)
 		r.Post("/api/feeds/discover", h.DiscoverFeeds)
 		r.Delete("/api/feeds/{id}", h.RemoveFeed)
+		r.Patch("/api/feeds/{id}", h.RenameFeed)
 		r.Post("/api/feeds/{id}/refresh", h.RefreshFeed)
 		r.Post("/api/feeds/{id}/read-all", h.MarkFeedRead)
 		r.Get("/api/feeds/opml/export", h.ExportOPML)
@@ -375,6 +376,91 @@ func TestPreviewOPMLImport_NoFile(t *testing.T) {
 	r.ServeHTTP(resp, req)
 
 	assert.Equal(t, http.StatusBadRequest, resp.Code)
+}
+
+func TestRenameFeed(t *testing.T) {
+	store := mockstore.New()
+	user := makeUser(t, store, "alice", true)
+	store.Feeds = []domain.Feed{
+		{ID: 1, UserID: user.ID, URL: "https://a.com/rss", Title: "Old Name"},
+	}
+	h := handlers.New(store, nil, nil, newTestPasskeyHandler(store))
+	r := authedRouter(h, user)
+
+	req := authReq("PATCH", "/api/feeds/1", `{"title":"New Name"}`, user)
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	var feed domain.Feed
+	err := json.Unmarshal(w.Body.Bytes(), &feed)
+	require.NoError(t, err)
+	assert.Equal(t, "New Name", feed.Title)
+	assert.Equal(t, int64(1), feed.ID)
+}
+
+func TestRenameFeed_InvalidID(t *testing.T) {
+	store := mockstore.New()
+	user := makeUser(t, store, "alice", true)
+	h := handlers.New(store, nil, nil, newTestPasskeyHandler(store))
+	r := authedRouter(h, user)
+
+	req := authReq("PATCH", "/api/feeds/abc", `{"title":"New Name"}`, user)
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+}
+
+func TestRenameFeed_EmptyTitle(t *testing.T) {
+	store := mockstore.New()
+	user := makeUser(t, store, "alice", true)
+	store.Feeds = []domain.Feed{
+		{ID: 1, UserID: user.ID, URL: "https://a.com/rss", Title: "Old Name"},
+	}
+	h := handlers.New(store, nil, nil, newTestPasskeyHandler(store))
+	r := authedRouter(h, user)
+
+	req := authReq("PATCH", "/api/feeds/1", `{"title":""}`, user)
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+}
+
+func TestRenameFeed_NotFound(t *testing.T) {
+	store := mockstore.New()
+	user := makeUser(t, store, "alice", true)
+	h := handlers.New(store, nil, nil, newTestPasskeyHandler(store))
+	r := authedRouter(h, user)
+
+	req := authReq("PATCH", "/api/feeds/999", `{"title":"New Name"}`, user)
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusNotFound, w.Code)
+}
+
+func TestRenameFeed_OtherUserFeed(t *testing.T) {
+	store := mockstore.New()
+	user := makeUser(t, store, "alice", true)
+	other := makeUser(t, store, "bob", true)
+	store.Feeds = []domain.Feed{
+		{ID: 1, UserID: other.ID, URL: "https://a.com/rss", Title: "Bob's Feed"},
+	}
+	h := handlers.New(store, nil, nil, newTestPasskeyHandler(store))
+	r := authedRouter(h, user)
+
+	req := authReq("PATCH", "/api/feeds/1", `{"title":"New Name"}`, user)
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusNotFound, w.Code)
 }
 
 func TestPreviewOPMLImport_Unauthenticated(t *testing.T) {

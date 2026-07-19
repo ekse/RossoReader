@@ -230,7 +230,7 @@ describe("FeedList context menu", () => {
     });
     await router.isReady();
 
-    const feedButton = wrapper.find("[data-feed-id=\"1\"]");
+    const feedButton = wrapper.find('[data-feed-id="1"]');
     expect(feedButton.exists()).toBe(true);
 
     await feedButton.trigger("contextmenu", {

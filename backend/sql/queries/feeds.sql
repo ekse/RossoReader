@@ -48,3 +48,8 @@ WHERE id = $1;
 UPDATE feeds
 SET last_fetch_error = NULL, updated_at = NOW()
 WHERE id = $1;
+
+-- name: RenameFeed :exec
+UPDATE feeds
+SET title = $2, updated_at = NOW()
+WHERE id = $1 AND user_id = $3;
