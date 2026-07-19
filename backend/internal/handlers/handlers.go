@@ -56,6 +56,7 @@ func (h *Handler) ProtectedRouter() chi.Router {
 	r.Post("/api/feeds", h.AddFeed)
 	r.Post("/api/feeds/discover", h.DiscoverFeeds)
 	r.Delete("/api/feeds/{id}", h.RemoveFeed)
+	r.Patch("/api/feeds/{id}", h.RenameFeed)
 	r.Post("/api/feeds/{id}/refresh", h.RefreshFeed)
 	r.Post("/api/feeds/{id}/read-all", h.MarkFeedRead)
 
@@ -116,6 +117,7 @@ func (h *Handler) MountRouter() chi.Router {
 		r.Post("/api/feeds", h.AddFeed)
 		r.Post("/api/feeds/discover", h.DiscoverFeeds)
 		r.Delete("/api/feeds/{id}", h.RemoveFeed)
+		r.Patch("/api/feeds/{id}", h.RenameFeed)
 		r.Post("/api/feeds/{id}/refresh", h.RefreshFeed)
 		r.Post("/api/feeds/{id}/read-all", h.MarkFeedRead)
 

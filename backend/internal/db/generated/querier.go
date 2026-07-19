@@ -57,6 +57,7 @@ type Querier interface {
 	MarkAllItemsReadForUser(ctx context.Context, userID int64) error
 	MarkFeedItemsReadForUser(ctx context.Context, arg MarkFeedItemsReadForUserParams) error
 	RemoveFeedLabel(ctx context.Context, arg RemoveFeedLabelParams) error
+	RenameFeed(ctx context.Context, arg RenameFeedParams) error
 	SaveAuthState(ctx context.Context, arg SaveAuthStateParams) error
 	SearchItems(ctx context.Context, arg SearchItemsParams) ([]SearchItemsRow, error)
 	SetFeedFetchError(ctx context.Context, arg SetFeedFetchErrorParams) error

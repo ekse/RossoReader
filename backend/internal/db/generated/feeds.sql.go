@@ -211,6 +211,23 @@ func (q *Queries) GetFeeds(ctx context.Context, userID *int64) ([]Feed, error) {
 	return items, nil
 }
 
+const renameFeed = `-- name: RenameFeed :exec
+UPDATE feeds
+SET title = $2, updated_at = NOW()
+WHERE id = $1 AND user_id = $3
+`
+
+type RenameFeedParams struct {
+	ID     int32  `json:"id"`
+	Title  string `json:"title"`
+	UserID *int64 `json:"user_id"`
+}
+
+func (q *Queries) RenameFeed(ctx context.Context, arg RenameFeedParams) error {
+	_, err := q.db.Exec(ctx, renameFeed, arg.ID, arg.Title, arg.UserID)
+	return err
+}
+
 const setFeedFetchError = `-- name: SetFeedFetchError :exec
 UPDATE feeds
 SET last_fetch_error = $2, updated_at = NOW()

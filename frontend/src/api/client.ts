@@ -149,6 +149,13 @@ export async function deleteFeed(id: number): Promise<void> {
   await request<void>(`/api/feeds/${id}`, { method: "DELETE" });
 }
 
+export async function renameFeed(id: number, title: string): Promise<Feed> {
+  return request<Feed>(`/api/feeds/${id}`, {
+    method: "PATCH",
+    body: { title },
+  });
+}
+
 export async function refreshFeed(id: number): Promise<void> {
   await request<void>(`/api/feeds/${id}/refresh`, { method: "POST" });
 }

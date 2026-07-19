@@ -2,19 +2,20 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 import { mount, flushPromises } from "@vue/test-utils";
 import { setActivePinia, createPinia } from "pinia";
 
-const { mockRemoveFeed, mockLoadGroupedFeeds, mockLoadLabels } = vi.hoisted(
-  () => ({
-    mockRemoveFeed: vi.fn(),
-    mockLoadGroupedFeeds: vi.fn(),
-    mockLoadLabels: vi.fn(),
-  }),
-);
+const { mockRemoveFeed, mockLoadGroupedFeeds, mockLoadLabels, mockRenameFeed } = vi.hoisted(() => ({
+  mockRemoveFeed: vi.fn(),
+  mockLoadGroupedFeeds: vi.fn(),
+  mockLoadLabels: vi.fn(),
+  mockRenameFeed: vi.fn(),
+}));
 
 vi.mock("@/stores/feeds", () => ({
   useFeedsStore: () => ({
+    feeds: [{ id: 1, title: "Test Feed", url: "https://example.com/rss" }],
     removeFeed: mockRemoveFeed,
     loadGroupedFeeds: mockLoadGroupedFeeds,
     loadLabels: mockLoadLabels,
+    renameFeed: mockRenameFeed,
   }),
 }));
 
@@ -103,9 +104,7 @@ describe("FeedContextMenu", () => {
   });
 
   it("shows label picker on Edit labels click", async () => {
-    mockFetchLabels.mockResolvedValue([
-      { id: 1, user_id: 1, name: "News", created_at: "" },
-    ]);
+    mockFetchLabels.mockResolvedValue([{ id: 1, user_id: 1, name: "News", created_at: "" }]);
     mockFetchFeedLabels.mockResolvedValue([]);
 
     mountMenu();
@@ -127,5 +126,32 @@ describe("FeedContextMenu", () => {
     const wrapper = mountMenu();
     document.dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
     expect(wrapper.emitted("close")).toBeTruthy();
+  });
+
+  it("shows rename input when clicking Rename", async () => {
+    mountMenu();
+    const btn = findButtonInBody("Rename");
+    expect(btn).toBeTruthy();
+    btn!.click();
+
+    await flushPromises();
+    expect(bodyText()).toContain("Rename feed");
+  });
+
+  it("calls renameFeed on save", async () => {
+    mountMenu();
+    const btn = findButtonInBody("Rename");
+    btn!.click();
+    await flushPromises();
+
+    const input = document.body.querySelector("input") as HTMLInputElement;
+    input.value = "New Name";
+    input.dispatchEvent(new Event("input"));
+
+    const saveBtn = findButtonInBody("Save");
+    saveBtn!.click();
+    await flushPromises();
+
+    expect(mockRenameFeed).toHaveBeenCalledWith(1, "New Name");
   });
 });

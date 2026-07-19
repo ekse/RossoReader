@@ -116,6 +116,49 @@ func (h *Handler) DiscoverFeeds(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, feeds)
 }
 
+type renameFeedRequest struct {
+	Title string `json:"title"`
+}
+
+func (h *Handler) RenameFeed(w http.ResponseWriter, r *http.Request) {
+	userID := currentUserID(r)
+	idStr := chi.URLParam(r, "id")
+	id, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil {
+		http.Error(w, "invalid feed id", http.StatusBadRequest)
+		return
+	}
+
+	var req renameFeedRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "invalid request body", http.StatusBadRequest)
+		return
+	}
+	if req.Title == "" {
+		http.Error(w, "title is required", http.StatusBadRequest)
+		return
+	}
+
+	// Validate ownership.
+	if _, err := h.Store.GetFeed(r.Context(), userID, id); err != nil {
+		http.Error(w, "feed not found", http.StatusNotFound)
+		return
+	}
+
+	if err := h.Store.RenameFeed(r.Context(), userID, id, req.Title); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	feed, err := h.Store.GetFeed(r.Context(), userID, id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	writeJSON(w, http.StatusOK, feed)
+}
+
 func (h *Handler) RemoveFeed(w http.ResponseWriter, r *http.Request) {
 	userID := currentUserID(r)
 	idStr := chi.URLParam(r, "id")

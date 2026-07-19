@@ -187,6 +187,18 @@ func (m *MockStore) UpdateFeedEtag(_ context.Context, id int64, etag string) err
 	return fmt.Errorf("feed %d not found", id)
 }
 
+func (m *MockStore) RenameFeed(_ context.Context, userID, feedID int64, title string) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	for i, f := range m.Feeds {
+		if f.ID == feedID && f.UserID == userID {
+			m.Feeds[i].Title = title
+			return nil
+		}
+	}
+	return fmt.Errorf("feed %d not found", feedID)
+}
+
 func (m *MockStore) UpdateFeedMetadata(_ context.Context, id int64, title, description, siteLink, iconURL string) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
