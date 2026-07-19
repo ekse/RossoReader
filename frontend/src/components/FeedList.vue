@@ -202,10 +202,8 @@ function closeContextMenu() {
               <svg
                 class="w-3 h-3 shrink-0 transition-transform"
                 :class="feedsStore.collapsedLabelIds.has(group.label.id) ? '' : 'rotate-90'"
-                fill="currentColor"
-                viewBox="0 0 20 20"
               >
-                <path d="M6 4l8 6-8 6V4z" />
+                <use href="#icon-chevron" />
               </svg>
               <span class="truncate">{{ group.label.name }}</span>
               <span
@@ -303,14 +301,7 @@ function closeContextMenu() {
         to="/settings"
         class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100"
       >
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-          />
-        </svg>
+        <svg class="w-4 h-4"><use href="#icon-user" /></svg>
         <span>{{ auth.user.username }}</span>
         <span
           v-if="auth.isAdmin"
@@ -323,14 +314,7 @@ function closeContextMenu() {
         title="Sign out"
         class="text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
       >
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-          />
-        </svg>
+        <svg class="w-4 h-4"><use href="#icon-logout" /></svg>
       </button>
     </div>
 
