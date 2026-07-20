@@ -88,7 +88,7 @@ tasks:
 
   docker-build-api:
     desc: build the docker image (api)
-    dir: api
+    dir: backend
     cmds:
       - docker build -t ekse/rossoreader-api:latest .
 
