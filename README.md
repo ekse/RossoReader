@@ -4,6 +4,8 @@ A self-hosted RSS feed reader. Periodically fetches RSS/Atom feeds on a configur
 
 <img src="logos/rosso_reader_transparent.png" width="600"/>
 
+![screenshot](logos/Screenshot_Rosso%20Reader.png)
+
 ### Quick start (dev setup)
 
 Docker and docker-compose are needed to run Rosso Reader. To try Rosso Reader locally, the development server can be started with `docker compose`. **This setup is not recommended for real use, see the Production section below.**
