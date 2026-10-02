@@ -2,6 +2,11 @@ export const DEFAULT_ITEMS_LIMIT = 150;
 export const DEFAULT_FEEDS_LIMIT = 200;
 export const UNREAD_POLL_INTERVAL_MS = 10 * 60 * 1000; // 10 minutes
 
+export type ItemGrouping = "none" | "feed";
+export const ITEM_GROUPING_NONE: ItemGrouping = "none";
+export const ITEM_GROUPING_FEED: ItemGrouping = "feed";
+export const DEFAULT_ITEM_GROUPING: ItemGrouping = ITEM_GROUPING_NONE;
+
 export interface Feed {
   id: number;
   url: string;

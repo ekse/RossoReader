@@ -1,16 +1,55 @@
 <script setup lang="ts">
-import { watch } from "vue";
-import type { Item } from "@/types";
+import { computed, watch } from "vue";
+import { ITEM_GROUPING_FEED, DEFAULT_ITEM_GROUPING, type Item, type ItemGrouping } from "@/types";
 import ItemDetail from "./ItemDetail.vue";
 import { useCurrentItem } from "@/composables/useCurrentItem";
 import { useSearchHighlight } from "@/composables/useSearchHighlight";
 
-const props = defineProps<{
+const props = withDefaults(
+  defineProps<{
+    items: Item[];
+    loading?: boolean;
+    hasMore?: boolean;
+    feedNames?: Record<number, string>;
+    groupBy?: ItemGrouping;
+  }>(),
+  { groupBy: DEFAULT_ITEM_GROUPING },
+);
+
+interface DisplayGroup {
+  key: string;
+  feedId?: number;
+  name: string;
+  showHeader: boolean;
   items: Item[];
-  loading?: boolean;
-  hasMore?: boolean;
-  feedNames?: Record<number, string>;
-}>();
+}
+
+const displayGroups = computed<DisplayGroup[]>(() => {
+  if (props.groupBy !== ITEM_GROUPING_FEED) {
+    return [{ key: "all", name: "", showHeader: false, items: props.items }];
+  }
+
+  const groups: DisplayGroup[] = [];
+  const byFeed = new Map<number, DisplayGroup>();
+  for (const item of props.items) {
+    let group = byFeed.get(item.feed_id);
+    if (!group) {
+      group = {
+        key: `feed-${item.feed_id}`,
+        feedId: item.feed_id,
+        name: props.feedNames?.[item.feed_id] || "Unknown feed",
+        showHeader: true,
+        items: [],
+      };
+      byFeed.set(item.feed_id, group);
+      groups.push(group);
+    }
+    group.items.push(item);
+  }
+  return groups;
+});
+
+const showFeedName = computed(() => props.groupBy !== ITEM_GROUPING_FEED);
 
 const emit = defineEmits<{
   toggleRead: [item: Item];
@@ -84,87 +123,96 @@ function stripHtml(s?: string): string {
       No items to show.
     </div>
 
-    <div v-else class="divide-y divide-gray-200 dark:divide-gray-700">
-      <div
-        v-for="item in items"
-        :key="item.id"
-        :data-item-id="item.id"
-        class="px-6 py-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors cursor-pointer"
-        :class="{
-          'bg-white dark:bg-gray-800': !item.read && !isExpanded(item.id),
-          'bg-gray-50 dark:bg-gray-800/30': item.read || isExpanded(item.id),
-          'ring-2 ring-blue-400 dark:ring-blue-500 ring-inset':
-            currentItemId === item.id && !isExpanded(item.id),
-        }"
-        @click="toggleExpand(item)"
-      >
-        <div class="flex items-start justify-between gap-4">
-          <div class="flex-1 min-w-0">
-            <div
-              class="flex flex-wrap items-baseline gap-x-2 text-xs text-gray-400 dark:text-gray-500"
-            >
-              <span v-if="feedNames?.[item.feed_id]" class="hidden md:inline">{{
-                feedNames[item.feed_id]
-              }}</span>
-              <span class="hidden md:inline">{{ formatDate(item.published_at) }}</span>
-              <h3 class="text-sm font-medium">
-                <span
-                  v-html="highlightText(item.title)"
-                  :class="[
-                    item.read
-                      ? 'text-gray-500 dark:text-gray-400'
-                      : 'text-gray-900 dark:text-gray-100 hover:text-blue-600 dark:hover:text-blue-400',
-                    'hover:underline',
-                  ]"
-                />
-              </h3>
-            </div>
-            <span
-              v-if="!isExpanded(item.id) && feedNames?.[item.feed_id]"
-              class="md:hidden mt-0.5 text-xs text-gray-400 dark:text-gray-500"
-              >{{ feedNames[item.feed_id] }}</span
-            >
-            <span
-              v-if="item.description && !isExpanded(item.id)"
-              class="text-sm text-gray-500 dark:text-gray-400 line-clamp-3 md:line-clamp-1"
-              v-html="highlightText(stripHtml(item.description))"
-            />
-          </div>
-          <div class="flex items-center gap-2 shrink-0">
-            <button
-              @click.stop="emit('toggleRead', item)"
-              class="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-              :title="item.read ? 'Mark as unread' : 'Mark as read'"
-            >
-              <svg v-if="item.read" class="w-4 h-4 text-gray-400 dark:text-gray-500">
-                <use href="#icon-envelope-open" />
-              </svg>
-              <svg v-else class="w-4 h-4 text-gray-400 dark:text-gray-500">
-                <use href="#icon-envelope" />
-              </svg>
-            </button>
-            <button
-              @click.stop="emit('toggleStarred', item)"
-              class="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-              :title="item.starred ? 'Unstar' : 'Star'"
-            >
-              <svg v-if="item.starred" class="w-4 h-4 text-yellow-500">
-                <use href="#icon-star-filled" />
-              </svg>
-              <svg v-else class="w-4 h-4 text-gray-400 dark:text-gray-500">
-                <use href="#icon-star" />
-              </svg>
-            </button>
-          </div>
+    <div v-else>
+      <template v-for="group in displayGroups" :key="group.key">
+        <div
+          v-if="group.showHeader"
+          :data-feed-group="group.feedId"
+          class="px-6 pt-5 pb-2 text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800"
+        >
+          {{ group.name }}
         </div>
         <div
-          v-if="isExpanded(item.id)"
-          class="mt-2 border-t border-gray-200 dark:border-gray-700 pt-2 cursor-default"
-          @click.stop
+          v-for="item in group.items"
+          :key="item.id"
+          :data-item-id="item.id"
+          class="px-6 py-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors cursor-pointer"
+          :class="{
+            'bg-white dark:bg-gray-800': !item.read && !isExpanded(item.id),
+            'bg-gray-50 dark:bg-gray-800/30': item.read || isExpanded(item.id),
+            'ring-2 ring-blue-400 dark:ring-blue-500 ring-inset':
+              currentItemId === item.id && !isExpanded(item.id),
+          }"
+          @click="toggleExpand(item)"
         >
-          <ItemDetail :item="item" />
+          <div class="flex items-start justify-between gap-4">
+            <div class="flex-1 min-w-0">
+              <div
+                class="flex flex-wrap items-baseline gap-x-2 text-xs text-gray-400 dark:text-gray-500"
+              >
+                <span v-if="showFeedName && feedNames?.[item.feed_id]" class="hidden md:inline">{{
+                  feedNames[item.feed_id]
+                }}</span>
+                <span class="hidden md:inline">{{ formatDate(item.published_at) }}</span>
+                <h3 class="text-sm font-medium">
+                  <span
+                    v-html="highlightText(item.title)"
+                    :class="[
+                      item.read
+                        ? 'text-gray-500 dark:text-gray-400'
+                        : 'text-gray-900 dark:text-gray-100 hover:text-blue-600 dark:hover:text-blue-400',
+                      'hover:underline',
+                    ]"
+                  />
+                </h3>
+              </div>
+              <span
+                v-if="showFeedName && !isExpanded(item.id) && feedNames?.[item.feed_id]"
+                class="md:hidden mt-0.5 text-xs text-gray-400 dark:text-gray-500"
+                >{{ feedNames[item.feed_id] }}</span
+              >
+              <span
+                v-if="item.description && !isExpanded(item.id)"
+                class="text-sm text-gray-500 dark:text-gray-400 line-clamp-3 md:line-clamp-1"
+                v-html="highlightText(stripHtml(item.description))"
+              />
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+              <button
+                @click.stop="emit('toggleRead', item)"
+                class="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                :title="item.read ? 'Mark as unread' : 'Mark as read'"
+              >
+                <svg v-if="item.read" class="w-4 h-4 text-gray-400 dark:text-gray-500">
+                  <use href="#icon-envelope-open" />
+                </svg>
+                <svg v-else class="w-4 h-4 text-gray-400 dark:text-gray-500">
+                  <use href="#icon-envelope" />
+                </svg>
+              </button>
+              <button
+                @click.stop="emit('toggleStarred', item)"
+                class="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                :title="item.starred ? 'Unstar' : 'Star'"
+              >
+                <svg v-if="item.starred" class="w-4 h-4 text-yellow-500">
+                  <use href="#icon-star-filled" />
+                </svg>
+                <svg v-else class="w-4 h-4 text-gray-400 dark:text-gray-500">
+                  <use href="#icon-star" />
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div
+            v-if="isExpanded(item.id)"
+            class="mt-2 border-t border-gray-200 dark:border-gray-700 pt-2 cursor-default"
+            @click.stop
+          >
+            <ItemDetail :item="item" />
+          </div>
         </div>
-      </div>
+      </template>
     </div>
 
     <div v-if="!loading && items.length > 0 && hasMore" class="flex justify-center py-4">

@@ -107,4 +107,71 @@ describe("ItemList", () => {
     await wrapper.setProps({ items: [item2] });
     expect(wrapper.find(".cursor-default").exists()).toBe(false);
   });
+
+  describe("grouping", () => {
+    function makeItem(id: number, feedId: number, title: string) {
+      return {
+        id,
+        feed_id: feedId,
+        guid: String(id),
+        title,
+        url: `https://ex.com/${id}`,
+        fetched_at: "2024-01-01T00:00:00Z",
+        read: false,
+        starred: false,
+      };
+    }
+
+    it("shows the feed name on each row when grouping is none", () => {
+      const items = [makeItem(1, 1, "Post One"), makeItem(2, 1, "Post Two")];
+      const wrapper = mount(ItemList, {
+        props: { items, feedNames: { 1: "Feed One" } },
+        global: { plugins: [router] },
+      });
+      expect(wrapper.findAll("[data-feed-group]")).toHaveLength(0);
+      expect(wrapper.text()).toContain("Feed One");
+    });
+
+    it("renders a header for each feed and no feed name on rows when grouped by feed", () => {
+      const items = [
+        makeItem(1, 1, "Post One"),
+        makeItem(2, 2, "Post Two"),
+        makeItem(3, 1, "Post Three"),
+      ];
+      const wrapper = mount(ItemList, {
+        props: {
+          items,
+          feedNames: { 1: "Feed One", 2: "Feed Two" },
+          groupBy: "feed",
+        },
+        global: { plugins: [router] },
+      });
+
+      const headers = wrapper.findAll("[data-feed-group]");
+      expect(headers).toHaveLength(2);
+      expect(headers[0].text()).toBe("Feed One");
+      expect(headers[1].text()).toBe("Feed Two");
+      expect(wrapper.find('[data-feed-group="1"]').exists()).toBe(true);
+      expect(wrapper.find('[data-feed-group="2"]').exists()).toBe(true);
+    });
+
+    it("does not duplicate the feed name on individual rows when grouped by feed", () => {
+      const items = [makeItem(1, 1, "Post One"), makeItem(2, 1, "Post Two")];
+      const wrapper = mount(ItemList, {
+        props: { items, feedNames: { 1: "Feed One" }, groupBy: "feed" },
+        global: { plugins: [router] },
+      });
+      const occurrences = wrapper.text().split("Feed One").length - 1;
+      expect(occurrences).toBe(1);
+    });
+
+    it("falls back to Unknown feed when the feed name is unavailable", () => {
+      const items = [makeItem(1, 99, "Post One")];
+      const wrapper = mount(ItemList, {
+        props: { items, feedNames: {}, groupBy: "feed" },
+        global: { plugins: [router] },
+      });
+      expect(wrapper.find('[data-feed-group="99"]').text()).toBe("Unknown feed");
+    });
+  });
 });
