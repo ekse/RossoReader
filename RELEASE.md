@@ -6,7 +6,7 @@
 
 ## Releasing the docker images
 
-- Build the docker images with `task docker-build-api` and `task docker-build-api`
+- Build the docker images with `task docker-build-api` and `task docker-build-web`
 
 - Tag the images with the version number
 
