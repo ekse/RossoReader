@@ -14,9 +14,12 @@ FROM users
 WHERE id = $1;
 
 -- name: ListUsers :many
-SELECT id, username, is_admin, created_at, updated_at
-FROM users
-ORDER BY id;
+SELECT u.id, u.username, u.is_admin, u.created_at, u.updated_at,
+       MAX(s.created_at)::timestamptz AS last_login_at
+FROM users u
+LEFT JOIN sessions s ON s.user_id = u.id
+GROUP BY u.id
+ORDER BY u.id;
 
 -- name: UpdateUserPassword :exec
 UPDATE users

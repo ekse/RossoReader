@@ -99,17 +99,21 @@ func (q *Queries) GetUserByUsername(ctx context.Context, username string) (User,
 }
 
 const listUsers = `-- name: ListUsers :many
-SELECT id, username, is_admin, created_at, updated_at
-FROM users
-ORDER BY id
+SELECT u.id, u.username, u.is_admin, u.created_at, u.updated_at,
+       MAX(s.created_at)::timestamptz AS last_login_at
+FROM users u
+LEFT JOIN sessions s ON s.user_id = u.id
+GROUP BY u.id
+ORDER BY u.id
 `
 
 type ListUsersRow struct {
-	ID        int64              `json:"id"`
-	Username  string             `json:"username"`
-	IsAdmin   bool               `json:"is_admin"`
-	CreatedAt pgtype.Timestamptz `json:"created_at"`
-	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+	ID          int64              `json:"id"`
+	Username    string             `json:"username"`
+	IsAdmin     bool               `json:"is_admin"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
+	LastLoginAt pgtype.Timestamptz `json:"last_login_at"`
 }
 
 func (q *Queries) ListUsers(ctx context.Context) ([]ListUsersRow, error) {
@@ -127,6 +131,7 @@ func (q *Queries) ListUsers(ctx context.Context) ([]ListUsersRow, error) {
 			&i.IsAdmin,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.LastLoginAt,
 		); err != nil {
 			return nil, err
 		}

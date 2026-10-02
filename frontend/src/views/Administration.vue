@@ -36,6 +36,15 @@ const canDeleteUser = (u: User) => {
   return users.value.length > 1;
 };
 
+function formatLastLogin(dateStr?: string): string {
+  if (!dateStr) return "Never";
+  return new Date(dateStr).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+}
+
 async function createUser() {
   userError.value = "";
   if (!newUserUsername.value || !newUserPassword.value) {
@@ -119,17 +128,22 @@ async function saveSettings() {
         <div
           v-for="u in users"
           :key="u.id"
-          class="flex items-center justify-between px-4 py-2 bg-white dark:bg-gray-800 rounded-md border border-gray-200 dark:border-gray-700"
+          class="flex items-center justify-between gap-4 px-4 py-2 bg-white dark:bg-gray-800 rounded-md border border-gray-200 dark:border-gray-700"
         >
-          <div class="flex items-center gap-2">
-            <span class="text-sm font-medium text-gray-900 dark:text-gray-100">{{
-              u.username
-            }}</span>
-            <span
-              v-if="u.is_admin"
-              class="px-2 py-0.5 text-xs font-medium rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
-              >admin</span
-            >
+          <div class="min-w-0">
+            <div class="flex items-center gap-2">
+              <span class="text-sm font-medium text-gray-900 dark:text-gray-100">{{
+                u.username
+              }}</span>
+              <span
+                v-if="u.is_admin"
+                class="px-2 py-0.5 text-xs font-medium rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                >admin</span
+              >
+            </div>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+              Last login: {{ formatLastLogin(u.last_login_at) }}
+            </p>
           </div>
           <button
             v-if="canDeleteUser(u)"

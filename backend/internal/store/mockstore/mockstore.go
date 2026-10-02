@@ -453,7 +453,20 @@ func (m *MockStore) ListUsers(_ context.Context) ([]domain.User, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	result := make([]domain.User, len(m.Users))
-	copy(result, m.Users)
+	for i, u := range m.Users {
+		var lastLogin *time.Time
+		for _, s := range m.Sessions {
+			if s.User.ID != u.ID {
+				continue
+			}
+			created := s.CreatedAt
+			if lastLogin == nil || created.After(*lastLogin) {
+				lastLogin = &created
+			}
+		}
+		u.LastLoginAt = lastLogin
+		result[i] = u
+	}
 	return result, nil
 }
 
@@ -496,6 +509,7 @@ func (m *MockStore) CreateSession(_ context.Context, id [16]byte, userID int64, 
 		ID:        id,
 		User:      u,
 		ExpiresAt: expiresAt,
+		CreatedAt: time.Now(),
 	}
 	return nil
 }

@@ -57,13 +57,19 @@ type loginRequest struct {
 }
 
 type userResponse struct {
-	ID       int64  `json:"id"`
-	Username string `json:"username"`
-	IsAdmin  bool   `json:"is_admin"`
+	ID          int64      `json:"id"`
+	Username    string     `json:"username"`
+	IsAdmin     bool       `json:"is_admin"`
+	LastLoginAt *time.Time `json:"last_login_at,omitempty"`
 }
 
 func toUserResponse(u domain.User) userResponse {
-	return userResponse{ID: u.ID, Username: u.Username, IsAdmin: u.IsAdmin}
+	return userResponse{
+		ID:          u.ID,
+		Username:    u.Username,
+		IsAdmin:     u.IsAdmin,
+		LastLoginAt: u.LastLoginAt,
+	}
 }
 
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {

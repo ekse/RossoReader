@@ -430,11 +430,12 @@ func (s *PGStore) ListUsers(ctx context.Context) ([]domain.User, error) {
 	users := make([]domain.User, 0, len(rows))
 	for _, r := range rows {
 		users = append(users, domain.User{
-			ID:        r.ID,
-			Username:  r.Username,
-			IsAdmin:   r.IsAdmin,
-			CreatedAt: r.CreatedAt.Time,
-			UpdatedAt: r.UpdatedAt.Time,
+			ID:          r.ID,
+			Username:    r.Username,
+			IsAdmin:     r.IsAdmin,
+			LastLoginAt: fromTimestamptz(r.LastLoginAt),
+			CreatedAt:   r.CreatedAt.Time,
+			UpdatedAt:   r.UpdatedAt.Time,
 		})
 	}
 	return users, nil
@@ -492,6 +493,7 @@ func (s *PGStore) GetSession(ctx context.Context, id [16]byte) (domain.Session, 
 	return domain.Session{
 		ID:        id,
 		ExpiresAt: r.ExpiresAt.Time,
+		CreatedAt: r.CreatedAt.Time,
 		User: domain.User{
 			ID:        r.UserID,
 			Username:  r.Username,

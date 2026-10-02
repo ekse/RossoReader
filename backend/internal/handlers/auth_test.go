@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -167,6 +168,36 @@ func TestAuth_ListUsers_AdminOnly(t *testing.T) {
 	}
 	require.NoError(t, json.Unmarshal(w.Body.Bytes(), &users))
 	assert.Len(t, users, 3) // admin + alice + bob
+}
+
+func TestAuth_ListUsers_LastLogin(t *testing.T) {
+	store := mockstore.New()
+	admin := makeUser(t, store, "admin", true)
+	bob := makeUser(t, store, "bob", false)
+
+	require.NoError(t, store.CreateSession(context.Background(), [16]byte{1}, bob.ID, time.Now().Add(time.Hour)))
+
+	h := handlers.New(store, nil, nil, newTestPasskeyHandler(store))
+	r := authedRouter(h, admin)
+
+	req := authReq("GET", "/api/users", "", admin)
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	require.Equal(t, http.StatusOK, w.Code)
+	var users []struct {
+		Username    string     `json:"username"`
+		LastLoginAt *time.Time `json:"last_login_at"`
+	}
+	require.NoError(t, json.Unmarshal(w.Body.Bytes(), &users))
+	require.Len(t, users, 2)
+
+	byName := map[string]*time.Time{}
+	for _, u := range users {
+		byName[u.Username] = u.LastLoginAt
+	}
+	require.NotNil(t, byName["bob"])
+	assert.Nil(t, byName["admin"])
 }
 
 func TestAuth_CreateUser_AdminOnly(t *testing.T) {

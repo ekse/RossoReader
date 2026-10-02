@@ -187,3 +187,30 @@ func TestPGStore_Settings(t *testing.T) {
 func strPtr(s string) *string {
 	return &s
 }
+
+func TestPGStore_ListUsers_LastLogin(t *testing.T) {
+	store, _, cleanup := pgstoretest.SetupTestStore(t)
+	defer cleanup()
+
+	ctx := context.Background()
+	alice := pgstoretest.CreateTestUser(t, ctx, store, "alice")
+	bob := pgstoretest.CreateTestUser(t, ctx, store, "bob")
+
+	require.NoError(t, store.CreateSession(ctx, [16]byte{1}, alice.ID, time.Now().Add(time.Hour)))
+
+	users, err := store.ListUsers(ctx)
+	require.NoError(t, err)
+
+	byName := map[string]domain.User{}
+	for _, u := range users {
+		byName[u.Username] = u
+	}
+
+	aliceRow, ok := byName[alice.Username]
+	require.True(t, ok)
+	require.NotNil(t, aliceRow.LastLoginAt)
+
+	bobRow, ok := byName[bob.Username]
+	require.True(t, ok)
+	assert.Nil(t, bobRow.LastLoginAt)
+}

@@ -54,6 +54,20 @@ describe("Administration", () => {
     expect(wrapper.text()).toContain("bob");
   });
 
+  it("shows last login date for users", async () => {
+    setAuthUser({ id: 1, username: "admin", is_admin: true });
+    mockListUsers.mockResolvedValue([
+      { id: 1, username: "admin", is_admin: true, last_login_at: "2024-05-06T12:00:00Z" },
+      { id: 2, username: "bob", is_admin: false },
+    ]);
+    const wrapper = mount(Administration);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(wrapper.text()).toContain("Last login:");
+    expect(wrapper.text()).toContain("2024");
+    expect(wrapper.text()).toContain("Last login: Never");
+  });
+
   it("shows admin badge for admin users", async () => {
     setAuthUser({ id: 1, username: "admin", is_admin: true });
     mockListUsers.mockResolvedValue([

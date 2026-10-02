@@ -68,6 +68,7 @@ export interface User {
   id: number;
   username: string;
   is_admin: boolean;
+  last_login_at?: string;
 }
 
 export interface Passkey {
