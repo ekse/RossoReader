@@ -1,15 +1,12 @@
 <script setup lang="ts">
-import { ref } from "vue";
 import { useSidebar } from "@/composables/useSidebar";
 import { useHeader } from "@/composables/useHeader";
-import AddFeedDialog from "@/components/AddFeedDialog.vue";
 
 defineProps<{ title?: string; showMarkAllRead?: boolean }>();
 defineEmits<{ markAllRead: [] }>();
 
 const { toggle } = useSidebar();
 const { isHeaderVisible } = useHeader();
-const showAddFeed = ref(false);
 </script>
 
 <template>
@@ -28,13 +25,6 @@ const showAddFeed = ref(false);
       <h2 v-if="title" class="text-sm font-semibold text-gray-900 dark:text-gray-100">
         {{ title }}
       </h2>
-      <button
-        @click="showAddFeed = true"
-        class="px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
-      >
-        <span class="hidden md:inline">Add Feed</span>
-        <span class="inline md:hidden font-bold text-base">+</span>
-      </button>
       <slot name="left-actions" />
     </div>
     <div class="flex items-center gap-2">
@@ -48,5 +38,4 @@ const showAddFeed = ref(false);
       </button>
     </div>
   </div>
-  <AddFeedDialog v-if="showAddFeed" @close="showAddFeed = false" />
 </template>

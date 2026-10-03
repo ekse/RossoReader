@@ -65,6 +65,7 @@ function loadFeed() {
       :loading="itemsStore.loading"
       :has-more="itemsStore.hasMore"
       :feed-names="feedsStore.feedNames"
+      :feed-icons="feedsStore.feedIcons"
       @toggle-read="itemsStore.toggleRead"
       @toggle-starred="itemsStore.toggleStarred"
       @load-more="itemsStore.loadMore"

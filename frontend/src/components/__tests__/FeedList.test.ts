@@ -149,6 +149,22 @@ describe("FeedList admin link", () => {
     await router.isReady();
   });
 
+  it("shows the Saved link with a bookmark icon", async () => {
+    const wrapper = mount(FeedList, {
+      global: {
+        plugins: [router],
+        stubs: {
+          ThemeToggle: true,
+        },
+      },
+    });
+    await router.isReady();
+
+    const savedLink = wrapper.findAll("a").find((l) => l.text().trim() === "Saved");
+    expect(savedLink).toBeTruthy();
+    expect(savedLink!.find('use[href="#icon-bookmark"]').exists()).toBe(true);
+  });
+
   it("shows Administration link when user is admin", async () => {
     mockIsAdmin = true;
     mockUsername = "admin";

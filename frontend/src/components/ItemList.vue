@@ -11,6 +11,7 @@ const props = withDefaults(
     loading?: boolean;
     hasMore?: boolean;
     feedNames?: Record<number, string>;
+    feedIcons?: Record<number, string>;
     groupBy?: ItemGrouping;
   }>(),
   { groupBy: DEFAULT_ITEM_GROUPING },
@@ -19,6 +20,7 @@ const props = withDefaults(
 interface DisplayGroup {
   key: string;
   feedId?: number;
+  icon?: string;
   name: string;
   showHeader: boolean;
   items: Item[];
@@ -37,6 +39,7 @@ const displayGroups = computed<DisplayGroup[]>(() => {
       group = {
         key: `feed-${item.feed_id}`,
         feedId: item.feed_id,
+        icon: props.feedIcons?.[item.feed_id],
         name: props.feedNames?.[item.feed_id] || "Unknown feed",
         showHeader: true,
         items: [],
@@ -128,15 +131,22 @@ function stripHtml(s?: string): string {
         <div
           v-if="group.showHeader"
           :data-feed-group="group.feedId"
-          class="px-6 pt-5 pb-2 text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800"
+          class="flex items-center gap-2 px-6 pt-2.5 pb-2 text-sm font-bold text-gray-700 dark:text-gray-100 bg-gray-100 dark:bg-gray-700"
         >
+          <img
+            v-if="group.icon"
+            :src="group.icon"
+            class="w-4 h-4 rounded shrink-0"
+            alt=""
+            loading="lazy"
+          />
           {{ group.name }}
         </div>
         <div
           v-for="item in group.items"
           :key="item.id"
           :data-item-id="item.id"
-          class="px-6 py-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors cursor-pointer"
+          class="px-6 py-3 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors cursor-pointer"
           :class="{
             'bg-white dark:bg-gray-800': !item.read && !isExpanded(item.id),
             'bg-gray-50 dark:bg-gray-800/30': item.read || isExpanded(item.id),
@@ -150,10 +160,16 @@ function stripHtml(s?: string): string {
               <div
                 class="flex flex-wrap items-baseline gap-x-2 text-xs text-gray-400 dark:text-gray-500"
               >
+                <img
+                  v-if="showFeedName && feedIcons?.[item.feed_id]"
+                  :src="feedIcons[item.feed_id]"
+                  class="hidden md:inline w-4 h-4 rounded shrink-0 self-center"
+                  alt=""
+                  loading="lazy"
+                />
                 <span v-if="showFeedName && feedNames?.[item.feed_id]" class="hidden md:inline">{{
                   feedNames[item.feed_id]
                 }}</span>
-                <span class="hidden md:inline">{{ formatDate(item.published_at) }}</span>
                 <h3 class="text-sm font-medium">
                   <span
                     v-html="highlightText(item.title)"
@@ -168,9 +184,17 @@ function stripHtml(s?: string): string {
               </div>
               <span
                 v-if="showFeedName && !isExpanded(item.id) && feedNames?.[item.feed_id]"
-                class="md:hidden mt-0.5 text-xs text-gray-400 dark:text-gray-500"
-                >{{ feedNames[item.feed_id] }}</span
+                class="md:hidden mt-0.5 flex items-center gap-1 text-xs text-gray-400 dark:text-gray-500"
               >
+                <img
+                  v-if="feedIcons?.[item.feed_id]"
+                  :src="feedIcons[item.feed_id]"
+                  class="w-3.5 h-3.5 rounded shrink-0"
+                  alt=""
+                  loading="lazy"
+                />
+                {{ feedNames[item.feed_id] }}
+              </span>
               <span
                 v-if="item.description && !isExpanded(item.id)"
                 class="text-sm text-gray-500 dark:text-gray-400 line-clamp-3 md:line-clamp-1"
@@ -178,6 +202,9 @@ function stripHtml(s?: string): string {
               />
             </div>
             <div class="flex items-center gap-2 shrink-0">
+              <span class="hidden md:inline text-xs text-gray-400 dark:text-gray-500">{{
+                formatDate(item.published_at)
+              }}</span>
               <button
                 @click.stop="emit('toggleRead', item)"
                 class="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
@@ -193,13 +220,13 @@ function stripHtml(s?: string): string {
               <button
                 @click.stop="emit('toggleStarred', item)"
                 class="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-                :title="item.starred ? 'Unstar' : 'Star'"
+                :title="item.starred ? 'Unsave' : 'Save'"
               >
                 <svg v-if="item.starred" class="w-4 h-4 text-yellow-500">
-                  <use href="#icon-star-filled" />
+                  <use href="#icon-bookmark-filled" />
                 </svg>
                 <svg v-else class="w-4 h-4 text-gray-400 dark:text-gray-500">
-                  <use href="#icon-star" />
+                  <use href="#icon-bookmark" />
                 </svg>
               </button>
             </div>

@@ -21,6 +21,15 @@ describe("useFeedsStore", () => {
     expect(store.loading).toBe(false);
   });
 
+  it("maps feed icons by id, skipping feeds without one", () => {
+    const store = useFeedsStore();
+    store.feeds = [
+      { id: 1, url: "https://a.com/rss", icon_url: "https://a.com/icon.png" } as Feed,
+      { id: 2, url: "https://b.com/rss" } as Feed,
+    ];
+    expect(store.feedIcons).toEqual({ 1: "https://a.com/icon.png" });
+  });
+
   describe("importFeeds", () => {
     it("imports all feeds successfully", async () => {
       const api = await import("@/api/client");
