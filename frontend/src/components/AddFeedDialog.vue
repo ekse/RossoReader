@@ -93,7 +93,7 @@ async function addSelected(feed: DiscoveredFeed, index: number) {
           <button
             type="submit"
             :disabled="loading || !url.trim()"
-            class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
+            class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 dark:bg-blue-800 dark:hover:bg-blue-900 disabled:opacity-50"
           >
             {{ loading ? "Discovering..." : "Discover" }}
           </button>
@@ -119,7 +119,7 @@ async function addSelected(feed: DiscoveredFeed, index: number) {
             <button
               @click="addSelected(feed, index)"
               :disabled="adding !== null"
-              class="ml-3 shrink-0 px-3 py-1 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
+              class="ml-3 shrink-0 px-3 py-1 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 dark:bg-blue-800 dark:hover:bg-blue-900 disabled:opacity-50"
             >
               {{ adding === index ? "Adding..." : "Add" }}
             </button>

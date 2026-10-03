@@ -80,6 +80,12 @@ tasks:
     cmds:
       - pnpm run lint
 
+  docker-build:
+    desc: build the docker images
+    cmds:
+      - task: docker-build-web
+      - task: docker-build-api
+
   docker-build-web:
     desc: build the docker image (web)
     dir: frontend
@@ -91,6 +97,36 @@ tasks:
     dir: backend
     cmds:
       - docker build -t ekse/rossoreader-api:latest .
+
+  docker-tag-preview:
+    desc: tag docker images as preview
+    cmds:
+      - docker image tag ekse/rossoreader-api:latest ekse/rossoreader-api:preview
+      - docker image tag ekse/rossoreader-web:latest ekse/rossoreader-web:preview
+
+  docker-tag:
+    desc: tag docker images
+    requires:
+      vars: [VERSION]
+    cmds:
+      - docker image tag ekse/rossoreader-api:latest ekse/rossoreader-api:{{.VERSION}}
+      - docker image tag ekse/rossoreader-web:latest ekse/rossoreader-web:{{.VERSION}}
+
+  docker-push:
+    desc: push docker images
+    requires:
+      vars: [VERSION]
+    cmds:
+      - docker push ekse/rossoreader-web:latest
+      - docker push ekse/rossoreader-web:{{.VERSION}}
+      - docker push ekse/rossoreader-api:latest
+      - docker push ekse/rossoreader-api:{{.VERSION}}
+  
+  docker-push-preview:
+    desc: push docker images (preview)
+    cmds:
+      - docker push ekse/rossoreader-web:preview
+      - docker push ekse/rossoreader-api:preview
 
   up:
     desc: start the app (docker compose up)

@@ -204,7 +204,7 @@ function backFromRename() {
             <button
               type="submit"
               :disabled="!renameTitle.trim()"
-              class="px-2 py-1 text-xs font-medium text-white bg-blue-600 rounded hover:bg-blue-700 disabled:opacity-50"
+              class="px-2 py-1 text-xs font-medium text-white bg-blue-600 rounded hover:bg-blue-700 dark:bg-blue-800 dark:hover:bg-blue-900 disabled:opacity-50"
             >
               Save
             </button>
@@ -253,7 +253,7 @@ function backFromRename() {
             <button
               type="submit"
               :disabled="creating || !newLabelName.trim()"
-              class="px-2 py-1 text-xs font-medium text-white bg-blue-600 rounded hover:bg-blue-700 disabled:opacity-50"
+              class="px-2 py-1 text-xs font-medium text-white bg-blue-600 rounded hover:bg-blue-700 dark:bg-blue-800 dark:hover:bg-blue-900 disabled:opacity-50"
             >
               {{ creating ? "..." : "Add" }}
             </button>

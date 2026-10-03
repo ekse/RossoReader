@@ -201,6 +201,21 @@ describe("ItemList", () => {
       expect(wrapper.text()).toContain("Feed One");
     });
 
+    it("hides the feed name and icon when showFeed is false", () => {
+      const items = [makeItem(1, 1, "Post One")];
+      const wrapper = mount(ItemList, {
+        props: {
+          items,
+          feedNames: { 1: "Feed One" },
+          feedIcons: { 1: "https://ex.com/icon.png" },
+          showFeed: false,
+        },
+        global: { plugins: [router] },
+      });
+      expect(wrapper.text()).not.toContain("Feed One");
+      expect(wrapper.find('img[src="https://ex.com/icon.png"]').exists()).toBe(false);
+    });
+
     it("renders a header for each feed and no feed name on rows when grouped by feed", () => {
       const items = [
         makeItem(1, 1, "Post One"),

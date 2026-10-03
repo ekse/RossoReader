@@ -197,7 +197,7 @@ async function saveSettings() {
         <button
           @click="createUser"
           :disabled="creatingUser"
-          class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
+          class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 dark:bg-blue-800 dark:hover:bg-blue-900 disabled:opacity-50"
         >
           {{ creatingUser ? "Creating..." : "Create user" }}
         </button>
@@ -258,7 +258,7 @@ async function saveSettings() {
         <button
           @click="saveSettings"
           :disabled="savingSettings"
-          class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
+          class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 dark:bg-blue-800 dark:hover:bg-blue-900 disabled:opacity-50"
         >
           {{ savingSettings ? "Saving..." : "Save settings" }}
         </button>
