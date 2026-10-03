@@ -114,9 +114,9 @@ function closeContextMenu() {
         "
       >
         <svg class="w-4 h-4 shrink-0">
-          <use href="#icon-star" />
+          <use href="#icon-bookmark" />
         </svg>
-        Starred
+        Saved
       </router-link>
 
       <button

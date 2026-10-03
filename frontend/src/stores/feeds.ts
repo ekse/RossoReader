@@ -36,6 +36,16 @@ export const useFeedsStore = defineStore("feeds", () => {
     return map;
   });
 
+  const feedIcons = computed(() => {
+    const map: Record<number, string> = {};
+    for (const f of feeds.value) {
+      if (f.icon_url) {
+        map[f.id] = f.icon_url;
+      }
+    }
+    return map;
+  });
+
   const hasReachedLimit = computed(() => feeds.value.length >= feedsLimit.value);
 
   const visibleLabelGroups = computed(() => {
@@ -189,6 +199,7 @@ export const useFeedsStore = defineStore("feeds", () => {
     loading,
     totalUnread,
     feedNames,
+    feedIcons,
     visibleFeeds,
     filterUnreadOnly,
     feedsLimit,

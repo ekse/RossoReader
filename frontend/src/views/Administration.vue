@@ -238,7 +238,7 @@ async function saveSettings() {
                   Items per feed limit
                 </p>
                 <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                  Items beyond this limit will be purged every 6 hours. Starred items are never
+                  Items beyond this limit will be purged every 6 hours. Saved items are never
                   deleted.
                 </p>
               </td>

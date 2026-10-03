@@ -45,6 +45,7 @@ async function markAllRead() {
       :loading="itemsStore.loading"
       :has-more="itemsStore.hasMore"
       :feed-names="feedsStore.feedNames"
+      :feed-icons="feedsStore.feedIcons"
       :group-by="grouping"
       @toggle-read="itemsStore.toggleRead"
       @toggle-starred="itemsStore.toggleStarred"

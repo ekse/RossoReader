@@ -73,7 +73,7 @@ defineEmits<{ close: [] }>();
         <div
           class="flex items-center justify-between py-2 px-3 rounded-md bg-gray-50 dark:bg-gray-700/50"
         >
-          <span class="text-sm text-gray-700 dark:text-gray-300">Toggle starred</span>
+          <span class="text-sm text-gray-700 dark:text-gray-300">Toggle saved</span>
           <kbd
             class="px-2 py-0.5 text-xs font-mono font-semibold bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded shadow-sm"
             >s</kbd
@@ -127,7 +127,7 @@ defineEmits<{ close: [] }>();
         <div
           class="flex items-center justify-between py-2 px-3 rounded-md bg-gray-50 dark:bg-gray-700/50"
         >
-          <span class="text-sm text-gray-700 dark:text-gray-300">Go to Starred</span>
+          <span class="text-sm text-gray-700 dark:text-gray-300">Go to Saved</span>
           <div class="flex items-center gap-1">
             <kbd
               class="px-2 py-0.5 text-xs font-mono font-semibold bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded shadow-sm"

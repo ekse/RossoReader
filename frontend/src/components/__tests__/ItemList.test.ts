@@ -108,6 +108,35 @@ describe("ItemList", () => {
     expect(wrapper.find(".cursor-default").exists()).toBe(false);
   });
 
+  it("shows the save action with a bookmark icon", () => {
+    const unsaved = {
+      id: 1,
+      feed_id: 1,
+      guid: "1",
+      title: "Test Post",
+      url: "https://ex.com/1",
+      fetched_at: "2024-01-01T00:00:00Z",
+      read: false,
+      starred: false,
+    };
+    const wrapper = mount(ItemList, {
+      props: { items: [unsaved] },
+      global: { plugins: [router] },
+    });
+    const button = wrapper.find('button[title="Save"]');
+    expect(button.exists()).toBe(true);
+    expect(button.find('use[href="#icon-bookmark"]').exists()).toBe(true);
+
+    const saved = { ...unsaved, starred: true };
+    const wrapper2 = mount(ItemList, {
+      props: { items: [saved] },
+      global: { plugins: [router] },
+    });
+    const savedButton = wrapper2.find('button[title="Unsave"]');
+    expect(savedButton.exists()).toBe(true);
+    expect(savedButton.find('use[href="#icon-bookmark-filled"]').exists()).toBe(true);
+  });
+
   describe("grouping", () => {
     function makeItem(id: number, feedId: number, title: string) {
       return {
@@ -121,6 +150,46 @@ describe("ItemList", () => {
         starred: false,
       };
     }
+
+    it("shows the description preview when present", () => {
+      const item = { ...makeItem(1, 1, "Post One"), description: "<p>Hello world</p>" };
+      const wrapper = mount(ItemList, {
+        props: { items: [item] },
+        global: { plugins: [router] },
+      });
+      expect(wrapper.text()).toContain("Hello world");
+    });
+
+    it("renders the feed icon before the feed name when grouping is none", () => {
+      const items = [makeItem(1, 1, "Post One")];
+      const wrapper = mount(ItemList, {
+        props: {
+          items,
+          feedNames: { 1: "Feed One" },
+          feedIcons: { 1: "https://ex.com/icon.png" },
+        },
+        global: { plugins: [router] },
+      });
+      const img = wrapper.find('img[src="https://ex.com/icon.png"]');
+      expect(img.exists()).toBe(true);
+      expect(img.element.nextElementSibling?.textContent).toContain("Feed One");
+    });
+
+    it("renders the feed icon in the feed header when grouped by feed", () => {
+      const items = [makeItem(1, 1, "Post One")];
+      const wrapper = mount(ItemList, {
+        props: {
+          items,
+          feedNames: { 1: "Feed One" },
+          feedIcons: { 1: "https://ex.com/icon.png" },
+          groupBy: "feed",
+        },
+        global: { plugins: [router] },
+      });
+      const header = wrapper.find('[data-feed-group="1"]');
+      expect(header.find('img[src="https://ex.com/icon.png"]').exists()).toBe(true);
+      expect(header.text()).toContain("Feed One");
+    });
 
     it("shows the feed name on each row when grouping is none", () => {
       const items = [makeItem(1, 1, "Post One"), makeItem(2, 1, "Post Two")];
