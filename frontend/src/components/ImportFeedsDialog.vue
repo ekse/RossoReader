@@ -191,7 +191,7 @@ function handleClose() {
             type="button"
             :disabled="!anySelected"
             @click="handleImport"
-            class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
+            class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 dark:bg-blue-800 dark:hover:bg-blue-900 disabled:opacity-50"
           >
             Import Selected ({{ selected.size }})
           </button>
@@ -218,7 +218,7 @@ function handleClose() {
           <button
             type="button"
             @click="handleClose"
-            class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
+            class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 dark:bg-blue-800 dark:hover:bg-blue-900"
           >
             Done
           </button>

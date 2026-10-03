@@ -68,6 +68,9 @@ export const useItemsStore = defineStore("items", () => {
     filterFeedId.value = undefined;
     filterRead.value = undefined;
     filterStarred.value = undefined;
+    items.value = [];
+    total.value = 0;
+    page.value = 1;
   }
 
   function setFilterFeedId(id: number | undefined) {

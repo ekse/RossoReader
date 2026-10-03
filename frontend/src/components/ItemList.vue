@@ -13,8 +13,9 @@ const props = withDefaults(
     feedNames?: Record<number, string>;
     feedIcons?: Record<number, string>;
     groupBy?: ItemGrouping;
+    showFeed?: boolean;
   }>(),
-  { groupBy: DEFAULT_ITEM_GROUPING },
+  { groupBy: DEFAULT_ITEM_GROUPING, showFeed: true },
 );
 
 interface DisplayGroup {
@@ -52,7 +53,7 @@ const displayGroups = computed<DisplayGroup[]>(() => {
   return groups;
 });
 
-const showFeedName = computed(() => props.groupBy !== ITEM_GROUPING_FEED);
+const showFeedName = computed(() => props.showFeed && props.groupBy !== ITEM_GROUPING_FEED);
 
 const emit = defineEmits<{
   toggleRead: [item: Item];
@@ -131,7 +132,7 @@ function stripHtml(s?: string): string {
         <div
           v-if="group.showHeader"
           :data-feed-group="group.feedId"
-          class="flex items-center gap-2 px-6 pt-2.5 pb-2 text-sm font-bold text-gray-700 dark:text-gray-100 bg-gray-100 dark:bg-gray-700"
+          class="flex items-center gap-2 px-6 pt-2.5 pb-2 text-sm font-bold text-gray-700 dark:text-gray-100 bg-gray-100 dark:bg-gray-800/30"
         >
           <img
             v-if="group.icon"
@@ -146,10 +147,12 @@ function stripHtml(s?: string): string {
           v-for="item in group.items"
           :key="item.id"
           :data-item-id="item.id"
-          class="px-6 py-3 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors cursor-pointer"
+          class="px-6 py-3 transition-colors cursor-pointer"
           :class="{
-            'bg-white dark:bg-gray-800': !item.read && !isExpanded(item.id),
-            'bg-gray-50 dark:bg-gray-800/30': item.read || isExpanded(item.id),
+            'hover:bg-gray-50 dark:hover:bg-gray-800/50': !isExpanded(item.id),
+            'bg-white dark:bg-gray-800/30': !item.read && !isExpanded(item.id),
+            'bg-gray-50 dark:bg-gray-800/20': item.read && !isExpanded(item.id),
+            'bg-gray-50 dark:bg-gray-800/30': isExpanded(item.id),
             'ring-2 ring-blue-400 dark:ring-blue-500 ring-inset':
               currentItemId === item.id && !isExpanded(item.id),
           }"

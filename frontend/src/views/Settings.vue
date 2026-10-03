@@ -163,7 +163,7 @@ async function deletePasskey(pk: Passkey) {
           </button>
           <button
             @click="showAddFeed = true"
-            class="px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
+            class="px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 dark:bg-blue-800 dark:hover:bg-blue-900"
           >
             + Add Feed
           </button>
@@ -300,7 +300,7 @@ async function deletePasskey(pk: Passkey) {
           <button
             @click="changePassword"
             :disabled="changingPassword"
-            class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
+            class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 dark:bg-blue-800 dark:hover:bg-blue-900 disabled:opacity-50"
           >
             {{ changingPassword ? "Saving..." : "Change password" }}
           </button>
@@ -358,7 +358,7 @@ async function deletePasskey(pk: Passkey) {
       <button
         @click="registerPasskey"
         :disabled="registeringPasskey"
-        class="mt-3 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
+        class="mt-3 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 dark:bg-blue-800 dark:hover:bg-blue-900 disabled:opacity-50"
       >
         {{ registeringPasskey ? "Registering..." : "Register new passkey" }}
       </button>

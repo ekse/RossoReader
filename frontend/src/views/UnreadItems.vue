@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted } from "vue";
+import { computed, onMounted } from "vue";
 import { useItemsStore } from "@/stores/items";
 import { useFeedsStore } from "@/stores/feeds";
 import { useItemGrouping } from "@/composables/useItemGrouping";
@@ -11,9 +11,14 @@ import * as api from "@/api/client";
 const itemsStore = useItemsStore();
 const feedsStore = useFeedsStore();
 const { grouping } = useItemGrouping();
+const isGroupedByFeed = computed(() => grouping.value === ITEM_GROUPING_FEED);
 onMounted(() => {
   itemsStore.setFilterRead(false);
 });
+
+function toggleGrouping() {
+  grouping.value = isGroupedByFeed.value ? ITEM_GROUPING_NONE : ITEM_GROUPING_FEED;
+}
 
 async function markAllRead() {
   await api.markAllItemsRead();
@@ -29,14 +34,22 @@ async function markAllRead() {
     <TopBar title="New" show-mark-all-read @mark-all-read="markAllRead">
       <template #actions>
         <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
-          <span class="hidden md:inline">Group by</span>
-          <select
-            v-model="grouping"
-            class="px-2 py-1.5 text-sm rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300"
+          <span class="hidden md:inline">Group by feed</span>
+          <button
+            type="button"
+            role="switch"
+            :aria-checked="isGroupedByFeed"
+            @click="toggleGrouping"
+            class="relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors"
+            :class="
+              isGroupedByFeed ? 'bg-blue-600 dark:bg-blue-800' : 'bg-gray-300 dark:bg-gray-600'
+            "
           >
-            <option :value="ITEM_GROUPING_NONE">None</option>
-            <option :value="ITEM_GROUPING_FEED">By Feed</option>
-          </select>
+            <span
+              class="inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform"
+              :class="isGroupedByFeed ? 'translate-x-[18px]' : 'translate-x-0.5'"
+            />
+          </button>
         </label>
       </template>
     </TopBar>

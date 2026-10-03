@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import { useItemsStore } from "@/stores/items";
 import { useFeedsStore } from "@/stores/feeds";
@@ -13,6 +13,9 @@ const itemsStore = useItemsStore();
 const feedsStore = useFeedsStore();
 const feedId = ref<number | null>(null);
 const showLabelPicker = ref(false);
+
+const feedName = computed(() => (feedId.value ? feedsStore.feedNames[feedId.value] : undefined));
+const feedIcon = computed(() => (feedId.value ? feedsStore.feedIcons[feedId.value] : undefined));
 
 onMounted(() => {
   loadFeed();
@@ -47,13 +50,20 @@ function loadFeed() {
   <div>
     <TopBar show-mark-all-read @mark-all-read="markAllRead">
       <template #left-actions>
+        <div v-if="feedId" class="flex items-center gap-2">
+          <img v-if="feedIcon" :src="feedIcon" class="w-4 h-4 rounded shrink-0" alt="" />
+          <span v-if="feedName" class="text-sm font-bold text-gray-700 dark:text-gray-100">{{
+            feedName
+          }}</span>
+        </div>
         <div v-if="feedId" class="relative">
           <button
             @click="showLabelPicker = !showLabelPicker"
-            class="px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600"
+            class="p-1.5 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+            title="Edit labels"
+            aria-label="Edit labels"
           >
-            <span class="hidden md:inline">Edit Labels</span>
-            <span class="inline md:hidden">Labels</span>
+            <svg class="w-5 h-5"><use href="#icon-tag" /></svg>
           </button>
           <LabelPicker v-if="showLabelPicker" :feed-id="feedId" @close="showLabelPicker = false" />
         </div>
@@ -66,6 +76,7 @@ function loadFeed() {
       :has-more="itemsStore.hasMore"
       :feed-names="feedsStore.feedNames"
       :feed-icons="feedsStore.feedIcons"
+      :show-feed="false"
       @toggle-read="itemsStore.toggleRead"
       @toggle-starred="itemsStore.toggleStarred"
       @load-more="itemsStore.loadMore"
