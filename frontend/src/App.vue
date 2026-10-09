@@ -71,14 +71,14 @@ watch(
       <div
         v-if="isOpen && route.meta.public !== true"
         @click="close"
-        class="fixed inset-0 z-30 bg-gray-900/50 backdrop-blur-sm md:hidden"
+        class="fixed inset-0 z-30 bg-transparent md:hidden"
       ></div>
     </Transition>
 
     <aside
       v-if="route.meta.public !== true"
       :style="isOpen && sidebarWidth !== DEFAULT_WIDTH ? { width: sidebarWidth + 'px' } : {}"
-      class="fixed inset-y-0 left-0 z-40 bg-white dark:bg-gray-800/30 border-r border-gray-200 dark:border-gray-700 overflow-y-auto overflow-x-hidden transform transition-transform duration-300 ease-in-out md:static md:translate-x-0"
+      class="fixed inset-y-0 left-0 z-40 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 overflow-y-auto overflow-x-hidden transform transition-transform duration-300 ease-in-out md:static md:translate-x-0"
       :class="[
         isOpen
           ? 'w-72 translate-x-0'
