@@ -2,6 +2,7 @@
 import { computed, watch } from "vue";
 import { ITEM_GROUPING_FEED, DEFAULT_ITEM_GROUPING, type Item, type ItemGrouping } from "@/types";
 import ItemDetail from "./ItemDetail.vue";
+import ItemActions from "./ItemActions.vue";
 import { useCurrentItem } from "@/composables/useCurrentItem";
 import { useSearchHighlight } from "@/composables/useSearchHighlight";
 
@@ -147,8 +148,9 @@ function stripHtml(s?: string): string {
           v-for="item in group.items"
           :key="item.id"
           :data-item-id="item.id"
-          class="px-6 py-3 transition-colors cursor-pointer"
+          class="px-6 transition-colors"
           :class="{
+            'py-3 cursor-pointer': !isExpanded(item.id),
             'hover:bg-gray-50 dark:hover:bg-gray-800/50': !isExpanded(item.id),
             'bg-white dark:bg-gray-800/30': !item.read && !isExpanded(item.id),
             'bg-gray-50 dark:bg-gray-800/20': item.read && !isExpanded(item.id),
@@ -158,7 +160,11 @@ function stripHtml(s?: string): string {
           }"
           @click="toggleExpand(item)"
         >
-          <div class="flex items-start justify-between gap-4">
+          <div
+            v-if="!isExpanded(item.id)"
+            data-item-line
+            class="flex items-start justify-between gap-4"
+          >
             <div class="flex-1 min-w-0">
               <div
                 class="flex flex-wrap items-baseline gap-x-2 text-xs text-gray-400 dark:text-gray-500"
@@ -208,38 +214,20 @@ function stripHtml(s?: string): string {
               <span class="hidden md:inline text-xs text-gray-400 dark:text-gray-500">{{
                 formatDate(item.published_at)
               }}</span>
-              <button
-                @click.stop="emit('toggleRead', item)"
-                class="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-                :title="item.read ? 'Mark as unread' : 'Mark as read'"
-              >
-                <svg v-if="item.read" class="w-4 h-4 text-gray-400 dark:text-gray-500">
-                  <use href="#icon-envelope-open" />
-                </svg>
-                <svg v-else class="w-4 h-4 text-gray-400 dark:text-gray-500">
-                  <use href="#icon-envelope" />
-                </svg>
-              </button>
-              <button
-                @click.stop="emit('toggleStarred', item)"
-                class="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-                :title="item.starred ? 'Unsave' : 'Save'"
-              >
-                <svg v-if="item.starred" class="w-4 h-4 text-yellow-500">
-                  <use href="#icon-bookmark-filled" />
-                </svg>
-                <svg v-else class="w-4 h-4 text-gray-400 dark:text-gray-500">
-                  <use href="#icon-bookmark" />
-                </svg>
-              </button>
+              <ItemActions
+                :item="item"
+                @toggle-read="emit('toggleRead', item)"
+                @toggle-starred="emit('toggleStarred', item)"
+              />
             </div>
           </div>
-          <div
-            v-if="isExpanded(item.id)"
-            class="mt-2 border-t border-gray-200 dark:border-gray-700 pt-2 cursor-default"
-            @click.stop
-          >
-            <ItemDetail :item="item" />
+          <div v-if="isExpanded(item.id)" class="cursor-default" @click.stop>
+            <ItemDetail
+              :item="item"
+              @close="toggleExpand(item)"
+              @toggle-read="emit('toggleRead', item)"
+              @toggle-starred="emit('toggleStarred', item)"
+            />
           </div>
         </div>
       </template>

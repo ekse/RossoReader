@@ -1,11 +1,18 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, afterEach } from "vitest";
 import { mount } from "@vue/test-utils";
 import { createRouter, createWebHistory } from "vue-router";
 import ItemList from "../ItemList.vue";
+import { useCurrentItem } from "@/composables/useCurrentItem";
 
 const router = createRouter({
   history: createWebHistory(),
   routes: [{ path: "/", component: { template: "<div />" } }],
+});
+
+const { clearExpanded } = useCurrentItem();
+
+afterEach(() => {
+  clearExpanded();
 });
 
 describe("ItemList", () => {
@@ -135,6 +142,67 @@ describe("ItemList", () => {
     const savedButton = wrapper2.find('button[title="Unsave"]');
     expect(savedButton.exists()).toBe(true);
     expect(savedButton.find('use[href="#icon-bookmark-filled"]').exists()).toBe(true);
+  });
+
+  it("hides the article line when expanded", async () => {
+    const item = {
+      id: 1,
+      feed_id: 1,
+      guid: "1",
+      title: "Test Post",
+      url: "https://ex.com/1",
+      fetched_at: "2024-01-01T00:00:00Z",
+      read: true,
+      starred: false,
+    };
+    const wrapper = mount(ItemList, {
+      props: { items: [item] },
+      global: { plugins: [router] },
+    });
+    expect(wrapper.find("[data-item-line]").exists()).toBe(true);
+    await wrapper.find(".cursor-pointer").trigger("click");
+    expect(wrapper.find("[data-item-line]").exists()).toBe(false);
+  });
+
+  it("closes the article when the detail top section is clicked", async () => {
+    const item = {
+      id: 1,
+      feed_id: 1,
+      guid: "1",
+      title: "Test Post",
+      url: "https://ex.com/1",
+      fetched_at: "2024-01-01T00:00:00Z",
+      read: true,
+      starred: false,
+    };
+    const wrapper = mount(ItemList, {
+      props: { items: [item] },
+      global: { plugins: [router] },
+    });
+    await wrapper.find(".cursor-pointer").trigger("click");
+    expect(wrapper.find("[data-item-line]").exists()).toBe(false);
+    await wrapper.find("[data-close-region]").trigger("click");
+    expect(wrapper.find("[data-item-line]").exists()).toBe(true);
+  });
+
+  it("forwards the save action from the detail pane", async () => {
+    const item = {
+      id: 1,
+      feed_id: 1,
+      guid: "1",
+      title: "Test Post",
+      url: "https://ex.com/1",
+      fetched_at: "2024-01-01T00:00:00Z",
+      read: true,
+      starred: false,
+    };
+    const wrapper = mount(ItemList, {
+      props: { items: [item] },
+      global: { plugins: [router] },
+    });
+    await wrapper.find(".cursor-pointer").trigger("click");
+    await wrapper.find('button[title="Save"]').trigger("click");
+    expect(wrapper.emitted("toggleStarred")).toBeTruthy();
   });
 
   describe("grouping", () => {
